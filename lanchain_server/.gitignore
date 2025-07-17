@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# 가상환경
+venv/
+.env
+.env.*
+
+# VSCode 설정
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# OS / 시스템 파일
+.DS_Store
+Thumbs.db
+
+# 로그 / 임시 파일
+*.log
+*.tmp
+*.swp
+
+# IDE
+.idea/
+*.iml
+
+# Pydantic 또는 기타 라이브러리 생성 캐시
+*.mypy_cache/
+.cache/
+*.pytest_cache/
+
+# 파이썬 빌드
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# dotenv 환경변수 파일
+.env
