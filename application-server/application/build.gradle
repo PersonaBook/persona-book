@@ -24,13 +24,34 @@ repositories {
 }
 
 dependencies {
+	// Spring 기본
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// WebSocket 및 STOMP 지원
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// Servlet
+	implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0' // 또는 4.0.4, 6.0.0 등 프로젝트 버전에 맞게 조정
+
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'      // Jackson 기반 파싱을 위한 추가
+
+	// Lombok (코드 간결화)
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// MySQL Connector (DB 연동)
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// Spring Test, JUnit
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+
 }
 
 tasks.named('test') {
