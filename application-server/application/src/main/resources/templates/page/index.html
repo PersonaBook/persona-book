@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content">
+    <h1>메인 페이지</h1>
+    한글 안나오냐?
+    <div class="container py-5">
+        <div id="pdf-upload-container" class="d-flex flex-wrap gap-3 justify-content-start">
+            <!-- 초기 PDF 업로드 박스 하나 -->
+            <div class="pdf-upload-box border border-secondary rounded position-relative d-flex align-items-center justify-content-center" style="width: 120px; height: 140px; cursor: pointer;">
+                <label for="pdfInput0" class="position-absolute top-0 end-0 p-2 text-primary fs-3" style="user-select:none; cursor:pointer;">+</label>
+                <i class="fas fa-file-pdf fa-4x text-danger"></i>
+                <input type="file" id="pdfInput0" accept="application/pdf" class="d-none" />
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>
