@@ -1,161 +1,302 @@
 import os
 import re
+import json
 import tempfile
+from collections import Counter
+import difflib
 
 import fitz  # PyMuPDF
 import streamlit as st
 
-def clean_java_text(text):
-    """Java 관련 텍스트를 정리하는 함수"""
+# JSON 키워드 데이터
+KEYWORDS_DATA = [
+    {"word": "문자 집합", "pages": [82]},
+    {"word": "문자열 결합", "pages": [55]},
+    {"word": "문자열 리터럴", "pages": [55]},
+    {"word": "문자열 배열", "pages": [230]},
+    {"word": "문자열 비교", "pages": [134]},
+    {"word": "문자형", "pages": [76]},
+    {"word": "문장", "pages": [108]},
+    {"word": "바이트", "pages": [65]},
+    {"word": "반복 순환 패턴", "pages": [184]},
+    {"word": "반복문", "pages": [180]},
+    {"word": "반환값", "pages": [283]},
+    {"word": "반환타입", "pages": [277]},
+    {"word": "배열", "pages": [206]},
+    {"word": "배열 섞기", "pages": [222]},
+    {"word": "배열 카운팅", "pages": [228]},
+    {"word": "배열의 길이", "pages": [211]},
+    {"word": "배열의 복사", "pages": [216]},
+    {"word": "배열의 생성", "pages": [207]},
+    {"word": "배열의 요소", "pages": [208]},
+    {"word": "배열의 인덱스", "pages": [208]},
+    {"word": "배열의 초기화", "pages": [213]},
+    {"word": "배열의 출력", "pages": [214]},
+    {"word": "버블 정렬", "pages": [226]},
+    {"word": "범위 주석", "pages": [33]},
+    {"word": "변수", "pages": [40]},
+    {"word": "변수 값교환", "pages": [43]},
+    {"word": "변수 명명규칙", "pages": [45]},
+    {"word": "변수 초기화", "pages": [41]},
+    {"word": "변수 타입", "pages": [40, 47]},
+    {"word": "스택 오버플로우", "pages": [298]},
+    {"word": "식(expression)", "pages": [108]},
+    {"word": "식별자", "pages": [45]},
+    {"word": "실수형", "pages": [89]},
+    {"word": "실수형 범위", "pages": [89]},
+    {"word": "실수형 저장형식", "pages": [92]},
+    {"word": "클래스", "pages": [255]},
+    {"word": "객체", "pages": [255]},
+    {"word": "메서드", "pages": [273]},
+    {"word": "생성자", "pages": [315]},
+    {"word": "상속", "pages": [350]},
+    {"word": "다형성", "pages": [380]},
+    {"word": "캡슐화", "pages": [290]},
+    {"word": "인터페이스", "pages": [400]},
+    {"word": "추상클래스", "pages": [370]},
+    {"word": "예외처리", "pages": [450]},
+    {"word": "컬렉션", "pages": [500]},
+    {"word": "제네릭", "pages": [520]},
+    {"word": "스레드", "pages": [600]},
+    {"word": "람다", "pages": [650]},
+    {"word": "스트림", "pages": [670]}
+]
+
+def search_keywords(query, exact_match=False):
+    """키워드 검색 함수"""
+    if not query.strip():
+        return []
     
-    patterns = [
-        # 1. 예제 번호 복원
-        (r'▼\s*예제\s+(\d+)\s*-\s*(\d+)\s*/\s*(\w+)\s*\.\s*j(?:ava)?\s*(?=\s|$|[^\w])', r'▼ 예제 \1-\2/\3.java'),
-        (r'예제\s+(\d+)\s*-\s*(\d+)\s*/\s*(\w+)\s*\.\s*j(?:ava)?\s*(?=\s|$|[^\w])', r'예제 \1-\2/\3.java'),
+    query = query.strip().lower()
+    results = []
+    
+    for item in KEYWORDS_DATA:
+        word = item["word"].lower()
         
-        # 2. 파일명 패턴
-        (r'(\w+)\s*\.\s*j(?:ava)?\s*(?=\s|$|[^\w])', r'\1.java'),
-        
-        # 3. 클래스명 복원
-        (r'(\w+)Ex\s*\.\s*j(?:ava)?\s*(?=\s|$|[^\w])', r'\1Ex.java'),
-        (r'(\w+)Test\s*\.\s*j(?:ava)?\s*(?=\s|$|[^\w])', r'\1Test.java'),
-        
-        # 4. 패키지명 복원
-        (r'\bj\s*\.\s*util\b', r'java.util'),
-        (r'\bj\s*\.\s*io\b', r'java.io'),
-        (r'\bj\s*\.\s*awt\b', r'java.awt'),
-        
-        # 5. API 관련 복원
-        (r'\bJ\s+API\b', r'Java API'),
-        (r'\bJava\s+A\s*P\s*I\b', r'Java API'),
-        
-        # 6. 숫자와 하이픈 사이 공백 제거
-        (r'(\d+)\s*-\s+(\d+)', r'\1-\2'),
-        
-        # 7. System.out 관련 복원
-        (r'System\s*\.\s*o+u*t\s*\.\s*print', r'System.out.print'),
-        (r'System\s*\.\s*o+u*t\s*\.\s*println', r'System.out.println'),
-        
-        # 8. Java 키워드 복원
-        (r'\bf+o*a+t\b', r'float'),
-        (r'\bi+n+t\b', r'int'),
-        (r'\bd+o*u+b+l+e\b', r'double'),
-        (r'\bc+h*a+r\b', r'char'),
-        (r'\bb+o*o+l+e*a*n\b', r'boolean'),
-        
-        # 9. 한국어 외래어 표기
-        (r'리져브드', r'리저브드'),
-        (r'클라스', r'클래스'),
-        (r'메소드', r'메서드'),
-        
-        # 10. 주석 관련 복원
-        (r'/\s*/\s*', r'// '),
-        (r'/\s*\*', r'/*'),
-        (r'\*\s*/', r'*/'),
+        if exact_match:
+            if word == query:
+                results.append(item)
+        else:
+            if query in word or word in query:
+                results.append(item)
+    
+    # 정확도 순으로 정렬
+    def sort_key(item):
+        word = item["word"].lower()
+        if word == query:
+            return 0
+        elif word.startswith(query):
+            return 1
+        elif word.endswith(query):
+            return 2
+        else:
+            return 3
+    
+    results.sort(key=sort_key)
+    return results
+
+def get_similar_keywords(query, limit=10):
+    """유사한 키워드 추천"""
+    if not query.strip():
+        return []
+    
+    query = query.strip().lower()
+    similarities = []
+    
+    for item in KEYWORDS_DATA:
+        word = item["word"].lower()
+        ratio = difflib.SequenceMatcher(None, query, word).ratio()
+        if ratio > 0.3:
+            similarities.append((ratio, item))
+    
+    similarities.sort(key=lambda x: x[0], reverse=True)
+    return [item for ratio, item in similarities[:limit]]
+
+def find_pages_for_topic(topic, pages_data):
+    """특정 토픽과 관련된 페이지 찾기"""
+    if not topic.strip() or not pages_data:
+        return []
+    
+    keyword_results = search_keywords(topic)
+    related_page_numbers = set()
+    
+    for result in keyword_results:
+        related_page_numbers.update(result["pages"])
+    
+    related_pages = []
+    for page in pages_data:
+        if page["page_number"] in related_page_numbers:
+            related_pages.append(page)
+    
+    return sorted(related_pages, key=lambda x: x["page_number"])
+
+def is_figure_or_table_block(text, x0, y0, x1, y1, page_width, page_height):
+    """그림과 표를 감지하는 함수"""
+    text_clean = text.strip().lower()
+    
+    # 키워드 감지
+    figure_table_keywords = [
+        r'그림\s*\d+', r'표\s*\d+', r'도표\s*\d+', r'차트\s*\d+',
+        r'figure\s*\d+', r'table\s*\d+', r'chart\s*\d+',
+        r'<그림\s*\d+>', r'<표\s*\d+>', r'\[그림\s*\d+\]', r'\[표\s*\d+\]'
     ]
     
-    cleaned = text
+    for pattern in figure_table_keywords:
+        if re.search(pattern, text_clean):
+            return True, f"키워드 감지: {pattern}"
     
-    for pattern, replacement in patterns:
-        try:
-            cleaned = re.sub(pattern, replacement, cleaned, flags=re.IGNORECASE)
-        except Exception:
+    # 표 패턴 감지
+    lines = text.split('\n')
+    table_indicators = 0
+    
+    for line in lines:
+        line_clean = line.strip()
+        if not line_clean:
             continue
+        
+        separators = line_clean.count('|') + line_clean.count('─') + line_clean.count('-') * 0.5
+        if separators >= 3:
+            table_indicators += 1
     
-    # 공백 정리
-    cleaned = re.sub(r'\n\s*\n\s*\n+', '\n\n', cleaned)
-    cleaned = re.sub(r'[ \t]+', ' ', cleaned)
-    cleaned = re.sub(r'^\s+', '', cleaned, flags=re.MULTILINE)
-    cleaned = re.sub(r'\s+$', '', cleaned, flags=re.MULTILINE)
+    if table_indicators >= 2:
+        return True, f"표 패턴 감지: {table_indicators}개 지표"
     
-    return cleaned
+    # 위치 기반 감지
+    block_width = x1 - x0
+    block_height = y1 - y0
+    center_x = page_width / 2
+    center_y = page_height / 2
+    block_center_x = (x0 + x1) / 2
+    block_center_y = (y0 + y1) / 2
+    
+    is_center_area = (abs(block_center_x - center_x) < page_width * 0.3 and 
+                     abs(block_center_y - center_y) < page_height * 0.3)
+    is_small_block = (block_width < page_width * 0.6 and block_height < page_height * 0.2)
+    
+    if is_center_area and is_small_block and len(text.strip()) < 200:
+        return True, f"중앙 영역 작은 블록"
+    
+    return False, ""
 
-def extract_text_from_pdf(pdf_path):
-    """PyMuPDF로 PDF에서 텍스트 추출"""
+def extract_text_from_pdf_enhanced(pdf_path):
+    """PDF 텍스트 추출"""
     doc = fitz.open(pdf_path)
     pages = []
+    total_blocks_removed = 0
     
     for page_num in range(len(doc)):
         page = doc.load_page(page_num)
-        text = page.get_text()
+        page_rect = page.rect
+        page_width = page_rect.width
+        page_height = page_rect.height
         
-        if text.strip():  # 빈 페이지가 아닌 경우만
-            pages.append({
-                'page_number': page_num + 1,
-                'content': text,
-                'word_count': len(text.split())
-            })
+        text_blocks = page.get_text("blocks")
+        page_content = []
+        page_word_count = 0
+        page_blocks_removed = 0
+
+        for i, block in enumerate(text_blocks):
+            if len(block) >= 7 and block[6] == 0:  # 텍스트 블록만
+                x0, y0, x1, y1, text, block_no, block_type = block
+                
+                is_figure_table, reason = is_figure_or_table_block(
+                    text, x0, y0, x1, y1, page_width, page_height
+                )
+                
+                if is_figure_table:
+                    page_blocks_removed += 1
+                    continue
+                
+                if text.strip():
+                    page_content.append(text)
+                    page_word_count += len(text.split())
+        
+        total_blocks_removed += page_blocks_removed
+        
+        if page_content:
+            page_text = "\n".join(page_content)
+            page_text = re.sub(r'\n\s*\n\s*\n+', '\n\n', page_text)
+            page_text = page_text.strip()
+            
+            if page_text:
+                pages.append({
+                    'page_number': page_num + 1,
+                    'content': page_text,
+                    'word_count': page_word_count,
+                    'quality_score': 85  # 기본값
+                })
     
     doc.close()
-    return pages
+    return pages, total_blocks_removed
 
 def main():
-    st.set_page_config(page_title="간단한 PDF Java 텍스트 정리기", page_icon="📚")
+    st.set_page_config(page_title="Java 교재 키워드 검색 도구", page_icon="☕")
     
-    st.title("📚 간단한 PDF Java 텍스트 정리기")
-    st.write("**복잡한 설치 없이** PDF에서 텍스트를 추출하고 Java 관련 파일명을 정리합니다.")
+    st.title("☕ Java 교재 키워드 검색 도구")
+    st.write("PDF에서 그림/표를 제거하고 키워드로 빠른 검색이 가능합니다.")
     
-    st.success("✅ **설치 필요 없음** - PyMuPDF만 사용하여 간단하게 작동합니다!")
+    # 세션 상태 초기화
+    if 'filtered_pages' not in st.session_state:
+        st.session_state.filtered_pages = None
+    if 'filter_keyword' not in st.session_state:
+        st.session_state.filter_keyword = None
     
-    st.divider()
-
     # 사이드바
     with st.sidebar:
-        st.header("🔧 자동 정리 규칙")
+        st.header("🔍 키워드 빠른 검색")
         
-        st.subheader("📝 파일명 복원")
-        st.code("""
-예제 2- 1/VarEx.j → 예제 2-1/VarEx.java
-OverfowEx.j → OverflowEx.java
-TestClass.j → TestClass.java
-        """, language="text")
+        # 키워드 검색 (PDF 없이도 가능)
+        search_query = st.text_input("키워드 검색", placeholder="예: 배열, 클래스, 메서드")
+        exact_match = st.checkbox("정확히 일치", value=False)
         
-        st.subheader("📦 패키지명 복원")
-        st.code("""
-j.util → java.util
-J API → Java API
-        """, language="text")
+        if search_query:
+            search_results = search_keywords(search_query, exact_match)
+            
+            if search_results:
+                st.success(f"🔍 {len(search_results)}개 키워드 발견")
+                
+                for result in search_results[:10]:
+                    pages_str = ", ".join(map(str, result["pages"]))
+                    st.write(f"📌 **{result['word']}**")
+                    st.write(f"   페이지: {pages_str}")
+                    st.write("---")
+            else:
+                st.warning("키워드를 찾을 수 없습니다.")
+                
+                # 유사한 키워드 추천
+                similar = get_similar_keywords(search_query, 5)
+                if similar:
+                    st.write("💡 **비슷한 키워드:**")
+                    for item in similar:
+                        if st.button(f"🔄 {item['word']}", key=f"similar_{item['word']}"):
+                            st.session_state.search_query = item['word']
+                            st.rerun()
         
-        st.subheader("🔧 일반 오타 복원")
-        st.code("""
-foat → float
-System.out.print 복원
-        """, language="text")
+        st.divider()
+        
+        # 카테고리별 키워드
+        st.subheader("📂 주요 카테고리")
+        categories = {
+            "배열": ["배열", "배열의 길이", "배열의 생성", "2차원 배열"],
+            "클래스": ["클래스", "객체", "메서드", "생성자"],
+            "변수": ["변수", "변수 타입", "변수 초기화"],
+            "연산자": ["산술 연산자", "비교 연산자", "논리 연산자"],
+            "제어문": ["반복문", "조건문", "분기문"]
+        }
+        
+        for category, keywords in categories.items():
+            if st.button(f"📁 {category}", key=f"cat_{category}"):
+                # 해당 카테고리의 모든 키워드를 표시
+                st.session_state.category_view = category
 
-    # 설정 옵션
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        enable_text_cleaning = st.checkbox(
-            "🔧 Java 텍스트 자동 정리", 
-            value=True,
-            help="Java 관련 텍스트 자동 정리"
-        )
-    
-    with col2:
-        remove_ebook_text = st.checkbox(
-            "🗑️ eBook 샘플 텍스트 제거",
-            value=True,
-            help="[ebook - 샘플] 관련 텍스트 자동 제거"
-        )
-    
-    show_statistics = st.checkbox(
-        "📊 상세 통계 표시",
-        value=True,
-        help="페이지별 통계 정보 표시"
-    )
+    st.divider()
 
     # 파일 업로드
     st.subheader("📤 PDF 파일 업로드")
-    pdf_file = st.file_uploader(
-        "PDF 파일을 선택하세요",
-        type="pdf",
-        help="텍스트가 포함된 PDF 파일만 지원합니다"
-    )
+    pdf_file = st.file_uploader("PDF 파일을 선택하세요", type="pdf")
 
     if pdf_file is not None:
-        # 파일 정보 표시
-        st.info(f"📄 파일명: {pdf_file.name} ({pdf_file.size:,} bytes)")
+        st.info(f"📄 파일명: {pdf_file.name}")
         
         # 임시 파일 저장
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -163,192 +304,148 @@ System.out.print 복원
             tmp_file_path = tmp_file.name
         
         try:
-            with st.spinner("📄 PDF 텍스트 추출 중..."):
-                pages = extract_text_from_pdf(tmp_file_path)
+            with st.spinner("🗑️ PDF 처리 중..."):
+                pages, total_removed = extract_text_from_pdf_enhanced(tmp_file_path)
             
             if not pages:
                 st.error("❌ PDF에서 텍스트를 추출할 수 없습니다.")
-                st.warning("**가능한 원인:**")
-                st.markdown("""
-                - 스캔된 이미지 PDF (OCR 필요)
-                - 보호된 PDF
-                - 텍스트가 포함되지 않은 PDF
-                """)
-                
-                # 직접 입력 옵션
-                st.subheader("📝 직접 텍스트 입력")
-                direct_text = st.text_area(
-                    "텍스트를 직접 입력하세요:",
-                    height=200,
-                    placeholder="예: 예제 2- 1/VarEx.j\nclass VarEx {\n    // Java 코드\n}"
-                )
-                
-                if direct_text and st.button("🔧 텍스트 정리하기"):
-                    pages = [{
-                        'page_number': 1,
-                        'content': direct_text,
-                        'word_count': len(direct_text.split())
-                    }]
-                else:
-                    return
+                return
 
-            # 텍스트 정리
-            total_changes = 0
-            ebook_removals = 0
+            st.success(f"✅ 처리 완료! {len(pages)}개 페이지, {total_removed}개 블록 제거됨")
             
-            if remove_ebook_text or enable_text_cleaning:
-                with st.spinner("🔧 텍스트 정리 중..."):
-                    for page in pages:
-                        original_content = page['content']
-                        
-                        # eBook 샘플 텍스트 제거
-                        if remove_ebook_text:
-                            patterns_to_remove = [
-                                # 1. 정확한 패턴
-                                r"\[ebook\s*-\s*샘플\.\s*무료\s*공유\]\s*자\s*바\s*의\s*정석\s*4\s*판\s*Java\s*21\s*올컬러.*?seong\.namkung@gmail\.com",
-                                
-                                # 2. 더 유연한 패턴
-                                r"\[ebook.*?샘플.*?무료.*?공유\].*?자바.*?정석.*?4.*?판.*?Java.*?21.*?seong\.namkung@gmail\.com",
-                                
-                                # 3. 이메일 주소만
-                                r"seong\.namkung@gmail\.com",
-                                
-                                # 4. ebook 부분만
-                                r"\[ebook.*?샘플.*?무료.*?공유\].*?자바.*?정석.*?",
-                                
-                                # 5. 출시 정보
-                                r"2025\.\s*7\.\s*7\s*출시",
-                                
-                                # 6. 올컬러 정보
-                                r"올컬러.*?2025",
-                            ]
-                            
-                            content_before = page['content']
-                            for pattern in patterns_to_remove:
-                                page['content'] = re.sub(pattern, "", page['content'], flags=re.IGNORECASE | re.DOTALL)
-                            
-                            if content_before != page['content']:
-                                ebook_removals += 1
-                        
-                        # Java 텍스트 정리
-                        if enable_text_cleaning:
-                            cleaned_content = clean_java_text(page['content'])
-                            if cleaned_content != page['content']:
-                                total_changes += 1
-                            page['content'] = cleaned_content
-                        
-                        # 빈 줄 정리
-                        page['content'] = re.sub(r'\n\s*\n\s*\n+', '\n\n', page['content'])
-                        page['content'] = page['content'].strip()
-
-            # 결과 표시
-            st.success("✅ 텍스트 처리 완료!")
+            # 키워드 검색 (PDF 처리 후)
+            st.subheader("🔍 키워드 검색")
             
-            # 통계 정보
-            if show_statistics:
-                st.subheader("📊 처리 결과")
-                col1, col2, col3, col4 = st.columns(4)
-                
-                total_words = sum(page['word_count'] for page in pages)
-                total_text = "\n".join([page['content'] for page in pages])
-                java_count = len(re.findall(r'\w+\.java\b', total_text))
-                
-                col1.metric("📄 총 페이지", len(pages))
-                col2.metric("📝 총 단어", f"{total_words:,}")
-                col3.metric("☕ Java 파일", java_count)
-                
-                if enable_text_cleaning or remove_ebook_text:
-                    changes_text = []
-                    if enable_text_cleaning and total_changes > 0:
-                        changes_text.append(f"Java 정리 {total_changes}개")
-                    if remove_ebook_text and ebook_removals > 0:
-                        changes_text.append(f"샘플 제거 {ebook_removals}개")
-                    
-                    if changes_text:
-                        col4.metric("🔧 정리된 페이지", " | ".join(changes_text))
-                    else:
-                        col4.metric("🔧 정리된 페이지", "없음")
-
-                # 예제 파일 미리보기
-                example_matches = re.findall(r'예제\s+\d+-\d+/\w+\.java', total_text)
-                if example_matches:
-                    st.info(f"🎯 **발견된 예제 파일:** {', '.join(example_matches[:5])}")
-                    if len(example_matches) > 5:
-                        st.write(f"... 외 {len(example_matches) - 5}개")
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                main_search = st.text_input("검색할 키워드", placeholder="예: 배열, 반복문")
+            with col2:
+                exact = st.checkbox("정확 일치")
+            with col3:
+                if st.button("🔍 검색"):
+                    if main_search:
+                        results = search_keywords(main_search, exact)
+                        if results:
+                            related_pages = find_pages_for_topic(main_search, pages)
+                            if related_pages:
+                                st.session_state.filtered_pages = related_pages
+                                st.session_state.filter_keyword = main_search
+                                st.success(f"✅ {len(related_pages)}개 관련 페이지 발견!")
+                            else:
+                                st.warning("해당 키워드의 페이지가 PDF에 없습니다.")
+                        else:
+                            st.warning("키워드를 찾을 수 없습니다.")
+            
+            # 필터링된 페이지 표시
+            display_pages = st.session_state.filtered_pages if st.session_state.filtered_pages else pages
+            filter_keyword = st.session_state.filter_keyword
+            
+            if filter_keyword:
+                st.info(f"🔍 '{filter_keyword}' 키워드로 필터링된 {len(display_pages)}개 페이지")
+                if st.button("🔄 전체 페이지 보기"):
+                    st.session_state.filtered_pages = None
+                    st.session_state.filter_keyword = None
+                    st.rerun()
 
             # 결과 탭
-            tab1, tab2, tab3 = st.tabs(["📋 페이지별 보기", "📝 전체 텍스트", "💾 다운로드"])
+            tab1, tab2, tab3 = st.tabs(["📋 페이지별 내용", "📝 전체 텍스트", "💾 다운로드"])
             
             with tab1:
-                st.subheader("📋 페이지별 텍스트")
-                for page in pages:
+                st.subheader("📋 페이지별 내용")
+                if filter_keyword:
+                    st.info(f"🔍 '{filter_keyword}' 관련 페이지만 표시")
+                
+                for page in display_pages:
+                    quality_score = page.get('quality_score', 0)
+                    
                     with st.expander(f"📄 페이지 {page['page_number']} (단어: {page['word_count']:,}개)"):
-                        # 이 페이지의 Java 파일 찾기
-                        page_java_files = re.findall(r'\w+\.java\b', page['content'])
-                        if page_java_files:
-                            st.success(f"☕ **이 페이지의 Java 파일:** {', '.join(set(page_java_files))}")
+                        # Java 파일 찾기
+                        java_files = re.findall(r'\w+\.java\b', page['content'])
+                        if java_files:
+                            st.success(f"☕ **Java 파일:** {', '.join(set(java_files))}")
+                        
+                        # 내용 표시
+                        content = page['content']
+                        if filter_keyword:
+                            # 간단한 하이라이트
+                            content = re.sub(
+                                f"({re.escape(filter_keyword)})", 
+                                r"**\1**", 
+                                content, 
+                                flags=re.IGNORECASE
+                            )
                         
                         st.text_area(
                             f"페이지 {page['page_number']} 내용",
-                            page['content'],
+                            content,
                             height=300,
                             key=f"page_{page['page_number']}"
                         )
             
             with tab2:
-                st.subheader("📝 전체 문서 텍스트")
+                st.subheader("📝 전체 텍스트")
                 full_text = "\n\n".join([
                     f"=== 페이지 {page['page_number']} ===\n{page['content']}"
-                    for page in pages
+                    for page in display_pages
                 ])
                 st.text_area("전체 텍스트", full_text, height=600)
             
             with tab3:
-                st.subheader("💾 다운로드 및 통계")
+                st.subheader("💾 다운로드")
                 
-                # 다운로드
-                full_text_for_download = "\n\n".join([
+                full_text_download = "\n\n".join([
                     f"=== 페이지 {page['page_number']} ===\n{page['content']}"
-                    for page in pages
+                    for page in display_pages
                 ])
                 
+                filename = f"extracted_text_{pdf_file.name.replace('.pdf', '')}.txt"
+                if filter_keyword:
+                    filename = f"filtered_{filter_keyword}_{pdf_file.name.replace('.pdf', '')}.txt"
+                
                 st.download_button(
-                    label="📥 정리된 텍스트 다운로드",
-                    data=full_text_for_download,
-                    file_name=f"cleaned_{pdf_file.name.replace('.pdf', '')}.txt",
+                    label="📥 텍스트 다운로드",
+                    data=full_text_download,
+                    file_name=filename,
                     mime="text/plain"
                 )
                 
-                # 상세 통계
-                st.subheader("📊 상세 통계")
-                total_chars = len(full_text_for_download)
-                total_lines = len(full_text_for_download.splitlines())
-                
-                st.write(f"- **총 페이지:** {len(pages)}")
-                st.write(f"- **총 문자:** {total_chars:,}")
-                st.write(f"- **총 단어:** {total_words:,}")
-                st.write(f"- **총 줄:** {total_lines:,}")
-                
-                # Java 파일 목록
-                if java_count > 0:
-                    st.subheader("☕ Java 파일 목록")
-                    java_files = re.findall(r'\w+\.java\b', total_text)
-                    unique_java_files = list(set(java_files))
-                    
-                    for i, java_file in enumerate(unique_java_files[:20], 1):
-                        st.write(f"{i}. {java_file}")
-                    
-                    if len(unique_java_files) > 20:
-                        st.write(f"... 외 {len(unique_java_files) - 20}개")
+                st.write(f"- **총 페이지:** {len(display_pages)}개")
+                st.write(f"- **총 단어:** {sum(page['word_count'] for page in display_pages):,}개")
+                if filter_keyword:
+                    st.write(f"- **필터 키워드:** {filter_keyword}")
 
         except Exception as e:
-            st.error(f"❌ 오류가 발생했습니다: {e}")
-            st.exception(e)
+            st.error(f"❌ 오류: {e}")
             
         finally:
-            # 임시 파일 정리
             if os.path.exists(tmp_file_path):
                 os.remove(tmp_file_path)
+
+    else:
+        # PDF 없이도 키워드 검색 가능
+        st.subheader("🔍 키워드 검색 (PDF 없이)")
+        st.write("PDF를 업로드하지 않아도 키워드 검색이 가능합니다.")
+        
+        # 전체 키워드 목록
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**📂 주요 키워드:**")
+            main_keywords = ["배열", "클래스", "메서드", "변수", "반복문", "조건문", "생성자", "상속"]
+            for keyword in main_keywords:
+                result = search_keywords(keyword, exact_match=True)
+                if result:
+                    pages_str = ", ".join(map(str, result[0]["pages"]))
+                    st.write(f"• **{keyword}** → 페이지: {pages_str}")
+        
+        with col2:
+            st.write("**🔍 검색 예시:**")
+            st.code("""
+            "배열" → 배열 관련 키워드 15개
+            "클래스" → 클래스 관련 키워드 8개  
+            "메서드" → 메서드 관련 키워드 6개
+            "변수" → 변수 관련 키워드 10개
+            """)
 
 if __name__ == '__main__':
     main()
