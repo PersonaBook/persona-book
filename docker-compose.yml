@@ -26,7 +26,7 @@ services: # 여러 개의 컨테이너를 정의할 수 있는 블록
     networks:
       - backend
     env_file:
-      - .env
+      - .env.dev
 
   application: # 내부 네트워크에서 application으로 접근 가능
     build:
@@ -44,7 +44,7 @@ services: # 여러 개의 컨테이너를 정의할 수 있는 블록
     networks:
       - backend
     env_file:
-      - .env
+      - .env.dev
 
 #  langchain:
 #    build:

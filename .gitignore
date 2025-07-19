@@ -7,8 +7,6 @@ __pycache__/
 
 # 가상환경
 venv/
-.env
-.env.*
 
 # VSCode 설정
 .vscode/
@@ -41,5 +39,5 @@ dist/
 .eggs/
 
 # dotenv 환경변수 파일
-# 개발 편의를 위해 .env 파일을 .gitignore에 등록하지 않았음(추후 등록 예정)
-# .env
+# .env.dev는 개발 환경에서 사용(개발 편의를 위해 .env.dev는 추가하지 않음)
+.env.prod
