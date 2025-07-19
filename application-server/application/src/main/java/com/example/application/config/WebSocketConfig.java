@@ -1,6 +1,5 @@
 package com.example.application.config;
 
-// import com.example.application.interceptor.WebSocketInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;

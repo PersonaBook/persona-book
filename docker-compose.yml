@@ -1,0 +1,55 @@
+version: '3.8' # 사용할 Docker Compose 파일의 버전 (3.8은 대부분 기능 지원)
+
+services: # 여러 개의 컨테이너를 정의할 수 있는 블록
+  mysql: # 내부 네트워크에서 mysql로 접근 가능
+    image: mysql:8.0.33
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234 # root 계정 비밀번호
+      MYSQL_DATABASE: chatbot # 컨테이너 실행 시 생성할 기본 DB 이름
+      MYSQL_USER: chatbot_user # 일반 사용자 계정
+      MYSQL_PASSWORD: chatbot1234 # 일반 사용자 계정의 비밀번호
+      TZ: Asia/Seoul
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "chatbot_user", "-pchatbot1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  application: # 내부 네트워크에서 application으로 접근 가능
+    build:
+      context: ./application-server/application # Dockerfile이 위치한 경로
+    container_name: application-container
+    ports:
+      - "8080:8080" # 호스트 포트 : 컨테이너 포트 매핑
+    depends_on:
+      mysql: # mysql 서비스가 먼저 시작된 후 application이 실행됨
+        condition: service_healthy # mysql 컨테이너가 건강 상태가 좋을 때만 시작
+    environment:
+      - SPRING_DATASOURCE_URL # : jdbc:mysql://mysql:3306/chatbot?useSSL=false&serverTimezone=Asia/Seoul # 내부 네트워크의 mysql에 접근
+      - SPRING_DATASOURCE_USERNAME # : chatbot_user
+      - SPRING_DATASOURCE_PASSWORD # : chatbot1234
+    networks:
+      - backend
+
+volumes:
+  mysql_data: # mysql 데이터가 저장될 영속적 볼륨 정의
+
+networks:
+  backend: # 내부 네트워크
+
+
+
+
+
+
+
+
+# 호스트와 컨테이너
+# 호스트 : 도커를 실행하는 실제 물리적 컴퓨터
+# 컨테이너 : 도커가 만든 독립적인 실행 환경(가상 환경)
+# 현재 컨테이너의 3306 포트가 호스트의 3307로 매핑 -> 3307 포트로 MySQL 컨테이너에 접근, 같은 Docker 네트워크에서는 3306 포트로 접근

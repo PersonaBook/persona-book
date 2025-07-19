@@ -41,4 +41,4 @@ dist/
 .eggs/
 
 # dotenv 환경변수 파일
-.env
+# .env
