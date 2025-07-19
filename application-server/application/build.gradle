@@ -28,9 +28,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-	// WebSocket 및 STOMP 지원
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	// WebClient
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	// Servlet
 	implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0' // 또는 4.0.4, 6.0.0 등 프로젝트 버전에 맞게 조정
@@ -45,7 +46,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
 	// MySQL Connector (DB 연동)
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
 
 	// Spring Test, JUnit
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
