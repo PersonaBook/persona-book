@@ -1,5 +1,7 @@
 package com.example.application.dto.chat;
 
+import com.example.application.entity.ChatHistory.FeatureContext;
+import com.example.application.entity.ChatHistory.StageContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,10 +13,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserMessageDto {
-    private String senderId;
-    private String receiverId;
+    private String userId;
     private Long bookId;
+    @Builder.Default
+    private String sender = "USER";
     private String content;
-    private String timestamp;
-    private String messageType; // text, selection, rating 등
+    private String messageType; // TEXT, SELECTION, RATING 등
+
+    private FeatureContext featureContext;
+    private StageContext stageContext;
 }

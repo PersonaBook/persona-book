@@ -1,13 +1,13 @@
 package com.example.application.controller.chat;
 
+import com.example.application.dto.chat.AiMessageDto;
+import com.example.application.dto.chat.UserMessageDto;
 import com.example.application.entity.ChatHistory;
 import com.example.application.service.ChatHistoryService;
+import com.example.application.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,7 +16,14 @@ import java.util.List;
 @RequestMapping("/api/chat")
 public class ChatController {
 
+    private final ChatService chatService;
     private final ChatHistoryService chatHistoryService;
+
+    @PostMapping("/send")
+    public ResponseEntity<AiMessageDto> sendMessage(@RequestBody UserMessageDto userMessageDto) {
+        AiMessageDto aiMessageDto = chatService.handleChatFlow(userMessageDto);
+        return ResponseEntity.ok(aiMessageDto);
+    }
 
     @GetMapping("/history")
     public ResponseEntity<List<ChatHistory>> getChatHistory(

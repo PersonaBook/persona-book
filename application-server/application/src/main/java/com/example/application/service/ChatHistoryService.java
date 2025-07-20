@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,13 +19,17 @@ public class ChatHistoryService {
 
     private final ChatHistoryRepository chatHistoryRepository;
 
-    public void saveUserMessage(UserMessageDto dto, Long bookId) {
+    public void saveUserMessage(UserMessageDto dto,
+                                ChatHistory.FeatureContext featureContext,
+                                ChatHistory.StageContext stageContext) {
         ChatHistory history = ChatHistory.builder()
-                .userId(Long.parseLong(dto.getSenderId()))
-                .bookId(bookId)
-                .sender(Sender.USER)
+                .userId(Long.parseLong(dto.getUserId()))
+                .bookId(dto.getBookId())
+                .sender(ChatHistory.Sender.USER)
                 .messageContent(dto.getContent())
-                .messageType(MessageType.valueOf(dto.getMessageType().toUpperCase()))
+                .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
+                .featureContext(featureContext)
+                .stageContext(stageContext)
                 .createdAt(LocalDateTime.now())
                 .build();
         chatHistoryRepository.save(history);
@@ -34,9 +39,11 @@ public class ChatHistoryService {
         ChatHistory history = ChatHistory.builder()
                 .userId(userId)
                 .bookId(bookId)
-                .sender(Sender.AI)
+                .sender(ChatHistory.Sender.AI)
                 .messageContent(dto.getContent())
-                .messageType(MessageType.valueOf(dto.getMessageType().toUpperCase()))
+                .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
+                .featureContext(dto.getFeatureContext())
+                .stageContext(dto.getStageContext())
                 .createdAt(LocalDateTime.now())
                 .build();
         chatHistoryRepository.save(history);
@@ -44,5 +51,9 @@ public class ChatHistoryService {
 
     public List<ChatHistory> getChatHistory(Long userId, Long bookId) {
         return chatHistoryRepository.findAllByUserIdAndBookIdOrderByCreatedAtAsc(userId, bookId);
+    }
+
+    public Optional<ChatHistory> findLastMessage(Long userId, Long bookId) {
+        return chatHistoryRepository.findTopByUserIdAndBookIdOrderByCreatedAtDesc(userId, bookId);
     }
 }
