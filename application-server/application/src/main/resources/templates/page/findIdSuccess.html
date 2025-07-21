@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <h1 class="my-4">아이디 찾기 완료</h1>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <p>회원님의 아이디는 <strong class="text-primary" th:text="${userId != null ? userId : '정보를 불러올 수 없습니다. 다시 시도하세요.'}"></strong> 입니다.</p>
+                        <a href="/login" class="btn btn-primary">로그인하기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

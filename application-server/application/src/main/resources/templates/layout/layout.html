@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" class="h-100">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title} ?: 'PDF-Playground'">Layout</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/custom.css}" />
+  <div layout:fragment="head"></div>
+</head>
+<body class="d-flex flex-column h-100">
+<div th:replace="fragments/header :: header"></div>
+
+<main class="flex-shrink-0 mb-3">
+  <div layout:fragment="content">
+  <!-- 이곳이 바디 부분입니다. -->
+  </div>
+</main>
+
+<div th:insert="fragments/footer :: footer" class="mt-auto"></div>
+
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<div layout:fragment="scripts"></div>
+</body>
+</html>
