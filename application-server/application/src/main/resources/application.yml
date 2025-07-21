@@ -37,6 +37,20 @@ spring:
   messages:
     encoding: UTF-8
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    transport:
+      protocol: smtp
+
   profiles:
     active: dev
 
@@ -74,3 +88,11 @@ management:
       enabled: true
     mysql:
       enabled: true
+
+app:
+  jwtSecret: ${JWT_SECRET}
+  jwtExpirationMs: 86400000
+  jwtRefreshExpirationMs: 604800000
+
+file:
+  upload-dir: ${UPLOAD_DIR_PATH}
