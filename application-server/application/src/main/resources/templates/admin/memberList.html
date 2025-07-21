@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content">
+    <div class="container">
+        <h1 class="my-4">회원 목록</h1>
+
+        <!-- 검색 조건 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form class="row g-3">
+                    <div class="col-md-6">
+                        <label for="userId" class="form-label">회원 ID</label>
+                        <input type="text" class="form-control" id="userId">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="userName" class="form-label">회원명</label>
+                        <input type="text" class="form-control" id="userName">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="userEmail" class="form-label">이메일</label>
+                        <input type="email" class="form-control" id="userEmail">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="status" class="form-label">상태</label>
+                        <select id="status" class="form-select">
+                            <option selected>전체</option>
+                            <option>정상</option>
+                            <option>탈퇴</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">검색</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 회원 목록 테이블 -->
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">회원 ID</th>
+                <th scope="col">회원명</th>
+                <th scope="col">이메일</th>
+                <th scope="col">가입일</th>
+                <th scope="col">상태</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <th scope="row" th:text="${user.userId}"></th>
+                <td th:text="${user.userName}"></td>
+                <td th:text="${user.userEmail}"></td>
+                <td th:text="${#temporals.format(user.createAt, 'yyyy-MM-dd')}"></td>
+                <td>정상</td>
+                <td><a th:href="@{'/admin/memberDetail/' + ${user.userId}}" class="btn btn-sm btn-outline-primary">상세보기</a></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이지네이션 -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">이전</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">1</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">2</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">3</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">다음</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+</html>

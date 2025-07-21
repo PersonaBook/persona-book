@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content">
+    <div class="container">
+        <h1 class="my-4">상품 등록</h1>
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="isbn" class="form-label">ISBN</label>
+                        <input type="text" class="form-control" id="isbn">
+                    </div>
+                    <div class="mb-3">
+                        <label for="productName" class="form-label">상품명</label>
+                        <input type="text" class="form-control" id="productName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="publisher" class="form-label">출판사</label>
+                        <input type="text" class="form-control" id="publisher">
+                    </div>
+                    <div class="mb-3">
+                        <label for="author" class="form-label">저자</label>
+                        <input type="text" class="form-control" id="author">
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">이미지</label>
+                        <input type="file" class="form-control" id="image">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pdf" class="form-label">PDF 미리보기</label>
+                        <input type="file" class="form-control" id="pdf">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">설명</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">가격</label>
+                        <input type="number" class="form-control" id="price">
+                    </div>
+                    <div class="mb-3">
+                        <label for="size" class="form-label">크기</label>
+                        <input type="text" class="form-control" id="size">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">평점</label>
+                        <input type="number" class="form-control" id="rating" min="0" max="5" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="salesIndex" class="form-label">판매 지수</label>
+                        <input type="number" class="form-control" id="salesIndex">
+                    </div>
+                    <button type="submit" class="btn btn-primary">등록</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>
