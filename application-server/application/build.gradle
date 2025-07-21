@@ -30,9 +30,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-	// WebSocket 및 STOMP 지원
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	// WebClient
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	// Spring Mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -56,7 +57,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
 	// MySQL Connector (DB 연동)
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
 
 	// Spring Test, JUnit
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
