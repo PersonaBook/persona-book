@@ -26,14 +26,26 @@ repositories {
 dependencies {
 	// Spring 기본
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-	// WebSocket 및 STOMP 지원
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	// WebClient
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Spring Mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// Spring Security Crypto (for PasswordEncoder)
+	implementation 'org.springframework.security:spring-security-crypto'
+
+	// Thymeleaf Layout
+	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
 
 	// Servlet
-	implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0' // 또는 4.0.4, 6.0.0 등 프로젝트 버전에 맞게 조정
+	
 
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -45,7 +57,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
 	// MySQL Connector (DB 연동)
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
 
 	// Spring Test, JUnit
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -1,24 +1,35 @@
 package com.example.application.controller.chat;
 
-import com.example.application.dto.chat.ChatMessage;
-import org.springframework.messaging.handler.annotation.*;
-import org.springframework.stereotype.Controller;
+import com.example.application.dto.chat.AiMessageDto;
+import com.example.application.dto.chat.UserMessageDto;
+import com.example.application.entity.ChatHistory;
+import com.example.application.service.ChatHistoryService;
+import com.example.application.service.ChatService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
-@Controller
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/chat")
 public class ChatController {
 
-    @MessageMapping("/chat/message")
-    @SendTo("/topic/chat")
-    public ChatMessage send(ChatMessage message,
-                            @Header("simpSessionAttributes") Map<String, Object> attributes) {
+    private final ChatService chatService;
+    private final ChatHistoryService chatHistoryService;
 
-        // JWT 생략 중이므로 senderId 직접 전달
-        if (message.getSenderId() == null) {
-            message.setSenderId("anonymous");
-        }
+    @PostMapping("/send")
+    public ResponseEntity<AiMessageDto> sendMessage(@RequestBody UserMessageDto userMessageDto) {
+        AiMessageDto aiMessageDto = chatService.handleChatFlow(userMessageDto);
+        return ResponseEntity.ok(aiMessageDto);
+    }
 
-        return message; // 구독자들에게 브로드캐스트
+    @GetMapping("/history")
+    public ResponseEntity<List<ChatHistory>> getChatHistory(
+            @RequestParam Long userId,
+            @RequestParam Long bookId
+    ) {
+        return ResponseEntity.ok(chatHistoryService.getChatHistory(userId, bookId));
     }
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content">
+    <div class="container">
+        <h1 class="my-4">내 노트</h1>
+
+        <!-- Note List Section -->
+        <div>
+            <div class="list-group">
+                <!-- Sample Note Item -->
+                <a href="/noteDetail/1" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">샘플 노트 1</h5>
+                        <small>2025-07-18</small>
+                    </div>
+                    <p class="mb-1">이곳에 노트 내용의 일부가 표시됩니다.</p>
+                    <small>관련 PDF: 샘플 PDF 1.pdf</small>
+                </a>
+                <!-- Add more note items here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>
