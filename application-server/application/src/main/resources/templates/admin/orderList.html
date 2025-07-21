@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content">
+    <div class="container">
+        <h1 class="my-4">주문 목록</h1>
+
+        <!-- 검색 조건 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form class="row g-3">
+                    <div class="col-md-6">
+                        <label for="buyerName" class="form-label">구매자명</label>
+                        <input type="text" class="form-control" id="buyerName">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="productName" class="form-label">상품명</label>
+                        <input type="text" class="form-control" id="productName">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="status" class="form-label">주문 상태</label>
+                        <select id="status" class="form-select">
+                            <option selected>전체</option>
+                            <option>결제 완료</option>
+                            <option>배송중</option>
+                            <option>배송 완료</option>
+                            <option>주문 취소</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">검색</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 주문 목록 테이블 -->
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">주문 번호</th>
+                <th scope="col">구매자 ID</th>
+                <th scope="col">상품명</th>
+                <th scope="col">주문 금액</th>
+                <th scope="col">주문 상태</th>
+                <th scope="col">주문일</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- 예시 데이터 -->
+            <tr>
+                <th scope="row">1</th>
+                <td>20250720-0001</td>
+                <td>user123</td>
+                <td>JPA 프로그래밍</td>
+                <td>38,000원</td>
+                <td>결제 완료</td>
+                <td>2025-07-20</td>
+                <td><a href="/admin/orderDetail/1" class="btn btn-sm btn-outline-primary">상세보기</a></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이지네이션 -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">이전</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">1</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">2</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">3</a></li>
+                <li class="page-item"><a class="page-link" th:href="@{'#'}">다음</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+</html>

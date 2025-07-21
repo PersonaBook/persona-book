@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- PDF Viewer -->
+            <div class="col-md-8 h-100">
+                <div class="bg-light h-100 p-3">
+                    <!-- PDF.js viewer will be embedded here -->
+                    <p class="text-center">PDF 뷰어가 여기에 표시됩니다.</p>
+                </div>
+            </div>
+
+            <!-- Chatbot -->
+            <div class="col-md-4 h-100">
+                <div class="d-flex flex-column h-100 border-start">
+                    <div class="p-3 border-bottom">
+                        <h5 class="mb-0">PDF 챗봇</h5>
+                    </div>
+                    <div class="flex-grow-1 p-3" style="overflow-y: auto;">
+                        <!-- Chat messages will be appended here -->
+                        <div class="d-flex justify-content-start mb-3">
+                            <div class="bg-light rounded p-2">
+                                <p class="mb-0">안녕하세요! PDF에 대해 무엇이든 물어보세요.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 border-top">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="질문을 입력하세요...">
+                            <button class="btn btn-primary" type="button">전송</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>
