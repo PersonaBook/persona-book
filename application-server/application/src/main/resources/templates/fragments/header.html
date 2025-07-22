@@ -20,8 +20,12 @@
                     <ul class="nav ms-auto mb-2 mb-md-0">
                         <li class="nav-item"><a th:href="@{'/myPage'}" class="btn btn-outline-primary me-2">마이페이지</a></li>
                         <li class="nav-item"><a th:href="@{'/settings'}" class="btn btn-outline-primary me-2">설정</a></li>
-                        <li class="nav-item"><a id="login-button" class="btn btn-outline-primary me-2 anchor_tag" href="/login">로그인</a></li>
-                        <li class="nav-item"><a id="logout-button" class="btn btn-outline-primary me-2 anchor_tag" href="#">로그아웃</a></li>
+                        <li class="nav-item" th:if="${accessToken == null}">
+                            <a id="login-button" class="btn btn-outline-primary me-2 anchor_tag" href="/login">로그인</a>
+                        </li>
+                        <li class="nav-item" th:if="${accessToken != null}">
+                            <a id="logout-button" class="btn btn-outline-primary me-2 anchor_tag" href="/logout">로그아웃</a>
+                        </li>
                     </ul>
                 </div>
             </div>

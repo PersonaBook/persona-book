@@ -3,3 +3,39 @@
 body {
     font-family: 'Noto Sans KR', sans-serif;
 }
+
+/* floating-window 관련 드래그/리사이즈 스타일 제거됨 */
+
+.floating-chatbot-window {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 350px;
+  height: 500px;
+  min-width: 250px;
+  min-height: 300px;
+  max-width: 90vw;
+  max-height: 90vh;
+  resize: both;
+  overflow: auto;
+  z-index: 2000;
+  box-shadow: 0 0 16px rgba(0,0,0,0.15);
+  background: #fff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.floating-chatbot-window .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.floating-chatbot-window .card-header,
+.floating-chatbot-window .card-footer {
+  flex-shrink: 0;
+}
+.floating-chatbot-window .card-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 60px;
+}
