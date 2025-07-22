@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.example.application.payload.response.MessageResponse;
 import com.example.application.util.JwtAuthUtil;
 import com.example.application.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Controller
-public class PdfController {
+public class MainController {
 
     @Autowired
     private PdfService pdfService;
@@ -27,9 +26,9 @@ public class PdfController {
     @Autowired
     private JwtAuthUtil jwtAuthUtil;
 
-    @GetMapping({"/", "/pdf-main"})
+    @GetMapping({"/"})
     public String pdfMain() {
-        return "page/pdfMain";
+        return "index";
     }
 
     @GetMapping("/pdfDetail")

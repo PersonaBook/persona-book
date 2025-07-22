@@ -1,39 +1,59 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
+<head th:fragment="head">
     <meta charset="UTF-8">
-</head>
-<body>
-<div th:fragment="header">
-    <header class="p-3 mb-3 border-bottom">
-        <div class="container">
-            <div class="d-flex flex-wrap align-items-center justify-content-between">
-                <a class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none" th:href="@{'/'}">
-                    <img alt="Logo" height="32" src="/image/logo.png" width="40">
-                </a>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-                <div class="d-flex align-items-center flex-grow-1">
-                    <ul class="nav me-auto mb-2 mb-md-0">
-                        <li class="nav-item"><a class="btn btn-outline-primary me-2" th:href="@{'/' + 'pdf/main'}">PDF로
-                            대화하기</a></li>
-                        <li class="nav-item"><a class="btn btn-outline-primary me-2" th:href="@{'/note-main'}">내 노트</a>
-                        </li>
-                    </ul>
-                    <ul class="nav ms-auto mb-2 mb-md-0">
-                        <li class="nav-item"><a class="btn btn-outline-primary me-2" th:href="@{'/myPage'}">마이페이지</a>
-                        </li>
-                        <li class="nav-item"><a class="btn btn-outline-primary me-2" th:href="@{'/settings'}">설정</a>
-                        </li>
-                        <li class="nav-item"><a class="btn btn-outline-primary me-2 anchor_tag" href="/login"
-                                                id="login-button">로그인</a></li>
-                        <li class="nav-item"><a class="btn btn-outline-primary me-2 anchor_tag" href="#"
-                                                id="logout-button">로그아웃</a></li>
-                    </ul>
-                </div>
+    <title th:text="${title} ?: 'pdf-loader'">pdf-loader</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+
+    <!-- bootstrap -->
+    <link rel="stylesheet" th:href="@{/assets/bootstrap/bootstrap.min.css}">
+    <script th:src="@{/assets/bootstrap/bootstrap.bundle.min.js}"></script>
+
+    <!-- jQUery -->
+    <script th:src="@{/assets/jQuery/jquery-3.7.1.min.js}"></script>
+
+    <!-- common.js -->
+    <script th:src="@{/js/common.js}"></script>
+</head>
+
+<body>
+<header class="p-4 border-bottom bg-dark header_components" th:fragment="header">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <a class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none" th:href="@{'/'}">
+                <img alt="Logo" height="32" src="/image/logo.png" width="40">
+            </a>
+
+            <div class="d-flex align-items-center flex-grow-1 menu_list">
+                <ul class="nav ms-auto mb-2 mb-md-0">
+                    <li class="dropdown text-end mx-2">
+                        <a aria-expanded="true"
+                           class="d-block text-decoration-none dropdown-toggle text-white show"
+                           data-bs-toggle="dropdown" href="#">마이페이지</a>
+                        <ul class="dropdown-menu text-small"
+                            data-popper-placement="bottom-start">
+                            <li><a class="dropdown-item" th:href="@{'/myPage'}">마이페이지</a></li>
+                            <li><a class="dropdown-item" th:href="@{'/note-main'}">내 노트</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="text-white mx-2" th:href="@{'/settings'}">설정</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="text-white mx-2" href="/login" id="login-button">로그인</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="text-white mx-2" href="#" id="logout-button">로그아웃</a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </header>
-</div>
-<script th:src="@{/js/header.js}"></script>
+    </div>
+</header>
+
+<script th:src="@{/js/common.js}"></script>
 </body>
 </html>

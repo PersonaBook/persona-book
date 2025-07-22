@@ -69,14 +69,17 @@ function windowMinimize() {
   document.querySelector('.chatbot-window .card-body').style.display = 'none';
 }
 function windowMaximize() {
+
+  console.log(123)
+
   const win = document.querySelector('.chatbot-window');
   if (win.classList.contains('maximized')) {
     win.style.width = '';
     win.style.height = '';
     win.classList.remove('maximized');
   } else {
-    win.style.width = '95vw';
-    win.style.height = '95vh';
+    win.style.width = '400';
+    win.style.height = '450';
     win.classList.add('maximized');
   }
 }

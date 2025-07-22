@@ -34,7 +34,7 @@ public class RegisterController {
     public String register(SignupRequest signupRequest, Model model, RedirectAttributes redirectAttributes) {
         if (authService.registerUser(signupRequest)) {
             redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다! 이메일 인증을 진행해주세요.");
-            return "redirect:/pdf-main";
+            return "redirect:index";
         } else {
             model.addAttribute("errorMessage", "회원가입에 실패했습니다. 사용자 이름 또는 이메일이 이미 존재합니다.");
             return "page/register";
