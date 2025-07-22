@@ -1,40 +1,97 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>WebSocket Chat (Thymeleaf)</title>
-    <meta charset="UTF-8">
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <meta charset="UTF-8">
+  <title>챗봇</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+    .chatbot-window {
+      height: 100vh;
+      max-width: 400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      box-shadow: 0 0 16px rgba(0,0,0,0.08);
+    }
+    .chatbot-window .card-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      max-height: none;
+    }
+    .chatbot-window .card-footer {
+      flex-shrink: 0;
+    }
+  </style>
 </head>
 <body>
-<h2>STOMP Chat (Spring + Thymeleaf)</h2>
-<input type="text" id="messageInput" placeholder="메시지를 입력하세요" />
-<button onclick="sendMessage()">Send</button>
-
-<ul id="messages"></ul>
-
+<div class="chatbot-window card shadow">
+  <div class="card-header d-flex justify-content-between align-items-center p-2 bg-info text-white">
+    <span><i class="fa fa-comments"></i> 챗봇</span>
+    <!-- 내부 창 컨트롤 버튼 제거 -->
+  </div>
+  <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+    <div class="d-flex flex-row justify-content-end mb-4">
+      <div class="p-3 me-3 border bg-body-tertiary" style="border-radius: 15px;">
+        <p class="small mb-0">안녕하세요!</p>
+      </div>
+      <img src="/image/user-avatar.png" alt="user" style="width: 45px; height: 100%;">
+    </div>
+    <div class="d-flex flex-row justify-content-start mb-4">
+      <img src="/image/bot-avatar.png" alt="bot" style="width: 45px; height: 100%;">
+      <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
+        <p class="small mb-0">안녕하세요! 무엇을 도와드릴까요?</p>
+      </div>
+    </div>
+    <div class="d-flex flex-row justify-content-end mb-4">
+      <div class="p-3 me-3 border bg-body-tertiary" style="border-radius: 15px;">
+        <p class="small mb-0">챗봇 테스트 중입니다.</p>
+      </div>
+      <img src="/image/user-avatar.png" alt="user" style="width: 45px; height: 100%;">
+    </div>
+  </div>
+  <div class="card-footer bg-white">
+    <form class="d-flex align-items-center">
+      <textarea id="chatbot-input" class="form-control bg-body-tertiary me-2" name="message" rows="3" placeholder="Type your message" style="resize:none; min-height:60px; max-height:100px; overflow-y:auto;"></textarea>
+      <button type="submit" class="btn btn-info text-white"><i class="fa fa-paper-plane"></i></button>
+    </form>
+  </div>
+</div>
 <script>
-    const socket = new SockJS("/ws");
-    const stompClient = Stomp.over(socket);
-
-    stompClient.connect({}, function (frame) {
-        console.log("Connected: " + frame);
-        stompClient.subscribe("/topic/chat", function (message) {
-            const msg = JSON.parse(message.body);
-            const li = document.createElement("li");
-            li.textContent = `[${msg.senderId}] ${msg.content}`;
-            document.getElementById("messages").appendChild(li);
-        });
+function windowMinimize() {
+  document.querySelector('.chatbot-window .card-body').style.display = 'none';
+}
+function windowMaximize() {
+  const win = document.querySelector('.chatbot-window');
+  if (win.classList.contains('maximized')) {
+    win.style.width = '';
+    win.style.height = '';
+    win.classList.remove('maximized');
+  } else {
+    win.style.width = '95vw';
+    win.style.height = '95vh';
+    win.classList.add('maximized');
+  }
+}
+function windowClose() {
+  window.close();
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('chatbot-input');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
     });
-
-    function sendMessage() {
-        const content = document.getElementById("messageInput").value;
-        stompClient.send("/app/chat/message", {}, JSON.stringify({
-            senderId: "test-user",
-            content: content,
-            timestamp: new Date().toISOString()
-        }));
-    }
+  }
+});
 </script>
 </body>
 </html>
