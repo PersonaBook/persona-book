@@ -1,0 +1,35 @@
+
+<div th:fragment="chatbot">
+<div id="chatbot-window" class="floating-window card shadow" style="display:none; width: 350px; position: fixed; bottom: 100px; right: 24px; z-index: 1060;">
+  <div class="card-header d-flex justify-content-between align-items-center p-2 bg-info text-white">
+    <span><i class="fa fa-comments"></i> Live Chat</span>
+    <div>
+      <button class="btn btn-sm btn-light me-1" title="Minimize" onclick="windowMinimize('chatbot-window')"><i class="fa fa-minus"></i></button>
+      <button class="btn btn-sm btn-light me-1" title="Maximize" onclick="windowMaximize('chatbot-window')"><i class="fa fa-square-o"></i></button>
+      <button class="btn btn-sm btn-light" title="Close" onclick="windowClose('chatbot-window')"><i class="fa fa-times"></i></button>
+    </div>
+  </div>
+  <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+    <div th:each="msg : ${chatMessages}">
+      <div th:if="${msg.sender == 'user'}" class="d-flex flex-row justify-content-end mb-4">
+        <div class="p-3 me-3 border bg-body-tertiary" style="border-radius: 15px;">
+          <p class="small mb-0" th:text="${msg.content}"></p>
+        </div>
+        <img src="/image/user-avatar.png" alt="user" style="width: 45px; height: 100%;">
+      </div>
+      <div th:if="${msg.sender == 'bot'}" class="d-flex flex-row justify-content-start mb-4">
+        <img src="/image/bot-avatar.png" alt="bot" style="width: 45px; height: 100%;">
+        <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237,.2);">
+          <p class="small mb-0" th:text="${msg.content}"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-white">
+    <form th:action="@{/chat/send}" method="post" class="d-flex align-items-center">
+      <textarea class="form-control bg-body-tertiary me-2" name="message" rows="1" placeholder="Type your message"></textarea>
+      <button type="submit" class="btn btn-info text-white"><i class="fa fa-paper-plane"></i></button>
+    </form>
+  </div>
+</div>
+</div>
