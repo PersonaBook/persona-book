@@ -1,11 +1,11 @@
-package com.example.application.controller;
+package com.example.application.controller.auth.view;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class LoginController {
+public class LoginViewController {
 
     @GetMapping("/login")
     public String loginView(Model model) {
