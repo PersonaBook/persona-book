@@ -16,9 +16,9 @@ public class FindPasswordController {
     @Autowired
     private AuthService authService;
 
-    @GetMapping("/findPassword")
+    @GetMapping("/pwInquiry")
     public String findPasswordView() {
-        return "page/findPassword";
+        return "user/pwInquiry";
     }
 
     @PostMapping("/api/findPassword/sendVerificationEmail")

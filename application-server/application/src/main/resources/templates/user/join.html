@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <title th:text="'회원가입' ?: 'PDF-Playground'">Layout</title>
+
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+
+    <script th:src="@{/js/effectiven.js}"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+    <script>
+        $( function() {
+            $( "#userBirthDate" ).datepicker();
+        } );
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <div class="d-flex ali justify-content-center">
+            <div class="col-lg-6 my-5">
+                <h1 class="fw-bold mb-4 text-center">회원가입</h1>
+
+                <div class="card">
+                    <div class="card-body">
+                        <form id="form_area" action="/register" method="post">
+                            <div class="mb-3">
+                                <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="이름을 입력해주세요." required >
+                                <div class="invalid-feedback" id="nameError"></div>
+                                <div class="valid-feedback" id="nameSuccess"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="password">비밀번호</label>
+                                <input class="form-control" id="password" name="password" placeholder="비밀번호를 입력해주세요."
+                                       required type="password">
+                                <div class="invalid-feedback" id="passwordError"></div>
+                                <div class="valid-feedback" id="passwordSuccess"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="confirmPassword">비밀번호 재확인</label>
+                                <input class="form-control" id="confirmPassword" name="confirmPassword" placeholder="비밀번호를 다시 입력해주세요."
+                                       required type="password">
+                                <div class="invalid-feedback" id="confirmPasswordError"></div>
+                                <div class="valid-feedback" id="confirmPasswordSuccess"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="email">이메일</label>
+                                <div class="d-flex gap-2">
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required >
+                                    <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="width: 160px;" >인증번호 발송</button>
+                                </div>
+                                <div class="invalid-feedback" id="emailError"></div>
+                                <div class="valid-feedback" id="emailSuccess"></div>
+                            </div>
+
+                            <div class="mb-3" id="verificationCodeSection" style="display: none">
+                                <label class="form-label" for="verificationCode">인증번호 입력</label>
+                                <div class="input-group">
+                                    <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
+                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button">인증번호 확인</button>
+                                </div>
+                                <div class="mt-2" id="codeVerificationMessage"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="userPhoneNumber">전화번호</label>
+                                <input class="form-control" id="userPhoneNumber" name="userPhoneNumber" type="tel" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="userBirthDate">생년월일</label>
+                                <input class="form-control" id="userBirthDate" name="userBirthDate" type="text" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="userJob">직업(학습경험)</label>
+                                <select class="form-select" id="userJob" name="userJob">
+                                    <option selected>선택...</option>
+                                    <option value="beginner">초보자</option>
+                                    <option value="experience">프로젝트 경험 있음</option>
+                                    <option value="major">전공학생</option>
+                                    <option value="developer">전문 개발자</option>
+                                    <option value="other">기타</option>
+                                </select>
+                            </div>
+
+                            <button id="formBtn" class="btn btn-primary w-100 mt-5" type="submit">회원가입</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <title th:text="'로그인' ?: 'PDF-Playground'">Layout</title>
+    <script th:src="@{/js/effectiven.js}"></script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <div class="d-flex ali justify-content-center">
+            <div class="col-lg-6 my-5">
+                <h1 class="fw-bold mb-4 text-center">로그인</h1>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="alert alert-danger" role="alert" th:if="${loginError}">
+                            <p class="mb-0" th:text="${loginError}"></p>
+                        </div>
+
+                        <form id="form_area" method="post" th:action="@{user/login}">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">이메일</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required>
+                                <div id="emailError" class="invalid-feedback"></div>
+                                <div id="emailSuccess" class="valid-feedback"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="password">비밀번호</label>
+                                <input class="form-control" id="password" name="password" type="password" placeholder="비밀번호를 입력해주세요." required>
+                                <div id="passwordError" class="invalid-feedback"></div>
+                                <div id="passwordSuccess" class="valid-feedback"></div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col d-flex justify-content-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input" id="rememberMe" type="checkbox" value="">
+                                        <label class="form-check-label" for="rememberMe">로그인 정보 저장</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="formBtn" class="btn btn-primary w-100 mt-5">로그인</button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <a class="text-decoration-none text-secondary link-dark" href="/idInquiry">아이디 찾기</a>
+                            <span class="mx-2">|</span>
+                            <a class="text-decoration-none text-secondary link-dark" href="/pwInquiry">비밀번호 찾기</a>
+                            <span class="mx-2">|</span>
+                            <a class="text-decoration-none text-secondary link-dark" href="/join">회원가입</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+
+</html>
