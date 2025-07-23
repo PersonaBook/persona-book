@@ -1,15 +1,32 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: head">
-  <meta charset="UTF-8">
-  <div th:replace="fragments/header :: header"></div>
-  <title>pdf-loader / 메인</title>
-  <link rel="stylesheet" th:href="@{/css/main/style.css}">
-  <script th:src="@{/js/main/script.js}"></script>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title} ?: 'PDF-Playground'">Layout</title>
+
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+
+    <!-- bootstrap -->
+    <link rel="stylesheet" th:href="@{/assets/bootstrap/bootstrap.min.css}">
+    <script th:src="@{/assets/bootstrap/bootstrap.bundle.min.js}"></script>
+
+    <!-- jQUery -->
+    <script th:src="@{/assets/jQuery/jquery-3.7.1.min.js}"></script>
+
+    <!-- common.js -->
+    <script th:src="@{/js/common.js}"></script>
 </head>
 
 <body>
-
+    <div th:replace="fragments/header :: header"></div>
+    <main class="flex-shrink-0">
+        <section>
+            <div layout:fragment="content"></div>
+<!--            <aside th:replace="fragments/aside :: aside"></aside>-->
+        </section>
+    </main>
 <!--<main class="flex-shrink-0 mb-3">-->
 <!--  <div layout:fragment="content">-->
 <!--  &lt;!&ndash; 이곳이 바디 부분입니다. &ndash;&gt;-->
@@ -17,35 +34,27 @@
 <!--</main>-->
 <!-- 챗봇 본문 UI include 제거, 플로팅 버튼만 남김 -->
 
-<section>
-  <div class="w-100 h-100 p-5">
-    <ul class="pdf_contents">
-      <!-- pdf 새로 생성된 contents start -->
-      <li>
-        <a href="">
-          <img src="" alt="pdf 이미지">
-        </a>
-      </li>
-      <!-- pdf 새로 생성된 contents end -->
+<!--<section>-->
+<!--    <div class="w-100 h-100 p-5">-->
+<!--        <ul class="pdf_contents">-->
 
-      <!-- pdf 새로 생성 start -->
-      <li>
-        <div class="plus_area">
-          <input type="file" id="imageInput" accept="image/*">
-          <label for="imageInput" class="custom_file_button">+</label>
-          <div id="imagePreview"><p></p></div>
-        </div>
-      </li>
-      <!-- pdf 새로 생성 end -->
-    </ul>
-  </div>
-</section>
+<!--            &lt;!&ndash; pdf 새로 생성 start &ndash;&gt;-->
+<!--            <li>-->
+<!--                <div class="plus_area">-->
+<!--                    <div>-->
+<!--                        <input accept="application/pdf/*" id="imageInput" type="file">-->
+<!--                        <label class="custom_file_button" for="imageInput">+</label>-->
+<!--                        <div id="imagePreview"><p></p></div>-->
+<!--                    </div>-->
+<!--                    <div class="file_area">-->
 
-
-
-
-
-
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </li>-->
+<!--            &lt;!&ndash; pdf 새로 생성 end &ndash;&gt;-->
+<!--        </ul>-->
+<!--    </div>-->
+<!--</section>-->
 
 
 <!--<div id="floating-buttons" style="position: fixed; bottom: 24px; right: 24px; z-index: 1050; display: flex; flex-direction: column; gap: 12px;">-->
@@ -56,8 +65,6 @@
 <!--    <i class="fa fa-sticky-note"></i>-->
 <!--  </button>-->
 <!--</div>-->
-
-
 
 
 <!--&lt;!&ndash; 챗봇 모달 구조 추가 &ndash;&gt;-->
@@ -94,7 +101,7 @@
 <!--  </div>-->
 <!--</div>-->
 
-<div th:insert="fragments/footer :: footer" class="mt-auto"></div>
+<div class="mt-auto" th:insert="fragments/footer :: footer"></div>
 
 </body>
 </html>
