@@ -18,9 +18,15 @@
 
 $(document).ready(function(){
     /* section layout 최소 height */
-    var header = $('header').outerHeight();
-    var section = $("section").outerHeight();
-    var footer = $("footer").outerHeight();
+    function adjustSectionHeight() {
+        const vh = $(window).outerHeight();
+        const headerH = $('header').outerHeight() || 0;
+        $('section').css('min-height', vh - headerH);
+        $('section > div').css('min-height', vh - headerH);
+        $('section > div > div.container').css('min-height', vh - headerH);
+    }
 
-    $("section").css('minHeight', (section - (header + footer)) + 'px');
+    adjustSectionHeight();
+
+    $(window).on('resize', adjustSectionHeight);
 });

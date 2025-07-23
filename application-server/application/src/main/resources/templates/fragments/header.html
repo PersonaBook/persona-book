@@ -3,41 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <!-- common.js -->
+    <script th:src="@{/js/common.js}"></script>
 </head>
 
 <body>
 <header class="p-4 border-bottom bg-dark header_components" th:fragment="header">
     <div class="container">
-        <div class="d-flex flex-wrap align-items-center justify-content-between">
-            <a class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none" th:href="@{'/'}">
-                <img alt="Logo" height="32" src="/image/logo.png" width="40">
-            </a>
 
-            <div class="d-flex align-items-center flex-grow-1 menu_list">
-                <ul class="nav ms-auto mb-2 mb-md-0">
-                    <li class="dropdown text-end mx-2">
-                        <a aria-expanded="true"
-                           class="d-block text-decoration-none dropdown-toggle text-white show"
-                           data-bs-toggle="dropdown" href="#">마이페이지</a>
-                        <ul class="dropdown-menu text-small"
-                            data-popper-placement="bottom-start">
-                            <li><a class="dropdown-item" th:href="@{'/myPage'}">마이페이지</a></li>
-                            <li><a class="dropdown-item" th:href="@{'/note-main'}">내 노트</a></li>
-                        </ul>
-                    </li>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Fifth navbar example">
+            <div class="container-fluid p-0">
+                <a class="navbar-brand" href="/">LOGO</a>
 
-                    <li class="nav-item">
-                        <a class="text-white mx-2" th:href="@{'/settings'}">설정</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="text-white mx-2" href="/login" id="login-button">로그인</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="text-white mx-2" href="#" id="logout-button">로그아웃</a>
-                    </li>
-                </ul>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="true" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse" id="navbarsExample05">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="user_name_area" style="display: none">
+                            <p>님</p>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{'/login'}">로그인</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{'/logout'}">로그아웃</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="dropdown05" data-bs-toggle="dropdown" aria-expanded="false">내 정보</a>
+                            <ul class="dropdown-menu" aria-labelledby="dropdown05">
+                                <li><a class="dropdown-item" th:href="@{'/myPage'}">마이페이지</a></li>
+                                <li><a class="dropdown-item" th:href="@{'/note-main'}">내 노트</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="/">Main</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{'/settings'}">설정</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
+        </nav>
+
+
+
+
+
+
+<!--        <div class="d-flex flex-wrap align-items-center justify-content-between">-->
+<!--            <a class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none" th:href="@{'/'}">-->
+<!--                <img alt="Logo" height="32" src="/image/logo.png" width="40">-->
+<!--            </a>-->
+
+<!--            <div class="d-flex align-items-center flex-grow-1 menu_list">-->
+<!--                <ul class="nav ms-auto mb-2 mb-md-0">-->
+<!--                    <li class="dropdown text-end mx-2">-->
+<!--                        <a aria-expanded="true"-->
+<!--                           class="d-block text-decoration-none dropdown-toggle text-white show"-->
+<!--                           data-bs-toggle="dropdown" href="#">마이페이지</a>-->
+<!--                        <ul class="dropdown-menu text-small"-->
+<!--                            data-popper-placement="bottom-start">-->
+<!--                            <li><a class="dropdown-item" th:href="@{'/myPage'}">마이페이지</a></li>-->
+<!--                            <li><a class="dropdown-item" th:href="@{'/note-main'}">내 노트</a></li>-->
+<!--                        </ul>-->
+<!--                    </li>-->
+
+<!--                    <li class="nav-item">-->
+<!--                        <a class="text-white mx-2" th:href="@{'/settings'}">설정</a>-->
+<!--                    </li>-->
+<!--                    <li class="nav-item">-->
+<!--                        <a class="text-white mx-2" href="/login" id="login-button">로그인</a>-->
+<!--                    </li>-->
+<!--                    <li class="nav-item">-->
+<!--                        <a class="text-white mx-2" href="#" id="logout-button">로그아웃</a>-->
+<!--                    </li>-->
+<!--                </ul>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 </header>
 

@@ -18,9 +18,9 @@
 
 <body>
 <div layout:fragment="content">
-    <div class="container">
-        <div class="d-flex ali justify-content-center">
-            <div class="col-lg-6 my-5">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
                 <h1 class="fw-bold mb-4 text-center">회원가입</h1>
 
                 <div class="card">
@@ -53,7 +53,7 @@
                                 <label class="form-label" for="email">이메일</label>
                                 <div class="d-flex gap-2">
                                     <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required >
-                                    <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="width: 160px;" >인증번호 발송</button>
+                                    <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="min-width: 130px;" >인증번호 발송</button>
                                 </div>
                                 <div class="invalid-feedback" id="emailError"></div>
                                 <div class="valid-feedback" id="emailSuccess"></div>
@@ -61,9 +61,9 @@
 
                             <div class="mb-3" id="verificationCodeSection" style="display: none">
                                 <label class="form-label" for="verificationCode">인증번호 입력</label>
-                                <div class="input-group">
+                                <div class="d-flex gap-2">
                                     <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
-                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button">인증번호 확인</button>
+                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인</button>
                                 </div>
                                 <div class="mt-2" id="codeVerificationMessage"></div>
                             </div>
