@@ -1,4 +1,4 @@
-package com.example.application.controller;
+package com.example.application.controller.pdf;
 
 import com.example.application.service.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.example.application.payload.response.MessageResponse;
 import com.example.application.util.JwtAuthUtil;
 import com.example.application.entity.User;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.example.application.controller;
+package com.example.application.controller.auth.api;
 
 import com.example.application.payload.request.LoginRequest;
 import com.example.application.payload.request.SignupRequest;
