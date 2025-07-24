@@ -38,15 +38,32 @@ function getAuthToken() {
 }
 
 function logout() {
-    localStorage.clear(); // 모든 localStorage 데이터 삭제
-    sessionStorage.clear(); // 모든 sessionStorage 데이터 삭제
-    
-    // 쿠키도 삭제
-    document.cookie.split(";").forEach(function(c) { 
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+    // 서버 로그아웃 API 호출
+    $.ajax({
+        url: '/api/auth/logout',
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + getAuthToken()
+        },
+        success: function() {
+            // 클라이언트 토큰 정리
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // 쿠키도 삭제
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            window.location.href = '/';
+        },
+        error: function() {
+            // 에러가 발생해도 클라이언트 정리 후 리다이렉트
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
     });
-    
-    window.location.href = '/';
 }
 
 $(document).ready(function(){
