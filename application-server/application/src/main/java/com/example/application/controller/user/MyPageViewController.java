@@ -1,4 +1,4 @@
-package com.example.application.controller.user.view;
+package com.example.application.controller.user;
 
 import com.example.application.payload.response.MessageResponse;
 import com.example.application.entity.User;

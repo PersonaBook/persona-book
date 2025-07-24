@@ -17,16 +17,7 @@ public class FindIdController {
     @Autowired
     private AuthService authService;
 
-    @GetMapping("/idInquiry")
-    public String findIdView() {
-        return "user/idInquiry";
-    }
 
-    @PostMapping("/find-id-success")
-    public String findIdSuccess(Model model) {
-        model.addAttribute("title", "아이디 찾기 완료");
-        return "user/findIdSuccess";
-    }
 
     @PostMapping("/api/findId/sendVerificationEmail")
     @ResponseBody

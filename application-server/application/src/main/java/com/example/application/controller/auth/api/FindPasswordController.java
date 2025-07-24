@@ -10,19 +10,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Controller
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RestController
+@RequestMapping("/api/findPassword")
 public class FindPasswordController {
 
     @Autowired
     private AuthService authService;
 
-    @GetMapping("/pwInquiry")
-    public String findPasswordView() {
-        return "user/pwInquiry";
-    }
 
-    @PostMapping("/api/findPassword/sendVerificationEmail")
-    @ResponseBody
+
+    @PostMapping("/sendVerificationEmail")
     public ResponseEntity<?> sendVerificationEmailFindPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         if (email == null || email.isEmpty()) {
@@ -35,8 +33,7 @@ public class FindPasswordController {
         }
     }
 
-    @PostMapping("/api/findPassword/verifyCode")
-    @ResponseBody
+    @PostMapping("/verifyCode")
     public ResponseEntity<?> verifyCodeFindPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String code = request.get("code");
@@ -50,13 +47,9 @@ public class FindPasswordController {
         }
     }
 
-    @GetMapping("/findPasswordSuccess")
-    public String findPasswordSuccess() {
-        return "page/findPasswordSuccess";
-    }
 
-    @PostMapping("/api/findPassword/reset")
-    @ResponseBody
+
+    @PostMapping("/reset")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String verificationCode = request.get("verificationCode");
@@ -74,8 +67,7 @@ public class FindPasswordController {
         }
     }
 
-    @PostMapping("/api/resetPassword")
-    @ResponseBody
+    @PostMapping("/resetPassword")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         if (email == null || email.isEmpty()) {

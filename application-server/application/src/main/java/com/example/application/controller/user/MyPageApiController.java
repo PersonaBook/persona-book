@@ -1,4 +1,4 @@
-package com.example.application.controller.user.api;
+package com.example.application.controller.user;
 
 import com.example.application.entity.User;
 import com.example.application.util.JwtAuthUtil;
