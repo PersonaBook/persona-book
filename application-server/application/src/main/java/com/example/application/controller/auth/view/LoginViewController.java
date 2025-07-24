@@ -37,7 +37,7 @@ public class LoginViewController {
             // 세션에 토큰 저장하고 메인으로 리다이렉트
             session.setAttribute("loginToken", jwtResponse.getToken());
             
-            return "redirect:/?token=" + jwtResponse.getToken();
+            return "redirect:/?token=" + jwtResponse.getToken() + "&refresh=true";
         } catch (Exception e) {
             model.addAttribute("loginError", "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요.");
             return "user/login";

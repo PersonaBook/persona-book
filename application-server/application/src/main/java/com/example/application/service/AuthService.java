@@ -97,6 +97,14 @@ public class AuthService {
         session.invalidate();
     }
 
+    public void validateAndCleanupSession(HttpSession session) {
+        String loginToken = (String) session.getAttribute("loginToken");
+        if (loginToken != null && !jwtTokenProvider.validateToken(loginToken)) {
+            session.removeAttribute("loginToken");
+            session.removeAttribute("refreshToken");
+        }
+    }
+
     public boolean registerUser(SignupRequest signUpRequest) {
         if (userRepository.existsByUserName(signUpRequest.getUserName())) {
             return false; // Username is already taken!
