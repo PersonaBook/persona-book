@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>서버 오류 - 500</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <div class="d-flex ali justify-content-center">
+            <div class="col-lg-6 my-5">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <h1 class="display-1 text-danger fw-bold">500</h1>
+                            <h2 class="mb-3">서버 오류</h2>
+                            <p class="lead text-muted" th:text="${message}">서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="/" class="btn btn-primary">메인으로</a>
+                            <button onclick="history.back()" class="btn btn-secondary">이전 페이지</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
