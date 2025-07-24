@@ -37,10 +37,6 @@ function getAuthToken() {
     return localStorage.getItem('accessToken') || '';
 }
 
-function isLoggedIn() {
-    return getAuthToken() !== '';
-}
-
 function logout() {
     localStorage.clear(); // 모든 localStorage 데이터 삭제
     sessionStorage.clear(); // 모든 sessionStorage 데이터 삭제
@@ -61,19 +57,9 @@ $(document).ready(function(){
         $('section').css('min-height', vh - headerH);
         $('section > div').css('min-height', vh - headerH);
         $('section > div > div.container').css('min-height', vh - headerH);
+        $('#bookData').css('min-height', vh - headerH);
     }
   
      adjustSectionHeight();
-
       $(window).on('resize', adjustSectionHeight);
-
-      // 로그인 상태에 따라 버튼 보이기/숨기기
-      if (isLoggedIn()) {
-          $('#logout-nav').show();
-          $('#login-nav').hide();
-      } else {
-          $('#login-nav').show();
-          $('#logout-nav').hide();
-      }
-
 });

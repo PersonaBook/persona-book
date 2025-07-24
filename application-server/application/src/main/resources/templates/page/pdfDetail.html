@@ -1,31 +1,43 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/layout}">
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
+    <meta charset="UTF-8">
     <script th:src="@{/js/common.js}"></script>
-    <style>
-        #pdfViewer {
-            width: 100%;
-            height: 80vh;
-        }
-    </style>
+    <style> #pdfViewer { width: 100%; } </style>
+    <title th:text="'pdf 상세' ?: 'PDF-Playground'">Layout</title>
 </head>
 
+<body>
 <div layout:fragment="content">
     <!-- Hidden div for JSON data -->
     <div id="bookData" style="display:none;" th:utext="${bookJson}"></div>
-    
+
     <div id="pdfViewer">
         <p>PDF를 로딩 중입니다...</p>
     </div>
-    
+
     <script>
+        $(document).ready(function(){
+            /* section layout 최소 height */
+            function adjustSectionHeight() {
+                const vh = $(window).outerHeight();
+                const headerH = $('header').outerHeight() || 0;
+                $('#pdfViewer').css({
+                    'min-height': vh - headerH,
+                    'transform': 'scale(1.03)'
+                });
+                $('#pdfViewer > embed').css('height', vh - headerH);
+            }
+
+            adjustSectionHeight();
+            $(window).on('resize', adjustSectionHeight);
+        });
+
         console.log('스크립트 시작');
-        
-        // DOMContentLoaded 없이 바로 실행
+
         console.log('즉시 실행');
-        
         // Hidden div에서 JSON 가져오기 (이스케이프 문제 해결)
         const bookData = JSON.parse(document.getElementById('bookData').textContent);
         console.log('bookData:', bookData);
@@ -36,10 +48,10 @@
             console.log('bookData.title:', bookData.title);
             console.log('bookData.bookId:', bookData.bookId);
         }
-        
+
         // 일단 강제로 메시지 변경해서 스크립트 실행 확인
         document.getElementById('pdfViewer').innerHTML = '<p>스크립트가 실행되었습니다!</p>';
-        
+
         if (bookData && bookData.fileBase64) {
             console.log('PDF 데이터 있음, 로딩 시작');
             displayPdfAsRaw(bookData.fileBase64);
@@ -56,16 +68,16 @@
                 for (let i = 0; i < binaryString.length; i++) {
                     bytes[i] = binaryString.charCodeAt(i);
                 }
-                
-                const blob = new Blob([bytes], { type: 'application/pdf' });
+
+                const blob = new Blob([bytes], {type: 'application/pdf'});
                 const url = URL.createObjectURL(blob);
-                
+
                 const embed = document.createElement('embed');
                 embed.src = url;
                 embed.type = 'application/pdf';
                 embed.width = '100%';
                 embed.height = '100%';
-                
+
                 document.getElementById('pdfViewer').innerHTML = '';
                 document.getElementById('pdfViewer').appendChild(embed);
                 console.log('PDF 렌더링 완료');
@@ -76,5 +88,7 @@
         }
     </script>
 </div>
+</body>
+
 
 </html>
