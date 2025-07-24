@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/main/style.css}">
+    <script th:src="@{/js/main/script.js}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // PDF.js 설정
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // CMap 설정 (한국어 폰트 지원)
+        pdfjsLib.cMapUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/';
+        pdfjsLib.cMapPacked = true;
+    </script>
+    <title th:text="'main' ?: 'PDF-Playground'">Layout</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <div class="w-100 h-100 py-5">
+            <ul class="pdf_contents">
+
+                <!-- pdf 새로 생성 start -->
+                <li>
+                    <div class="plus_area">
+                        <div>
+                            <input accept="application/pdf/*" id="imageInput" type="file">
+                            <label class="custom_file_button" for="imageInput">+</label>
+                            <div id="imagePreview"><p></p></div>
+                        </div>
+                        <div class="file_area"></div>
+                    </div>
+                </li>
+                <!-- pdf 새로 생성 end -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>
