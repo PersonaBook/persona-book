@@ -66,6 +66,78 @@ function logout() {
     });
 }
 
+// 헤더 인증 상태 관리 모듈
+const HeaderAuthManager = {
+    // DOM 요소 캐싱
+    elements: {
+        loginNav: null,
+        logoutNav: null
+    },
+    
+    // 초기화
+    init() {
+        this.cacheElements();
+        this.updateUI();
+        this.bindEvents();
+    },
+    
+    // DOM 요소 캐싱
+    cacheElements() {
+        this.elements.loginNav = document.getElementById('login-nav');
+        this.elements.logoutNav = document.getElementById('logout-nav');
+    },
+    
+    // 토큰 상태 확인
+    hasValidToken() {
+        const token = getAuthToken();
+        return token && token.trim() !== '';
+    },
+    
+    // UI 업데이트
+    updateUI() {
+        const isLoggedIn = this.hasValidToken();
+        this.toggleElement(this.elements.loginNav, !isLoggedIn);
+        this.toggleElement(this.elements.logoutNav, isLoggedIn);
+    },
+    
+    // 요소 표시/숨김 토글
+    toggleElement(element, show) {
+        if (element) {
+            element.style.display = show ? 'block' : 'none';
+        }
+    },
+    
+    // 이벤트 바인딩
+    bindEvents() {
+        // 페이지 포커스 이벤트
+        $(window).on('focus', () => this.updateUI());
+        
+        // 탭 전환 이벤트
+        $(document).on('visibilitychange', () => {
+            if (!document.hidden) {
+                this.updateUI();
+            }
+        });
+        
+        // localStorage 변경 이벤트 (다른 탭에서의 변경 감지)
+        $(window).on('storage', (e) => {
+            if (e.originalEvent.key === 'accessToken') {
+                this.updateUI();
+            }
+        });
+    },
+    
+    // 강제 UI 업데이트 (외부에서 호출 가능)
+    refresh() {
+        this.updateUI();
+    }
+};
+
+// 하위 호환성을 위한 기존 함수
+function checkTokenAndUpdateUI() {
+    HeaderAuthManager.updateUI();
+}
+
 $(document).ready(function(){
     /* section layout 최소 height */
     function adjustSectionHeight() {
@@ -77,6 +149,32 @@ $(document).ready(function(){
         $('#bookData').css('min-height', vh - headerH);
     }
   
-     adjustSectionHeight();
-      $(window).on('resize', adjustSectionHeight);
+    adjustSectionHeight();
+    $(window).on('resize', adjustSectionHeight);
+    
+    // 헤더 인증 관리자 초기화
+    HeaderAuthManager.init();
+    
+    // URL에서 토큰 파라미터 처리
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const shouldRefresh = urlParams.get('refresh') === 'true';
+    
+    // 토큰이 있으면 localStorage에 저장
+    if (token) {
+        localStorage.setItem('accessToken', token);
+        // URL에서 token 파라미터 제거
+        const cleanUrl = window.location.pathname + window.location.search
+            .replace(/[?&]token=[^&]*/, '')
+            .replace(/[?&]refresh=true/, '')
+            .replace(/^\?$/, '');
+        history.replaceState(null, '', cleanUrl);
+    }
+    
+    // 로그인 후 리다이렉트 시 새로고침
+    if (shouldRefresh) {
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
+    }
 });
