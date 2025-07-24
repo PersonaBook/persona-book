@@ -1,25 +1,25 @@
-$(document).ready(function() {
-    // URL 파라미터에서 토큰 확인 및 localStorage에 저장
-    console.log('main/script.js 실행');
-    console.log('현재 URL:', window.location.href);
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    console.log('URL에서 추출한 토큰:', token);
-    
-    if (token) {
-        localStorage.setItem('accessToken', token);
-        console.log('토큰이 localStorage에 저장되었습니다:', localStorage.getItem('accessToken'));
-        
-        // URL에서 토큰 파라미터 제거
-        window.history.replaceState({}, document.title, '/');
-        console.log('URL 정리 완료');
-    }
-    
-    if (getAuthToken()) {
-        loadPdfList();
-    }
-    
+ $(document).ready(function() {
+      // URL 파라미터에서 토큰 확인 및 localStorage에 저장
+      console.log('main/script.js 실행');
+      console.log('현재 URL:', window.location.href);
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      console.log('URL에서 추출한 토큰:', token);
+
+      if (token) {
+          localStorage.setItem('accessToken', token);
+          console.log('토큰이 localStorage에 저장되었습니다:', localStorage.getItem('accessToken'));
+
+          // URL에서 토큰 파라미터 제거
+          window.history.replaceState({}, document.title, '/');
+          console.log('URL 정리 완료');
+      }
+
+      if (getAuthToken()) {
+          loadPdfList();
+      }
+
     $('#imageInput').on('change', function(event) {
         const file = this.files[0];
         const $originalPlusArea = $(this).closest('.pdf_contents > li');
@@ -38,16 +38,18 @@ $(document).ready(function() {
 
                 reader.onload = function(e) {
                     const pdfData = e.target.result;
-                    
-                    // 전체 PDF 파일을 base64로 변환 (청크 단위로 처리)
-                    const uint8Array = new Uint8Array(pdfData);
-                    let binaryString = '';
-                    const chunkSize = 8192; // 8KB씩 처리
-                    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-                        const chunk = uint8Array.slice(i, i + chunkSize);
-                        binaryString += String.fromCharCode.apply(null, chunk);
-                    }
-                    const pdfBase64 = btoa(binaryString);
+                  
+                  
+    // 전체 PDF 파일을 base64로 변환 (청크 단위로 처리)
+                      const uint8Array = new Uint8Array(pdfData);
+                      let binaryString = '';
+                      const chunkSize = 8192; // 8KB씩 처리
+                      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                          const chunk = uint8Array.slice(i, i + chunkSize);
+                          binaryString += String.fromCharCode.apply(null, chunk);
+                      }
+                      const pdfBase64 = btoa(binaryString);
+
 
                     // PDF.js를 사용하여 PDF 로드
                     const loadingTask = pdfjsLib.getDocument({ data: pdfData });
@@ -90,9 +92,12 @@ $(document).ready(function() {
                             };
                             page.render(renderContext).promise.then(function() {
                                 console.log('PDF rendered on new canvas!');
+
+
                                 
                                 // 전체 PDF 파일을 서버에 업로드 (이미 변환된 base64 사용)
                                 uploadPdfToServer(file.name, pdfBase64, $newPlusArea);
+                              
                             });
 
                             $originalPlusArea.before($newPlusArea);

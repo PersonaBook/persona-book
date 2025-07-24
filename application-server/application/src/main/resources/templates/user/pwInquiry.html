@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/layout}">
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
     <title th:text="'비밀번호 찾기' ?: 'PDF-Playground'">Layout</title>
@@ -8,42 +8,48 @@
 </head>
 
 <div layout:fragment="content">
-    <div class="container">
-        <div class="d-flex ali justify-content-center">
-            <div class="col-lg-6 my-5">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
                 <h1 class="fw-bold mb-4 text-center">비밀번호 찾기</h1>
 
                 <div class="card">
                     <div class="card-body">
-                        <form id="resetPasswordForm" action="/find_password_success" method="post">
+                        <form action="/find_password_success" id="resetPasswordForm" method="post">
                             <div class="mb-3">
                                 <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="이름을 입력해주세요." required >
+                                <input class="form-control" id="name" name="name" placeholder="이름을 입력해주세요." required
+                                       type="text">
                                 <div class="invalid-feedback" id="nameError"></div>
                                 <div class="valid-feedback" id="nameSuccess"></div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="email">이메일</label>
+                                <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required >
-                                    <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="width: 160px;" >인증번호 발송</button>
+                                    <input class="form-control" id="email" name="email" placeholder="example@email.com"
+                                           required type="email">
+                                    <button class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="min-width: 130px;"
+                                            type="button">인증번호 발송
+                                    </button>
                                 </div>
                                 <div class="invalid-feedback" id="emailError"></div>
                                 <div class="valid-feedback" id="emailSuccess"></div>
                             </div>
 
                             <div class="mb-3" id="verificationCodeSection" style="display: none">
-                                <label class="form-label" for="verificationCode">인증번호 입력</label>
-                                <div class="input-group">
-                                    <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
-                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button">인증번호 확인</button>
+                                <label class="form-label" for="verificationCode">인증번호 입력 <span class="text-danger">*</span></label>
+                                <div class="d-flex gap-2">
+                                    <input class="form-control" id="verificationCode" placeholder="인증번호를 입력하세요"
+                                           type="text">
+                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인
+                                    </button>
                                 </div>
                                 <div class="mt-2" id="codeVerificationMessage"></div>
                             </div>
 
-                            <div>
-                                <label for="newPassword">새로운 비밀번호</label>
+                            <div class="mb-3">
+                                <label for="newPassword">새로운 비밀번호 <span class="text-danger">*</span></label>
                                 <input type="password" id="newPassword" name="newPassword" class="form-control" placeholder="영문, 숫자, 특수문자 포함 8~20자">
                                 <div id="newPasswordError" class="invalid-feedback" style="display: none;">
                                 </div>
@@ -52,7 +58,7 @@
                             </div>
 
                             <div>
-                                <label for="confirmNewPassword">새로운 비밀번호 확인</label>
+                                <label for="confirmNewPassword">새로운 비밀번호 확인 <span class="text-danger">*</span></label>
                                 <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="form-control" placeholder="새로운 비밀번호와 동일하게 입력">
                                 <div id="confirmNewPasswordError" class="invalid-feedback" style="display: none;">
                                 </div>
@@ -60,122 +66,14 @@
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100 mt-5">비밀번호 변경</button>
+                            <button class="btn btn-primary w-100 mt-5" type="submit">비밀번호 변경</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('sendVerificationCodeBtn').addEventListener('click', function() {
-            const email = document.getElementById('email').value;
-            const messageDiv = document.getElementById('emailVerificationMessage');
-
-            if (!email) {
-                messageDiv.textContent = '이메일을 입력해주세요.';
-                messageDiv.style.color = 'red';
-                return;
-            }
-
-            fetch('/api/findPassword/sendVerificationEmail', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: email })
-            })
-            .then(response => {
-                if (response.ok) {
-                    messageDiv.textContent = '인증번호를 발송했습니다.';
-                    messageDiv.style.color = 'green';
-                } else {
-                    return response.json().then(data => {
-                        messageDiv.textContent = data.message || '다시 시도해주세요.';
-                        messageDiv.style.color = 'red';
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                messageDiv.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
-                messageDiv.style.color = 'red';
-            });
-        });
-
-        document.getElementById('resetPasswordForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const email = document.getElementById('email').value;
-            const verificationCode = document.getElementById('verificationCode').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (newPassword !== confirmPassword) {
-                alert('새로운 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
-                return;
-            }
-
-            fetch('/api/findPassword/reset', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: email, verificationCode: verificationCode, newPassword: newPassword })
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = '/findPasswordSuccess';
-                } else {
-                    return response.json().then(data => {
-                        alert('비밀번호 변경 실패: ' + data.message);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('오류가 발생했습니다. 다시 시도해주세요.');
-            });
-        });
-
-        document.getElementById('verifyCodeBtn').addEventListener('click', function() {
-            const email = document.getElementById('email').value;
-            const code = document.getElementById('verificationCode').value;
-            const messageDiv = document.getElementById('codeVerificationMessage');
-
-            if (!email || !code) {
-                messageDiv.textContent = '이메일과 인증번호를 모두 입력해주세요.';
-                messageDiv.style.color = 'red';
-                return;
-            }
-
-            fetch('/api/findPassword/verifyCode', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: email, code: code })
-            })
-            .then(response => {
-                if (response.ok) {
-                    messageDiv.textContent = '인증번호가 일치합니다!';
-                    messageDiv.style.color = 'green';
-                } else {
-                    return response.json().then(data => {
-                        messageDiv.textContent = '오류: ' + data.message;
-                        messageDiv.style.color = 'red';
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                messageDiv.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
-                messageDiv.style.color = 'red';
-            });
-        });
-    });
-    </script>
+    
 </div>
 
 </html>

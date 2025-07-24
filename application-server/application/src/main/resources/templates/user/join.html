@@ -18,9 +18,9 @@
 
 <body>
 <div layout:fragment="content">
-    <div class="container">
-        <div class="d-flex ali justify-content-center">
-            <div class="col-lg-6 my-5">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
                 <h1 class="fw-bold mb-4 text-center">회원가입</h1>
 
                 <div class="card">
@@ -34,7 +34,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="password">비밀번호</label>
+                                <label class="form-label" for="password">비밀번호 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="password" name="password" placeholder="비밀번호를 입력해주세요."
                                        required type="password">
                                 <div class="invalid-feedback" id="passwordError"></div>
@@ -42,7 +42,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="confirmPassword">비밀번호 재확인</label>
+                                <label class="form-label" for="confirmPassword">비밀번호 재확인 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="confirmPassword" name="confirmPassword" placeholder="비밀번호를 다시 입력해주세요."
                                        required type="password">
                                 <div class="invalid-feedback" id="confirmPasswordError"></div>
@@ -50,37 +50,41 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="email">이메일</label>
+                                <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
-                                    <input type="email" class="form-control" id="email" name="userEmail" placeholder="example@email.com" required >
-                                    <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="width: 160px;" >인증번호 발송</button>
+                                  
+                                      <input type="email" class="form-control" id="email" name="userEmail" placeholder="example@email.com" required >
+                                      <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="width: 160px;" >인증번호 발송</button>
+
                                 </div>
                                 <div class="invalid-feedback" id="emailError"></div>
                                 <div class="valid-feedback" id="emailSuccess"></div>
                             </div>
 
                             <div class="mb-3" id="verificationCodeSection" style="display: none">
-                                <label class="form-label" for="verificationCode">인증번호 입력</label>
-                                <div class="input-group">
+                                <label class="form-label" for="verificationCode">인증번호 입력 <span class="text-danger">*</span></label>
+                                <div class="d-flex gap-2">
                                     <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
-                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button">인증번호 확인</button>
+                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인</button>
                                 </div>
                                 <div class="mt-2" id="codeVerificationMessage"></div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="userPhoneNumber">전화번호</label>
+                                <label class="form-label" for="userPhoneNumber">전화번호 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="userPhoneNumber" name="userPhoneNumber" type="tel" required>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="userBirthDate">생년월일</label>
-                                <input class="form-control" id="userBirthDate" name="birthDate" type="text" required>
+
+                                <label class="form-label" for="userBirthDate">생년월일 <span class="text-danger">*</span></label>
+                                <input class="form-control" id="userBirthDate" name="userBirthDate" type="text" required>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="userJob">직업(학습경험)</label>
-                                <select class="form-select" id="userJob" name="job">
+                                <label class="form-label" for="userJob">직업(학습경험) <span class="text-danger">*</span></label>
+                                <select class="form-select" id="userJob" name="userJob">
+
                                     <option selected>선택...</option>
                                     <option value="beginner">초보자</option>
                                     <option value="experience">프로젝트 경험 있음</option>
