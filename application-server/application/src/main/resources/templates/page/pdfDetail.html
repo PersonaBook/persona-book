@@ -1,42 +1,94 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/layout}">
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
+<head>
+    <meta charset="UTF-8">
+    <script th:src="@{/js/common.js}"></script>
+    <style> #pdfViewer { width: 100%; } </style>
+    <title th:text="'pdf 상세' ?: 'PDF-Playground'">Layout</title>
+</head>
+
+<body>
 <div layout:fragment="content">
-    <div class="container-fluid h-100">
-        <div class="row h-100">
-            <!-- PDF Viewer -->
-            <div class="col-md-8 h-100">
-                <div class="bg-light h-100 p-3">
-                    <!-- PDF.js viewer will be embedded here -->
-                    <p class="text-center">PDF 뷰어가 여기에 표시됩니다.</p>
-                </div>
-            </div>
+    <!-- Hidden div for JSON data -->
+    <div id="bookData" style="display:none;" th:utext="${bookJson}"></div>
 
-            <!-- Chatbot -->
-            <div class="col-md-4 h-100">
-                <div class="d-flex flex-column h-100 border-start">
-                    <div class="p-3 border-bottom">
-                        <h5 class="mb-0">PDF 챗봇</h5>
-                    </div>
-                    <div class="flex-grow-1 p-3" style="overflow-y: auto;">
-                        <!-- Chat messages will be appended here -->
-                        <div class="d-flex justify-content-start mb-3">
-                            <div class="bg-light rounded p-2">
-                                <p class="mb-0">안녕하세요! PDF에 대해 무엇이든 물어보세요.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-3 border-top">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="질문을 입력하세요...">
-                            <button class="btn btn-primary" type="button">전송</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div id="pdfViewer">
+        <p>PDF를 로딩 중입니다...</p>
     </div>
+
+    <script>
+        $(document).ready(function(){
+            /* section layout 최소 height */
+            function adjustSectionHeight() {
+                const vh = $(window).outerHeight();
+                const headerH = $('header').outerHeight() || 0;
+                $('#pdfViewer').css({
+                    'min-height': vh - headerH,
+                    'transform': 'scale(1.03)'
+                });
+                $('#pdfViewer > embed').css('height', vh - headerH);
+            }
+
+            adjustSectionHeight();
+            $(window).on('resize', adjustSectionHeight);
+        });
+
+        console.log('스크립트 시작');
+
+        console.log('즉시 실행');
+        // Hidden div에서 JSON 가져오기 (이스케이프 문제 해결)
+        const bookData = JSON.parse(document.getElementById('bookData').textContent);
+        console.log('bookData:', bookData);
+        console.log('bookData type:', typeof bookData);
+        console.log('bookData keys:', Object.keys(bookData));
+        if (bookData) {
+            console.log('bookData.fileBase64 존재:', bookData.fileBase64 ? 'YES' : 'NO');
+            console.log('bookData.title:', bookData.title);
+            console.log('bookData.bookId:', bookData.bookId);
+        }
+
+        // 일단 강제로 메시지 변경해서 스크립트 실행 확인
+        document.getElementById('pdfViewer').innerHTML = '<p>스크립트가 실행되었습니다!</p>';
+
+        if (bookData && bookData.fileBase64) {
+            console.log('PDF 데이터 있음, 로딩 시작');
+            displayPdfAsRaw(bookData.fileBase64);
+        } else {
+            console.log('PDF 데이터 없음');
+            document.getElementById('pdfViewer').innerHTML = '<p>PDF 데이터를 찾을 수 없습니다.</p>';
+        }
+
+        function displayPdfAsRaw(base64Data) {
+            try {
+                console.log('PDF 변환 시작');
+                const binaryString = atob(base64Data);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                const blob = new Blob([bytes], {type: 'application/pdf'});
+                const url = URL.createObjectURL(blob);
+
+                const embed = document.createElement('embed');
+                embed.src = url;
+                embed.type = 'application/pdf';
+                embed.width = '100%';
+                embed.height = '100%';
+
+                document.getElementById('pdfViewer').innerHTML = '';
+                document.getElementById('pdfViewer').appendChild(embed);
+                console.log('PDF 렌더링 완료');
+            } catch (error) {
+                console.error('PDF 표시 실패:', error);
+                document.getElementById('pdfViewer').innerHTML = '<p>PDF 표시에 실패했습니다.</p>';
+            }
+        }
+    </script>
 </div>
+</body>
+
 
 </html>

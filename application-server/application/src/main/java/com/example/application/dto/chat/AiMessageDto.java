@@ -18,7 +18,8 @@ public class AiMessageDto {
     @Builder.Default
     private String sender = "AI";
     private String content;
-    private String messageType; // TEXT, .. (추후 확장 예정)
+    @Builder.Default
+    private String messageType = "TEXT"; // TEXT, .. (추후 확장 예정)
 
     private FeatureContext featureContext;
     private StageContext stageContext;

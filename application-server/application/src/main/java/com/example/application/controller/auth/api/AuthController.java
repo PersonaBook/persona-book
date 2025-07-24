@@ -58,12 +58,12 @@ public class AuthController {
         String email = request.get("email");
         String code = request.get("code");
         if (email == null || email.isEmpty() || code == null || code.isEmpty()) {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Email and code are required."));
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "이메일과 인증코드가 필요합니다."));
         }
         if (authService.verifyEmailCode(email, code)) {
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Email verified successfully!"));
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "이메일 인증에 성공했습니다."));
         } else {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Invalid or expired verification code."));
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "만료된 인증 코드입니다."));
         }
     }
 
@@ -71,13 +71,13 @@ public class AuthController {
     public ResponseEntity<?> sendVerificationEmail(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Email is required."));
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "이메일이 필요합니다."));
         }
 
         if (authService.sendEmailVerificationCode(email, false)) {
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Verification code sent successfully."));
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "인증번호를 보냈습니다."));
         } else {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Failed to send verification code. Please try again."));
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "인증번호 보내기에 실패했습니다."));
         }
     }
 
@@ -88,7 +88,7 @@ public class AuthController {
         if (userProfile != null) {
             return ResponseEntity.ok(userProfile);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "User not found."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
         }
     }
 

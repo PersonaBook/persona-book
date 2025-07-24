@@ -10,7 +10,7 @@ public class WebClientConfig {
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl("http://langchain:8000") // docker-compose 네트워크 호스트 기준
+                .baseUrl("http://langchain:8000/api/v1") // docker-compose 네트워크 호스트 기준
                 .build();
     }
 }

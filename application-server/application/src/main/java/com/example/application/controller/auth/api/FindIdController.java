@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -16,9 +17,15 @@ public class FindIdController {
     @Autowired
     private AuthService authService;
 
-    @GetMapping("/findId")
+    @GetMapping("/idInquiry")
     public String findIdView() {
-        return "page/findId";
+        return "user/idInquiry";
+    }
+
+    @PostMapping("/find-id-success")
+    public String findIdSuccess(Model model) {
+        model.addAttribute("title", "아이디 찾기 완료");
+        return "user/findIdSuccess";
     }
 
     @PostMapping("/api/findId/sendVerificationEmail")

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학습 도우미 챗봇</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.ai {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .message.user .message-content {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e1e8ed;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .message-sender {
+            font-size: 0.8em;
+            margin: 0 8px 4px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .chat-settings {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-group label {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .setting-group input, .setting-group select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .quick-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 6px 12px;
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #e9ecef;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .status-indicator.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-indicator.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .chat-settings {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="status-indicator disconnected" id="statusIndicator">
+    연결 상태 확인 중...
+</div>
+
+<div class="chat-container">
+    <div class="chat-header">
+        🤖 학습 도우미 챗봇
+    </div>
+
+    <div class="chat-settings">
+        <div class="setting-group">
+            <!-- ✅ 채팅 이력 삭제 : 이력 삭제 + START 상태 초기화 -->
+            <button type="button" onclick="deleteChatHistoryAndRestart()" class="quick-btn">채팅 이력 삭제</button>
+
+            <!-- ✅ 새로운 대화 시작 (조건부 노출) -->
+            <button type="button" id="newChatButton" onclick="startNewChat()" class="quick-btn" style="display:none;">
+                새로운 대화 시작
+            </button>
+        </div>
+
+        <!-- ✅ 숨겨진 userId, bookId -->
+        <input type="hidden" id="userId" th:value="${userId}" />
+        <input type="hidden" id="bookId" th:value="${bookId}" />
+    </div>
+
+    <div class="debug-info" style="text-align:right;padding:4px 16px;font-size:0.75em;color:#888;">
+        상태: <span id="debugState">INITIAL / START</span>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <!-- 서버 응답 메시지 렌더링됨 -->
+    </div>
+
+    <div class="error-message" id="errorMessage">
+        <!-- 에러 발생 시 에러 메시지 렌더링됨 -->
+    </div>
+
+    <div class="loading" id="loadingIndicator">AI가 응답을 생성하고 있습니다...</div>
+
+    <div class="chat-input-container">
+        <form class="chat-input-form" id="chatForm">
+            <input type="text" class="chat-input" id="messageInput" placeholder="메시지를 입력하세요..." autocomplete="off" />
+            <button type="submit" class="send-button" id="sendButton">전송</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 주요 DOM 요소
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const chatForm = document.getElementById('chatForm');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    const debugStateEl = document.getElementById('debugState');
+
+    // 현재 상태 관리
+    let currentFeatureContext = 'INITIAL';
+    let currentStageContext = 'START';
+    let sending = false;
+
+    // 페이지 로딩 시 동작
+    document.addEventListener('DOMContentLoaded', async function() {
+        messageInput.focus();
+        await loadChatHistory();
+        await checkConnection();
+        // 기존 이력이 없을 경우 자동으로 초기 메시지 전송
+        if (chatMessages.children.length === 0) await startNewChat();
+    });
+
+    // 채팅 제출
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+        if (message) sendMessage(message);
+    });
+
+    function updateDebugState() {
+        debugStateEl.textContent = `${currentFeatureContext} / ${currentStageContext}`;
+        toggleNewChatButtonVisibility();
+    }
+
+    function toggleNewChatButtonVisibility() {
+        const newChatBtn = document.getElementById('newChatButton');
+        const isStart = currentStageContext === 'SELECT_TYPE';
+        newChatBtn.style.display = isStart ? 'none' : 'inline-block';
+    }
+
+    function addMessage(sender, content, messageType = 'TEXT', options = []) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        const timestamp = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        let innerContent = '';
+
+        if (messageType === 'TEXT') {
+            innerContent = `<div class="message-content">${content}</div>`;
+        } else if (messageType === 'SELECTION') {
+            innerContent = `<div class="message-content">${content}<br>${options.map((opt, idx) => `<button class='quick-btn' onclick='sendQuickMessage("${opt}")'>${idx+1}. ${opt}</button>`).join(' ')}</div>`;
+        } else if (messageType === 'RATING') {
+            innerContent = `<div class="message-content">${content}<br><input type='number' min='1' max='5' placeholder='1~5점 입력' onkeypress='handleRatingInput(event)'></div>`;
+        }
+
+        messageDiv.innerHTML = `<div class="message-sender">${sender.toUpperCase()} ${timestamp}</div>${innerContent}`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function handleRatingInput(e) {
+        if (e.key === 'Enter') {
+            const value = e.target.value;
+            if (value) sendMessage(value);
+        }
+    }
+
+    async function sendMessage(content) {
+        const userId = document.getElementById('userId').value;
+        const bookId = parseInt(document.getElementById('bookId').value);
+        if (!userId || !bookId) return showError('사용자 ID와 교재 ID를 입력해주세요.');
+
+        // ✅ 빈 문자열이면 user 메시지 렌더링 생략
+        if (content.trim() !== '') {
+            addMessage('user', content);
+        }
+
+        messageInput.value = '';
+        setSendButtonState(false);
+        showLoading(true);
+        hideError();
+
+        const userMessage = {
+            userId, bookId, content, sender: 'USER', messageType: 'TEXT',
+            featureContext: currentFeatureContext,
+            stageContext: currentStageContext
+        };
+
+        try {
+            const response = await fetch('/api/chat/send', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userMessage)
+            });
+
+            if (response.ok) {
+                const aiResponse = await response.json();
+                addMessage('ai', aiResponse.content, aiResponse.messageType, aiResponse.options || []);
+                currentFeatureContext = aiResponse.featureContext || currentFeatureContext;
+                currentStageContext = aiResponse.stageContext || currentStageContext;
+                updateDebugState();
+                updateConnectionStatus(true);
+            } else {
+                const errorMsg = (await response.json().catch(() => ({}))).message || `서버 오류 (${response.status})`;
+                showError(errorMsg);
+                addMessage('ai', '죄송합니다. 오류가 발생했습니다.');
+                updateConnectionStatus(false);
+            }
+        } catch (err) {
+            console.error(err);
+            showError('네트워크 오류 발생');
+            updateConnectionStatus(false);
+        } finally {
+            setSendButtonState(true);
+            showLoading(false);
+            messageInput.focus();
+        }
+    }
+
+    function sendQuickMessage(content) {
+        if (sending) return;
+        sending = true;
+        sendMessage(content).finally(() => sending = false);
+    }
+
+    function setSendButtonState(enabled) {
+        sendButton.disabled = !enabled;
+        sendButton.textContent = enabled ? '전송' : '전송 중...';
+    }
+
+    function showLoading(show) {
+        loadingIndicator.classList.toggle('show', show);
+        if (show) chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.add('show');
+        setTimeout(hideError, 5000);
+    }
+
+    function hideError() {
+        errorMessage.classList.remove('show');
+    }
+
+    function updateConnectionStatus(connected) {
+        statusIndicator.className = connected ? 'status-indicator connected' : 'status-indicator disconnected';
+        statusIndicator.textContent = connected ? '🟢 연결됨' : '🔴 연결 끊김';
+    }
+
+    // ✅ 채팅 이력만 삭제하는 함수
+    async function deleteChatHistory() {
+        const userId = document.getElementById('userId').value;
+        const bookId = parseInt(document.getElementById('bookId').value);
+        if (!userId || !bookId) return;
+
+        try {
+            await fetch(`/api/chat/history?userId=${userId}&bookId=${bookId}`, { method: 'DELETE' });
+        } catch (err) {
+            console.error('채팅 이력 삭제 실패:', err);
+        }
+    }
+
+    // ✅ 새로운 채팅 흐름을 시작 (START 상태로 전환)
+    async function startNewChat() {
+        currentFeatureContext = 'INITIAL';
+        currentStageContext = 'START';
+        updateDebugState();
+        messageInput.focus();
+        hideError();
+        await sendMessage(''); // START 상태 흐름 유도
+    }
+
+    // ✅ 전체 리셋 흐름 (사용자 트리거)
+    async function deleteChatHistoryAndRestart() {
+        if (!confirm('정말로 채팅 이력을 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.')) return;
+
+        await deleteChatHistory();         // 🔸 DB에서 채팅 이력 삭제
+        chatMessages.innerHTML = '';       // 🔸 화면의 기존 메시지 제거
+        currentFeatureContext = 'INITIAL'; // 🔸 상태 초기화
+        currentStageContext = 'START';
+        updateDebugState();                // 🔸 상태 디버그 UI 갱신
+        await loadChatHistory();           // 🔸 DB 기준으로 이력 로딩 (일반적으로 없음)
+        await sendMessage('');             // 🔸 START 메시지 흐름 유도
+    }
+
+    async function loadChatHistory() {
+        const userId = document.getElementById('userId').value;
+        const bookId = parseInt(document.getElementById('bookId').value);
+        if (!userId || !bookId) return;
+
+        try {
+            const response = await fetch(`/api/chat/history?userId=${userId}&bookId=${bookId}`);
+            if (!response.ok) return;
+
+            const history = await response.json();
+            chatMessages.innerHTML = ''; // 기존 메시지 초기화
+
+            history.forEach(msg => {
+                // ✅ 빈 문자열 메시지는 렌더링 생략
+                if (!msg.content || msg.content.trim() === '') return;
+                addMessage(msg.sender.toLowerCase(), msg.content, msg.messageType || 'TEXT');
+            });
+
+            const last = history[history.length - 1];
+            if (last) {
+                currentFeatureContext = last.featureContext || 'INITIAL';
+                currentStageContext = last.stageContext || 'START';
+                updateDebugState();
+            }
+        } catch (err) {
+            console.error(err);
+            showError('채팅 기록을 불러오는 데 실패했습니다.');
+        }
+    }
+
+    async function checkConnection() {
+        try {
+            const res = await fetch('/api/chat/ping');
+            updateConnectionStatus(res.ok);
+        } catch {
+            updateConnectionStatus(false);
+        }
+    }
+
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    setInterval(checkConnection, 30000);
+</script>
+</body>
+</html>

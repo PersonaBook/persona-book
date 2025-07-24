@@ -1,2 +1,3 @@
-@import url('reset.css');
-@import url('fonts.css');
+@import url('reset.css');   /* css 초기화 */
+@import url('fonts.css');   /* 프리텐다드 폰트 */
+@import url('layout.css');  /* 전체 레이아웃 */
