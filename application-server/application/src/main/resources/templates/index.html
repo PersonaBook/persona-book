@@ -6,6 +6,14 @@
     <link rel="stylesheet" th:href="@{/css/main/style.css}">
     <script th:src="@{/js/main/script.js}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // PDF.js 설정
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // CMap 설정 (한국어 폰트 지원)
+        pdfjsLib.cMapUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/';
+        pdfjsLib.cMapPacked = true;
+    </script>
     <title th:text="'main' ?: 'PDF-Playground'">Layout</title>
 </head>
 
@@ -31,6 +39,7 @@
         </div>
     </div>
 </div>
-</body>
 
+
+</body>
 </html>

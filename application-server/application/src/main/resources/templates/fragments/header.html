@@ -29,11 +29,11 @@
                     <li class="nav-item">
                         <a class="text-white mx-2" th:href="@{'/settings'}">설정</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="text-white mx-2" href="/login" id="login-button">로그인</a>
+                    <li class="nav-item" id="login-nav" style="display: none;">
+                        <a class="text-white mx-2" th:href="@{'/login'}" id="login-button">로그인</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="text-white mx-2" href="#" id="logout-button">로그아웃</a>
+                    <li class="nav-item" id="logout-nav" style="display: none;">
+                        <a class="text-white mx-2" href="#" id="logout-button" onclick="logout()">로그아웃</a>
                     </li>
                 </ul>
             </div>

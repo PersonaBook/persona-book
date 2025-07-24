@@ -57,11 +57,6 @@ public class PageController {
         return "page/findPasswordSuccess";
     }
 
-    @GetMapping("/pdf/detail/{id}")
-    public String pdfDetail(@PathVariable("id") Long id, Model model) {
-        model.addAttribute("title", "PDF 상세");
-        return "page/pdfDetail";
-    }
 
     @PostMapping("/api/find-id/send-verification-email")
     @ResponseBody
