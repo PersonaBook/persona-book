@@ -1,4 +1,4 @@
-package com.example.application.controller.user;
+package com.example.application.controller.user.view;
 
 import com.example.application.payload.response.MessageResponse;
 import com.example.application.entity.User;
@@ -12,10 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @Controller
-public class MyPageController {
+public class MyPageViewController {
 
     @Autowired
     private UserRepository userRepository;
@@ -62,25 +60,3 @@ public class MyPageController {
     }
 }
 
-@RestController
-@RequestMapping("/api")
-class MyPageApiController {
-    @Autowired
-    private JwtAuthUtil jwtAuthUtil;
-
-    @GetMapping("/myPage")
-    public ResponseEntity<?> getMyPage(HttpServletRequest request) {
-        User user = jwtAuthUtil.getUserFromRequest(request);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 필요");
-        }
-        Map<String, Object> result = new java.util.HashMap<>();
-        result.put("userName", user.getUserName());
-        result.put("userEmail", user.getUserEmail());
-        result.put("userPhoneNumber", user.getUserPhoneNumber());
-        result.put("userBirthDate", user.getUserBirthDate());
-        result.put("userJob", user.getUserJob());
-        result.put("userId", user.getUserId());
-        return ResponseEntity.ok(result);
-    }
-}
