@@ -34,7 +34,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="password">비밀번호</label>
+                                <label class="form-label" for="password">비밀번호 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="password" name="password" placeholder="비밀번호를 입력해주세요."
                                        required type="password">
                                 <div class="invalid-feedback" id="passwordError"></div>
@@ -42,7 +42,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="confirmPassword">비밀번호 재확인</label>
+                                <label class="form-label" for="confirmPassword">비밀번호 재확인 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="confirmPassword" name="confirmPassword" placeholder="비밀번호를 다시 입력해주세요."
                                        required type="password">
                                 <div class="invalid-feedback" id="confirmPasswordError"></div>
@@ -50,7 +50,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="email">이메일</label>
+                                <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
                                     <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required >
                                     <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="min-width: 130px;" >인증번호 발송</button>
@@ -60,7 +60,7 @@
                             </div>
 
                             <div class="mb-3" id="verificationCodeSection" style="display: none">
-                                <label class="form-label" for="verificationCode">인증번호 입력</label>
+                                <label class="form-label" for="verificationCode">인증번호 입력 <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
                                     <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
                                     <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인</button>
@@ -69,17 +69,17 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="userPhoneNumber">전화번호</label>
+                                <label class="form-label" for="userPhoneNumber">전화번호 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="userPhoneNumber" name="userPhoneNumber" type="tel" required>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="userBirthDate">생년월일</label>
+                                <label class="form-label" for="userBirthDate">생년월일 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="userBirthDate" name="userBirthDate" type="text" required>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="userJob">직업(학습경험)</label>
+                                <label class="form-label" for="userJob">직업(학습경험) <span class="text-danger">*</span></label>
                                 <select class="form-select" id="userJob" name="userJob">
                                     <option selected>선택...</option>
                                     <option value="beginner">초보자</option>

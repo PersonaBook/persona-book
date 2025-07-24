@@ -22,14 +22,14 @@
 
                         <form id="form_area" method="post" th:action="@{user/login}">
                             <div class="mb-3">
-                                <label for="email" class="form-label">이메일</label>
+                                <label for="email" class="form-label">이메일 <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required>
                                 <div id="emailError" class="invalid-feedback"></div>
                                 <div id="emailSuccess" class="valid-feedback"></div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="password">비밀번호</label>
+                                <label class="form-label" for="password">비밀번호 <span class="text-danger">*</span></label>
                                 <input class="form-control" id="password" name="password" type="password" placeholder="비밀번호를 입력해주세요." required>
                                 <div id="passwordError" class="invalid-feedback"></div>
                                 <div id="passwordSuccess" class="valid-feedback"></div>

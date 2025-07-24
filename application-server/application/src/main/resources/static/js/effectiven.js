@@ -77,15 +77,52 @@ function displayVerificationMessage($element, message, color) {
 }
 
 /**
- * 로그인 버튼 활성화/비활성화 (주석 처리됨)
+ * 각 페이지의 유효성 상태를 확인하고 제출 버튼을 활성화/비활성화하는 함수
  */
-// function updateLoginButton() {
-//     const $formBtn = $('#form_area button[type="submit"]');
-//     if ($formBtn.length > 0) {
-//         const allFieldsValid = Object.values(loginValidationState).every(isValid => isValid);
-//         $formBtn.prop('disabled', !allFieldsValid);
-//     }
-// }
+function updateSubmitButtonState() {
+    const pageTitle = $('h1').text().trim();
+    const $submitButton = $('button[type="submit"]');
+
+    if ($submitButton.length === 0) return;
+
+    let isEnabled = false;
+
+    switch (pageTitle) {
+        case '로그인':
+            isEnabled = loginValidationState.email && loginValidationState.password;
+            break;
+        case '회원가입':
+            const isJoinPageBaseValid = loginValidationState.name &&
+                loginValidationState.password &&
+                loginValidationState.confirmPassword &&
+                loginValidationState.email &&
+                loginValidationState.isEmailVerified;
+
+            if (isJoinPageBaseValid) {
+                const $phone = $('#userPhoneNumber');
+                const $birthDate = $('#userBirthDate');
+                isEnabled = ($phone.length > 0 && $phone.val().trim() !== '') && ($birthDate.length > 0 && $birthDate.val().trim() !== '');
+            } else {
+                isEnabled = false;
+            }
+            break;
+        case '아이디 찾기':
+            isEnabled = loginValidationState.name &&
+                loginValidationState.email &&
+                loginValidationState.isEmailVerified;
+            break;
+        case '비밀번호 찾기':
+            isEnabled = loginValidationState.name &&
+                loginValidationState.email &&
+                loginValidationState.isEmailVerified &&
+                newPasswordValidationState.newPassword &&
+                newPasswordValidationState.confirmNewPassword;
+            break;
+    }
+
+    $submitButton.prop('disabled', !isEnabled);
+}
+
 
 /**
  * 이메일 유효성 검사
@@ -116,6 +153,7 @@ function validateEmail() {
         loginValidationState.isEmailVerified = false;
         displayVerificationMessage($('#codeVerificationMessage'), '', '');
     }
+    updateSubmitButtonState();
     return isValid;
 }
 
@@ -143,6 +181,7 @@ function validatePassword() {
 
     displayValidationResult('password', isValid, message);
     loginValidationState.password = isValid;
+    updateSubmitButtonState();
     return isValid;
 }
 
@@ -170,6 +209,7 @@ function validateName() {
 
     displayValidationResult('name', isValid, message);
     loginValidationState.name = isValid;
+    updateSubmitButtonState();
     return isValid;
 }
 
@@ -198,6 +238,7 @@ function validateConfirmPassword() {
 
     displayValidationResult('confirmPassword', isValid, message);
     loginValidationState.confirmPassword = isValid;
+    updateSubmitButtonState();
     return isValid;
 }
 
@@ -226,6 +267,7 @@ function validateNewPassword() {
 
     displayValidationResult('newPassword', isValid, message);
     newPasswordValidationState.newPassword = isValid;
+    updateSubmitButtonState();
     return isValid;
 }
 
@@ -254,6 +296,7 @@ function validateConfirmNewPassword() {
 
     displayValidationResult('confirmNewPassword', isValid, message);
     newPasswordValidationState.confirmNewPassword = isValid;
+    updateSubmitButtonState();
     return isValid;
 }
 
@@ -285,13 +328,13 @@ function initializeLoginValidation() {
     // 이메일 필드 이벤트 리스너
     if ($emailInput.length > 0) {
         console.log('이메일 필드 이벤트 리스너 추가');
-        $emailInput.on('input', function() {
+        $emailInput.on('input', function () {
             console.log('이메일 input 이벤트 발생:', $(this).val());
             validateEmail();
-        }).on('blur', function() {
+        }).on('blur', function () {
             console.log('이메일 blur 이벤트 발생:', $(this).val());
             validateEmail();
-        }).on('focus', function() {
+        }).on('focus', function () {
             if ($(this).val().trim() === '') {
                 $(this).removeClass('is-invalid is-valid');
                 $('#emailError').hide().text('');
@@ -303,19 +346,19 @@ function initializeLoginValidation() {
     // 비밀번호 필드 이벤트 리스너
     if ($passwordInput.length > 0) {
         console.log('비밀번호 필드 이벤트 리스너 추가');
-        $passwordInput.on('input', function() {
+        $passwordInput.on('input', function () {
             console.log('비밀번호 input 이벤트 발생');
             validatePassword();
             if ($confirmPasswordInput.length > 0) {
                 validateConfirmPassword();
             }
-        }).on('blur', function() {
+        }).on('blur', function () {
             console.log('비밀번호 blur 이벤트 발생');
             validatePassword();
             if ($confirmPasswordInput.length > 0) {
                 validateConfirmPassword();
             }
-        }).on('focus', function() {
+        }).on('focus', function () {
             if ($(this).val().trim() === '') {
                 $(this).removeClass('is-invalid is-valid');
                 $('#passwordError').hide().text('');
@@ -327,13 +370,13 @@ function initializeLoginValidation() {
     // 비밀번호 재확인 필드 이벤트 리스너
     if ($confirmPasswordInput.length > 0) {
         console.log('비밀번호 재확인 필드 이벤트 리스너 추가');
-        $confirmPasswordInput.on('input', function() {
+        $confirmPasswordInput.on('input', function () {
             console.log('비밀번호 재확인 input 이벤트 발생');
             validateConfirmPassword();
-        }).on('blur', function() {
+        }).on('blur', function () {
             console.log('비밀번호 재확인 blur 이벤트 발생');
             validateConfirmPassword();
-        }).on('focus', function() {
+        }).on('focus', function () {
             if ($(this).val().trim() === '') {
                 $(this).removeClass('is-invalid is-valid');
                 $('#confirmPasswordError').hide().text('');
@@ -345,13 +388,13 @@ function initializeLoginValidation() {
     // 이름 필드 이벤트 리스너
     if ($nameInput.length > 0) {
         console.log('이름 필드 이벤트 리스너 추가');
-        $nameInput.on('input', function() {
+        $nameInput.on('input', function () {
             console.log('이름 input 이벤트 발생');
             validateName();
-        }).on('blur', function() {
+        }).on('blur', function () {
             console.log('이름 blur 이벤트 발생');
             validateName();
-        }).on('focus', function() {
+        }).on('focus', function () {
             if ($(this).val().trim() === '') {
                 $(this).removeClass('is-invalid is-valid');
                 $('#nameError').hide().text('');
@@ -363,7 +406,7 @@ function initializeLoginValidation() {
     // 전화번호 필드 자동 하이픈 추가
     if ($userPhoneNumberInput.length > 0) {
         console.log('전화번호 필드 이벤트 리스너 추가');
-        $userPhoneNumberInput.on('input', function(event) {
+        $userPhoneNumberInput.on('input', function (event) {
             let phoneNumber = $(this).val().replace(/[^0-9]/g, '');
             let formattedPhoneNumber = '';
 
@@ -379,13 +422,18 @@ function initializeLoginValidation() {
                 }
             }
             $(this).val(formattedPhoneNumber);
+            updateSubmitButtonState();
         });
+    }
+
+    if ($userBirthDateInput.length > 0) {
+        $userBirthDateInput.on('change', updateSubmitButtonState);
     }
 
     // 직업 선택 시 '기타' 선택하면 '직접입력' 필드 보이게/숨기게
     if ($userJobSelect.length > 0 && $otherJobContainer.length > 0) {
         console.log('직업 선택 이벤트 리스너 추가');
-        $userJobSelect.on('change', function() {
+        $userJobSelect.on('change', function () {
             if ($(this).val() === 'other') {
                 $otherJobContainer.show();
             } else {
@@ -396,7 +444,7 @@ function initializeLoginValidation() {
 
     // 인증번호 발송 버튼 이벤트 리스너 추가
     if ($sendVerificationCodeBtn.length > 0 && $verificationCodeSection.length > 0) {
-        $sendVerificationCodeBtn.on('click', function() {
+        $sendVerificationCodeBtn.on('click', function () {
             console.log('인증번호 발송 버튼 클릭됨');
             const isEmailValid = validateEmail();
 
@@ -404,16 +452,23 @@ function initializeLoginValidation() {
                 $verificationCodeSection.show();
 
                 const email = $emailInput.val();
+                const pageTitle = $('h1').text().trim();
+                let verificationUrl = '/api/auth/sendVerificationEmail';
+                if (pageTitle === '비밀번호 찾기') {
+                    verificationUrl = '/api/findPassword/sendVerificationEmail';
+                }
+
                 $.ajax({
-                    url: '/api/auth/sendVerificationEmail',
+                    url: verificationUrl,
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ email: email }),
-                    success: function(data) {
+                    data: JSON.stringify({email: email}),
+                    success: function (data) {
                         displayVerificationMessage($codeVerificationMessageDiv, data.message || '인증번호를 발송했습니다.', 'green');
                         loginValidationState.isEmailVerified = false;
+                        updateSubmitButtonState();
                     },
-                    error: function(jqXHR) {
+                    error: function (jqXHR) {
                         console.error('Error sending verification email:', jqXHR.responseText);
                         const errorMessage = jqXHR.responseJSON ? jqXHR.responseJSON.message : '인증번호 발송 중 오류가 발생했습니다.';
                         displayVerificationMessage($codeVerificationMessageDiv, '오류: ' + errorMessage, 'red');
@@ -427,7 +482,7 @@ function initializeLoginValidation() {
 
     // 인증번호 확인 버튼 이벤트 리스너
     if ($verifyCodeBtn.length > 0 && $verificationCodeInput.length > 0) {
-        $verifyCodeBtn.on('click', function() {
+        $verifyCodeBtn.on('click', function () {
             console.log('인증번호 확인 버튼 클릭됨');
             const email = $emailInput.val().trim();
             const code = $verificationCodeInput.val().trim();
@@ -435,23 +490,32 @@ function initializeLoginValidation() {
             if (code.length === 0) {
                 displayVerificationMessage($codeVerificationMessageDiv, LOGIN_MESSAGES.VERIFICATION_CODE.required, 'red');
                 loginValidationState.isEmailVerified = false;
+                updateSubmitButtonState();
                 return;
             }
 
+            const pageTitle = $('h1').text().trim();
+            let verifyUrl = '/api/auth/verifyEmail';
+            if (pageTitle === '비밀번호 찾기') {
+                verifyUrl = '/api/findPassword/verifyCode';
+            }
+
             $.ajax({
-                url: '/api/auth/verifyEmail',
+                url: verifyUrl,
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ email: email, code: code }),
-                success: function(data) {
+                data: JSON.stringify({email: email, code: code}),
+                success: function (data) {
                     displayVerificationMessage($codeVerificationMessageDiv, data.message || LOGIN_MESSAGES.VERIFICATION_CODE.valid, 'green');
                     loginValidationState.isEmailVerified = true;
+                    updateSubmitButtonState();
                 },
-                error: function(jqXHR) {
+                error: function (jqXHR) {
                     console.error('Error verifying email code:', jqXHR.responseText);
                     const errorMessage = jqXHR.responseJSON ? jqXHR.responseJSON.message : LOGIN_MESSAGES.VERIFICATION_CODE.invalid;
                     displayVerificationMessage($codeVerificationMessageDiv, '오류: ' + errorMessage, 'red');
                     loginValidationState.isEmailVerified = false;
+                    updateSubmitButtonState();
                 }
             });
         });
@@ -459,29 +523,13 @@ function initializeLoginValidation() {
 
     // 폼 제출 이벤트
     if (form.length > 0) {
-        form.on('submit', function(event) {
+        form.on('submit', function (event) {
             console.log('폼 제출 시도');
+            updateSubmitButtonState(); // 최종 확인
 
-            const isEmailValid = validateEmail();
-            const isPasswordValid = validatePassword();
-            const isConfirmPasswordValid = validateConfirmPassword();
-            const isNameValid = validateName();
-            const isEmailVerified = loginValidationState.isEmailVerified;
-
-            const userBirthDate = $userBirthDateInput.val().trim();
-            if (userBirthDate.length === 0) {
-                alert('생년월일을 입력해주세요.');
+            if (form.find('button[type="submit"]').is(':disabled')) {
                 event.preventDefault();
-                return false;
-            }
-
-            if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid || !isNameValid || !isEmailVerified) {
-                event.preventDefault();
-                let alertMessage = '입력 정보를 확인해주세요.';
-                if (!isEmailVerified) {
-                    alertMessage += '\n이메일 인증을 완료해주세요.';
-                }
-                alert(alertMessage);
+                alert('입력 정보를 확인해주세요.');
                 return false;
             }
 
@@ -502,17 +550,17 @@ function initializeNewPasswordValidation() {
     // 새로운 비밀번호 필드 이벤트 리스너
     if ($newPasswordInput.length > 0) {
         console.log('새로운 비밀번호 필드 이벤트 리스너 추가');
-        $newPasswordInput.on('input', function() {
+        $newPasswordInput.on('input', function () {
             validateNewPassword();
             if ($confirmNewPasswordInput.length > 0) {
                 validateConfirmNewPassword(); // 새로운 비밀번호 변경 시 확인 필드도 검사
             }
-        }).on('blur', function() {
+        }).on('blur', function () {
             validateNewPassword();
             if ($confirmNewPasswordInput.length > 0) {
                 validateConfirmNewPassword();
             }
-        }).on('focus', function() {
+        }).on('focus', function () {
             if ($(this).val().trim() === '') {
                 $(this).removeClass('is-invalid is-valid');
                 $('#newPasswordError').hide().text('');
@@ -524,11 +572,11 @@ function initializeNewPasswordValidation() {
     // 새로운 비밀번호 재확인 필드 이벤트 리스너
     if ($confirmNewPasswordInput.length > 0) {
         console.log('새로운 비밀번호 재확인 필드 이벤트 리스너 추가');
-        $confirmNewPasswordInput.on('input', function() {
+        $confirmNewPasswordInput.on('input', function () {
             validateConfirmNewPassword();
-        }).on('blur', function() {
+        }).on('blur', function () {
             validateConfirmNewPassword();
-        }).on('focus', function() {
+        }).on('focus', function () {
             if ($(this).val().trim() === '') {
                 $(this).removeClass('is-invalid is-valid');
                 $('#confirmNewPasswordError').hide().text('');
@@ -541,7 +589,7 @@ function initializeNewPasswordValidation() {
 
 
 // DOM이 로드된 후 초기화
-$(document).ready(function() {
+$(document).ready(function () {
     console.log('DOM 로드 완료, 유효성 검사 초기화 시작');
     if (typeof window.loginValidationInitialized === 'undefined' || !window.loginValidationInitialized) {
         initializeLoginValidation();
@@ -552,4 +600,6 @@ $(document).ready(function() {
         initializeNewPasswordValidation();
         window.newPasswordValidationInitialized = true;
     }
+
+    $('button[type="submit"]').prop('disabled', true);
 });

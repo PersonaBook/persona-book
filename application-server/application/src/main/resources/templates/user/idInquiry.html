@@ -24,7 +24,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="email">이메일</label>
+                                <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
                                     <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required >
                                     <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="min-width: 130px;" >인증번호 발송</button>
@@ -34,7 +34,7 @@
                             </div>
 
                             <div class="mb-3" id="verificationCodeSection" style="display: none">
-                                <label class="form-label" for="verificationCode">인증번호 입력</label>
+                                <label class="form-label" for="verificationCode">인증번호 입력 <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
                                     <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
                                     <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인</button>
