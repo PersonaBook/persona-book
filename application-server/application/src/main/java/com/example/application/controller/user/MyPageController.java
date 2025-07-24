@@ -1,8 +1,6 @@
 package com.example.application.controller.user;
 
 import com.example.application.payload.response.MessageResponse;
-import com.example.application.service.UserService;
-import com.example.application.security.jwt.JwtTokenProvider;
 import com.example.application.entity.User;
 import com.example.application.repository.UserRepository;
 import com.example.application.util.JwtAuthUtil;
@@ -19,10 +17,6 @@ import java.util.Map;
 @Controller
 public class MyPageController {
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
     @Autowired
     private UserRepository userRepository;
     @Autowired

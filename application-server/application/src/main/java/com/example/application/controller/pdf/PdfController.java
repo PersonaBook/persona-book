@@ -2,22 +2,15 @@ package com.example.application.controller.pdf;
 
 import com.example.application.entity.Book;
 import com.example.application.repository.BookRepository;
-import com.example.application.service.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import com.example.application.util.JwtAuthUtil;
 import com.example.application.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
