@@ -32,4 +32,19 @@ public class ChatController {
     ) {
         return ResponseEntity.ok(chatHistoryService.getChatHistory(userId, bookId));
     }
+
+    @DeleteMapping("/history")
+    public ResponseEntity<Void> deleteChatHistory(
+            @RequestParam Long userId,
+            @RequestParam Long bookId
+    ) {
+        chatHistoryService.deleteChatHistory(userId, bookId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/ping")
+    public ResponseEntity<String> pingLangChain() {
+        boolean connected = chatService.checkLangChainConnection();
+        return connected ? ResponseEntity.ok("pong") : ResponseEntity.status(503).body("LangChain unavailable");
+    }
 }

@@ -18,7 +18,8 @@ public class UserMessageDto {
     @Builder.Default
     private String sender = "USER";
     private String content;
-    private String messageType; // TEXT, SELECTION, RATING 등
+    @Builder.Default
+    private String messageType = "TEXT"; // TEXT, SELECTION, RATING 등
 
     private FeatureContext featureContext;
     private StageContext stageContext;

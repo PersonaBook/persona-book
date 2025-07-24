@@ -21,7 +21,7 @@ public class ChatHistory {
     private Long bookId;
 
     @Column(columnDefinition = "TEXT")
-    private String messageContent;
+    private String content;
 
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
@@ -58,6 +58,7 @@ public class ChatHistory {
         START,
         PROMPT_NEXT_ACTION,
         SELECT_TYPE,
+        SELECT_PROBLEM_TYPE,
         PROMPT_CHAPTER_PAGE,
         PROMPT_CONCEPT,
         GENERATING_PROBLEM,
