@@ -3,7 +3,6 @@ package com.example.application.controller.pdf;
 import com.example.application.entity.Book;
 import com.example.application.entity.User;
 import com.example.application.repository.BookRepository;
-import com.example.application.service.PdfService;
 import com.example.application.util.JwtAuthUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +17,6 @@ import java.util.Optional;
 @Controller
 public class PdfViewController {
 
-    @Autowired
-    private PdfService pdfService;
 
     @Autowired
     private BookRepository bookRepository;

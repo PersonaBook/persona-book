@@ -453,16 +453,20 @@ function initializeLoginValidation() {
 
                 const email = $emailInput.val();
                 const pageTitle = $('h1').text().trim();
-                let verificationUrl = '/api/auth/sendVerificationEmail';
-                if (pageTitle === '비밀번호 찾기') {
-                    verificationUrl = '/api/findPassword/sendVerificationEmail';
+                
+                // 페이지 제목에 따라 type 결정
+                let type = 'signup';
+                if (pageTitle === '아이디 찾기') {
+                    type = 'findId';
+                } else if (pageTitle === '비밀번호 찾기') {
+                    type = 'findPassword';
                 }
 
                 $.ajax({
-                    url: verificationUrl,
+                    url: '/api/auth/sendVerificationEmail',
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({email: email}),
+                    data: JSON.stringify({email: email, type: type}),
                     success: function (data) {
                         displayVerificationMessage($codeVerificationMessageDiv, data.message || '인증번호를 발송했습니다.', 'green');
                         loginValidationState.isEmailVerified = false;
@@ -494,14 +498,8 @@ function initializeLoginValidation() {
                 return;
             }
 
-            const pageTitle = $('h1').text().trim();
-            let verifyUrl = '/api/auth/verifyEmail';
-            if (pageTitle === '비밀번호 찾기') {
-                verifyUrl = '/api/findPassword/verifyCode';
-            }
-
             $.ajax({
-                url: verifyUrl,
+                url: '/api/auth/verifyEmail',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({email: email, code: code}),
