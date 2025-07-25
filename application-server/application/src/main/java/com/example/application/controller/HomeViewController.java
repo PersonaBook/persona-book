@@ -1,7 +1,6 @@
 package com.example.application.controller;
 
 import com.example.application.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -10,8 +9,11 @@ import jakarta.servlet.http.HttpServletRequest;
 @Controller
 public class HomeViewController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+    
+    public HomeViewController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @GetMapping({"/"})
     public String pdfMain(HttpServletRequest request, Model model) {

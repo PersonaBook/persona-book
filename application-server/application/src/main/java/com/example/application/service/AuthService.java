@@ -63,7 +63,8 @@ public class AuthService {
             throw new RuntimeException("Invalid password!");
         }
 
-        String jwt = jwtTokenProvider.generateJwtToken(user.getUserEmail());
+        // rememberMe에 따라 다른 만료시간의 토큰 생성
+        String jwt = jwtTokenProvider.generateJwtToken(user.getUserEmail(), loginRequest.isRememberMe());
 
         // Generate and save refresh token to session
         String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserEmail());
@@ -86,8 +87,8 @@ public class AuthService {
         User user = userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + userEmail));
 
-        // Generate new access token
-        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail());
+        // Generate new access token (기본값으로 rememberMe=true 사용, 추후 개선 필요)
+        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail(), true);
 
         return new JwtResponse(newAccessToken, refreshTokenString, user.getUserId(), user.getUserName(), user.getUserEmail());
     }
@@ -175,7 +176,8 @@ public class AuthService {
     }
 
     public boolean forgotPassword(String email) {
-        return sendEmailVerificationCode(email, true);
+        String result = sendEmailVerificationCode(email, true);
+        return "인증번호를 발송했습니다.".equals(result); // 성공 메시지면 성공
     }
 
     @Transactional
@@ -205,18 +207,18 @@ public class AuthService {
     }
 
     @Transactional
-    public boolean sendEmailVerificationCode(String email, boolean mustExist) {
+    public String sendEmailVerificationCode(String email, boolean mustExist) {
         if (mustExist) {
             // 이메일이 반드시 존재해야 함 (id/pw찾기, 마이페이지)
             if (!userRepository.existsByUserEmail(email)) {
                 logger.warn("Email {} does not exist. Cannot send verification code.", email);
-                return false; // Email does not exist
+                return "해당 이메일로 가입된 계정이 없습니다."; // Email does not exist
             }
         } else {
             // 이메일이 존재하면 안 됨 (회원가입)
             if (userRepository.existsByUserEmail(email)) {
                 logger.warn("Email {} already exists. Cannot send verification code.", email);
-                return false; // Email already exists, do not send code
+                return "이미 가입된 이메일입니다."; // Email already exists, do not send code
             }
         }
         try {
@@ -233,10 +235,10 @@ public class AuthService {
             }
 
             emailService.sendEmail(email, "Email Verification Code", "Your verification code is: " + verificationCode);
-            return true;
+            return "인증번호를 발송했습니다."; // 성공 메시지
         } catch (Exception e) {
             logger.error("Failed to send email verification code to {}: {}", email, e.getMessage());
-            return false;
+            return "이메일 발송 중 오류가 발생했습니다.";
         }
     }
 }

@@ -1,20 +1,5 @@
  $(document).ready(function() {
-      // URL 파라미터에서 토큰 확인 및 localStorage에 저장
       console.log('main/script.js 실행');
-      console.log('현재 URL:', window.location.href);
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      console.log('URL에서 추출한 토큰:', token);
-
-      if (token) {
-          localStorage.setItem('accessToken', token);
-          console.log('토큰이 localStorage에 저장되었습니다:', localStorage.getItem('accessToken'));
-
-          // URL에서 토큰 파라미터 제거
-          window.history.replaceState({}, document.title, '/');
-          console.log('URL 정리 완료');
-      }
 
       if (getAuthToken()) {
           loadPdfList();
@@ -256,7 +241,7 @@ function uploadPdfToServer(title, fileBase64, $pdfElement) {
 function goToPdfDetail(bookId) {
     const token = getAuthToken();
     if (token) {
-        window.location.href = `/pdf/detail/${bookId}?token=${token}`;
+        window.location.href = `/pdf/detail/${bookId}`;
     } else {
         alert('로그인이 필요합니다.');
         window.location.href = '/user/login';

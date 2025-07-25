@@ -34,7 +34,26 @@ function handleApiError(xhr, defaultMessage = '오류가 발생했습니다.') {
 
 // 토큰 관련 공통 함수
 function getAuthToken() {
+    // sessionStorage 우선 확인 (단기 토큰)
+    const sessionToken = sessionStorage.getItem('accessToken');
+    if (sessionToken) {
+        return sessionToken;
+    }
+    // localStorage 확인 (장기 토큰)
     return localStorage.getItem('accessToken') || '';
+}
+
+// 토큰 저장 함수
+function setAuthToken(token, rememberMe) {
+    if (rememberMe) {
+        // 로그인 유지 체크 시 localStorage에 저장 (24시간)
+        localStorage.setItem('accessToken', token);
+        sessionStorage.removeItem('accessToken'); // 중복 방지
+    } else {
+        // 체크 안함 시 sessionStorage에 저장 (30분, 탭 닫으면 삭제)
+        sessionStorage.setItem('accessToken', token);
+        localStorage.removeItem('accessToken'); // 중복 방지
+    }
 }
 
 function logout() {
@@ -66,6 +85,30 @@ function logout() {
     });
 }
 
+// 토큰 만료 확인 함수
+function isTokenExpired(token) {
+    if (!token) return true;
+    
+    try {
+        // JWT 토큰을 디코딩하여 만료시간 확인
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+        return payload.exp < currentTime;
+    } catch (e) {
+        return true; // 디코딩 실패시 만료된 것으로 처리
+    }
+}
+
+// 자동 로그아웃 함수
+function autoLogout() {
+    // 토큰 정리
+    localStorage.removeItem('accessToken');
+    sessionStorage.removeItem('accessToken');
+    
+    alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+    window.location.href = '/user/login';
+}
+
 // 헤더 인증 상태 관리 모듈
 const HeaderAuthManager = {
     // DOM 요소 캐싱
@@ -79,6 +122,7 @@ const HeaderAuthManager = {
         this.cacheElements();
         this.updateUI();
         this.bindEvents();
+        this.startTokenExpiryCheck();
     },
     
     // DOM 요소 캐싱
@@ -87,10 +131,20 @@ const HeaderAuthManager = {
         this.elements.logoutNav = document.getElementById('logout-nav');
     },
     
-    // 토큰 상태 확인
+    // 토큰 상태 확인 (만료 체크 포함)
     hasValidToken() {
         const token = getAuthToken();
-        return token && token.trim() !== '';
+        if (!token || token.trim() === '') {
+            return false;
+        }
+        
+        // 토큰 만료 확인
+        if (isTokenExpired(token)) {
+            autoLogout();
+            return false;
+        }
+        
+        return true;
     },
     
     // UI 업데이트
@@ -107,6 +161,17 @@ const HeaderAuthManager = {
         }
     },
     
+    // 토큰 만료 주기적 확인 시작
+    startTokenExpiryCheck() {
+        // 1분마다 토큰 만료 확인
+        setInterval(() => {
+            const token = getAuthToken();
+            if (token && isTokenExpired(token)) {
+                autoLogout();
+            }
+        }, 60000); // 1분 = 60000ms
+    },
+    
     // 이벤트 바인딩
     bindEvents() {
         // 페이지 포커스 이벤트
@@ -119,7 +184,7 @@ const HeaderAuthManager = {
             }
         });
         
-        // localStorage 변경 이벤트 (다른 탭에서의 변경 감지)
+        // localStorage/sessionStorage 변경 이벤트 (다른 탭에서의 변경 감지)
         $(window).on('storage', (e) => {
             if (e.originalEvent.key === 'accessToken') {
                 this.updateUI();
@@ -158,14 +223,16 @@ $(document).ready(function(){
     // URL에서 토큰 파라미터 처리
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const rememberMe = urlParams.get('rememberMe') === 'true';
     const shouldRefresh = urlParams.get('refresh') === 'true';
     
-    // 토큰이 있으면 localStorage에 저장
+    // 토큰이 있으면 rememberMe에 따라 저장
     if (token) {
-        localStorage.setItem('accessToken', token);
-        // URL에서 token 파라미터 제거
+        setAuthToken(token, rememberMe);
+        // URL에서 파라미터들 제거
         const cleanUrl = window.location.pathname + window.location.search
             .replace(/[?&]token=[^&]*/, '')
+            .replace(/[?&]rememberMe=[^&]*/, '')
             .replace(/[?&]refresh=true/, '')
             .replace(/^\?$/, '');
         history.replaceState(null, '', cleanUrl);

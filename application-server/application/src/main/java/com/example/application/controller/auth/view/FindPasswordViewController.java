@@ -1,8 +1,10 @@
 package com.example.application.controller.auth.view;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-public class FinePasswordController {
+@Controller
+public class FindPasswordViewController {
 
     @GetMapping("/pwInquiry")
     public String findPasswordView() {
