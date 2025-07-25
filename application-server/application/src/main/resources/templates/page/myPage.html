@@ -1,54 +1,60 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/layout}">
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <title th:text="'로그인' ?: 'PDF-Playground'">Layout</title>
 </head>
 
+<body>
 <div layout:fragment="content">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
                 <h1 class="my-4">마이페이지</h1>
+                <!--                <div class="card">-->
+                <!--                    <div class="card-body p-4">-->
+                <!--                        <div id="myPageContent">-->
+                <!--                            <p>로딩 중...</p>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+
                 <div class="card">
-                    <div class="card-body p-4">
-                        <div id="myPageContent">
-                            <p>로딩 중...</p>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">이름</label>
+                            <div class="form-control">${data.userName}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">이메일</label>
+                            <div class="form-control">${data.userEmail}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">전화번호</label>
+                            <div class="form-control">${data.userPhoneNumber}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">생년월일</label>
+                            <div class="form-control">${data.userBirthDate || ''}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">직업</label>
+                            <div class="form-control">${data.userJob || ''}</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.ko.min.js"></script>
     <script>
-        $('#userBirthDate').datepicker({
-            format: 'yyyy-mm-dd',
-            autoclose: true,
-            todayHighlight: true,
-            language: 'ko'
-        });
-        document.getElementById('userJob')?.addEventListener('change', function () {
-            var otherJobContainer = document.getElementById('otherJobContainer');
-            if (this.value === 'other') {
-                otherJobContainer.style.display = 'block';
-            } else {
-                otherJobContainer.style.display = 'none';
-            }
-        });
-    </script>
-    <script src="/js/common.js"></script>
-    <script>
-authFetch('/api/myPage')
-  .then(res => {
-    if (!res.ok) throw new Error('인증 필요');
-    return res.json();
-  })
-  .then(data => {
-    document.getElementById('myPageContent').innerHTML = `
+        authFetch('/api/my-page')
+            .then(res => {
+                if (!res.ok) throw new Error('인증 필요');
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('myPageContent').innerHTML = `
       <div class="card">
         <div class="card-body">
           <div class="mb-3">
@@ -74,12 +80,14 @@ authFetch('/api/myPage')
         </div>
       </div>
     `;
-  })
-  .catch(err => {
-    document.getElementById('myPageContent').innerHTML = '<div class="alert alert-danger">정보를 불러올 수 없습니다. 다시 로그인 해주세요.</div>';
-    console.error('마이페이지 로딩 에러:', err);
-  });
-</script>
+            })
+            .catch(err => {
+                document.getElementById('myPageContent').innerHTML = '<div class="alert alert-danger">정보를 불러올 수 없습니다. 다시 로그인 해주세요.</div>';
+                console.error('마이페이지 로딩 에러:', err);
+            });
+    </script>
 </div>
+</body>
+
 
 </html>
