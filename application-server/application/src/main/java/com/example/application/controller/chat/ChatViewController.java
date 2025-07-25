@@ -12,6 +12,6 @@ public class ChatViewController {
         model.addAttribute("userId", 1001);
         model.addAttribute("bookId", 1);
 
-        return "chat"; // templates/chat.html 을 렌더링
+        return "page/chat"; // templates/chat.html 을 렌더링
     }
 }

@@ -15,7 +15,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
 #    url: jdbc:mysql://127.0.0.1:3306/chatbot?useSSL=false&serverTimezone=Asia/Seoul
 #    username: root
-#    password: 1234
+#    password: 7164
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000
