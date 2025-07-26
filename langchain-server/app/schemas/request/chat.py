@@ -26,20 +26,11 @@ class StageContext(str, Enum):
     RE_EXPLANATION_PRESENTED = "RE_EXPLANATION_PRESENTED"
     PROMPT_NEXT_ACTION = "PROMPT_NEXT_ACTION"
 
-class UserMessageDto(BaseModel):
+class UserMessageRequest(BaseModel):
     userId: str
     bookId: int
     content: str
     sender: str
     messageType: str
     featureContext: Optional[FeatureContext] = FeatureContext.INITIAL
-    stageContext: Optional[StageContext] = StageContext.START
-
-class AiMessageDto(BaseModel):
-    userId: str
-    bookId: int
-    sender: str = "AI"
-    content: str
-    messageType: str = "TEXT"
-    featureContext: FeatureContext
-    stageContext: StageContext
+    stageContext: Optional[StageContext] = StageContext.START 

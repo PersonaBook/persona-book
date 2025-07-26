@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from app.schemas.openai_chat import OpenAIChatRequest, OpenAIChatResponse
+from app.schemas.request.openai_chat import OpenAIChatRequest
+from app.schemas.response.openai_chat import OpenAIChatResponse
 from app.services.openai_service import openai_service
 
 router = APIRouter()
