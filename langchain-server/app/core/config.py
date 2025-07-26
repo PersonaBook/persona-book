@@ -1,18 +1,16 @@
 from pydantic_settings import BaseSettings
-from functools import lru_cache
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv(".env.dev")   # 첫 번째 파일
-load_dotenv(".env.prod")  # 두 번째 파일, dev 값 위에 업로드/덮어쓰기
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+load_dotenv(BASE_DIR /".env.dev")   # 개발 환경
+load_dotenv(BASE_DIR /".env.prod")  # 운영 환경 (dev 위에 덮어씀)
 
 class Settings(BaseSettings):
     openai_api_key: str
     openai_model_name: str = "gpt-3.5-turbo"
     app_env: str = "development"
     debug: bool = True
-    log_level: str = "INFO"
-
-    class Config:
-        env_file = None  # env_file 미지정, 대신 python-dotenv로 직접 환경변수 주입
+    elasticsearch_hosts: str
 
 settings = Settings()
