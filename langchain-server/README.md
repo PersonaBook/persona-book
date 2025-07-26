@@ -16,6 +16,7 @@ AI 기반 교육용 질문 생성 및 답변 분석을 위한 FastAPI 서버입�
 - **Poetry**: 의존성 관리
 
 ## 설치 및 실행
+>
 > docker-compose 없이 elasticsearch만 별도로 띄워 개발할 경우
 
 ### 1. 의존성 설치
@@ -55,16 +56,20 @@ poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ### Poetry 가상환경 설정
 
 1. **의존성 설치 및 가상환경 생성**
+
    ```bash
    poetry install
    ```
 
 2. **현재 사용 중인 가상환경 확인**
+
    ```bash
    poetry env info
    ```
+
    출력 예시:
-   ```
+
+   ```text
    Virtualenv
    Python:         3.12.1
    Path:           C:\Users\***\virtualenvs\langchain-server-xxx-py3.12
@@ -74,7 +79,8 @@ poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
    - `Ctrl+Shift+P` → "Python: Select Interpreter"
    - 목록에 안 보이면 "Enter interpreter path" 클릭
    - 위에서 확인한 경로로 이동:
-     ```
+
+     ```text
      C:\Users\***\virtualenvs\langchain-server-xxx-py3.12\Scripts\python.exe
      ```
 
@@ -83,6 +89,18 @@ poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
    - `Ctrl+Shift+P` → "Python: Restart Language Server"
 
 이렇게 설정하면 VS Code가 해당 가상환경을 기반으로 lint, jump-to-definition 등이 정상 작동합니다.
+
+## pre-commit 사용법
+>
+> 커밋 전에 코드 스타일 검사, 린트, 포맷팅 등을 자동으로 실행해주는 도구입니다
+
+```text
+# Git 훅을 설치하여 커밋 시 자동으로 검사 실행
+pre-commit install
+
+# 모든 파일에 대해 수동으로 훅을 실행할 때 사용
+pre-commit run --all-files
+```
 
 ## API 문서
 
@@ -99,10 +117,9 @@ poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 | `APP_ENV` | 애플리케이션 환경 | development |
 | `DEBUG` | 디버그 모드 | True |
 
-
 ## 프로젝트 구조
 
-```
+```text
 langchain-server/
 ├── app/
 │   ├── api/                # API 엔드포인트

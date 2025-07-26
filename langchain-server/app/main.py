@@ -1,8 +1,8 @@
+from app.api.chat import router as chat_router
+from app.api.chat_history import router as chat_history_router
+from app.api.openai_chat import router as openai_chat_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.chat import router as chat_router
-from app.api.openai_chat import router as openai_chat_router
-from app.api.chat_history import router as chat_history_router
 
 app = FastAPI()
 
