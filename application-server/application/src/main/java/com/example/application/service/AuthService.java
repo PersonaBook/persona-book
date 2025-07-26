@@ -69,6 +69,7 @@ public class AuthService {
         // Generate and save refresh token to session
         String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserEmail());
         session.setAttribute("refreshToken", refreshTokenString);
+        session.setAttribute("loginToken", jwt);
 
         return new JwtResponse(jwt, refreshTokenString, user.getUserId(), user.getUserEmail(), user.getUserEmail());
     }
