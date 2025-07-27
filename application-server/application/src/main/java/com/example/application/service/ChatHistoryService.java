@@ -3,6 +3,7 @@ package com.example.application.service;
 import com.example.application.dto.chat.AiMessageDto;
 import com.example.application.dto.chat.UserMessageDto;
 import com.example.application.entity.ChatHistory;
+import com.example.application.entity.ChatHistory.ChatState;
 import com.example.application.entity.ChatHistory.MessageType;
 import com.example.application.entity.ChatHistory.Sender;
 import com.example.application.repository.ChatHistoryRepository;
@@ -22,16 +23,14 @@ public class ChatHistoryService {
     private final ChatHistoryRepository chatHistoryRepository;
 
     public void saveUserMessage(UserMessageDto dto,
-                                ChatHistory.FeatureContext featureContext,
-                                ChatHistory.StageContext stageContext) {
+                                ChatState chatState) {
         ChatHistory history = ChatHistory.builder()
-                .userId(Long.parseLong(dto.getUserId()))
+                .userId(dto.getUserId())
                 .bookId(dto.getBookId())
                 .sender(ChatHistory.Sender.USER)
                 .content(dto.getContent())
                 .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
-                .featureContext(featureContext)
-                .stageContext(stageContext)
+                .chatState(chatState)
                 .createdAt(LocalDateTime.now())
                 .build();
         chatHistoryRepository.save(history);
@@ -44,8 +43,7 @@ public class ChatHistoryService {
                 .sender(ChatHistory.Sender.AI)
                 .content(dto.getContent())
                 .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
-                .featureContext(dto.getFeatureContext())
-                .stageContext(dto.getStageContext())
+                .chatState(dto.getChatState())
                 .createdAt(LocalDateTime.now())
                 .build();
         chatHistoryRepository.save(history);
