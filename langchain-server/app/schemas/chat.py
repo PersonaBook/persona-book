@@ -1,45 +1,62 @@
-from pydantic import BaseModel
 from enum import Enum
+from pydantic import BaseModel
 from typing import Optional
 
-class FeatureContext(str, Enum):
-    INITIAL = "INITIAL"
-    PROBLEM_GENERATION = "PROBLEM_GENERATION"
-    PROBLEM_SOLVING = "PROBLEM_SOLVING"
-    CONCEPT_EXPLANATION = "CONCEPT_EXPLANATION"
+class Sender(str, Enum):
+    USER = "USER"
+    AI = "AI"
 
-class StageContext(str, Enum):
-    START = "START"
-    SELECT_TYPE = "SELECT_TYPE"
-    SELECT_PROBLEM_TYPE = "SELECT_PROBLEM_TYPE"
-    PROMPT_CHAPTER_PAGE = "PROMPT_CHAPTER_PAGE"
-    PROMPT_CONCEPT = "PROMPT_CONCEPT"
-    GENERATING_PROBLEM = "GENERATING_PROBLEM"
-    PROBLEM_PRESENTED = "PROBLEM_PRESENTED"
-    USER_ANSWER = "USER_ANSWER"
-    CORRECT_FEEDBACK = "CORRECT_FEEDBACK"
-    INCORRECT_FEEDBACK = "INCORRECT_FEEDBACK"
-    EXPLANATION_PRESENTED = "EXPLANATION_PRESENTED"
-    FEEDBACK_RATING = "FEEDBACK_RATING"
-    PROMPT_FEEDBACK_TEXT = "PROMPT_FEEDBACK_TEXT"
-    INPUT_FEEDBACK_TEXT = "INPUT_FEEDBACK_TEXT"
-    RE_EXPLANATION_PRESENTED = "RE_EXPLANATION_PRESENTED"
-    PROMPT_NEXT_ACTION = "PROMPT_NEXT_ACTION"
+
+class MessageType(str, Enum):
+    TEXT = "TEXT"
+    SELECTION = "SELECTION"
+    RATING = "RATING"
+    FEEDBACK = "FEEDBACK"
+
+
+# FastAPI에서 처리하는 실제로 처리하는 ChatState
+# 1. GENERATING_QUESTION_WITH_RAG
+# 2. GENERATING_ADDITIONAL_QUESTION_WITH_RAG
+# 3. EVALUATING_ANSWER_AND_LOGGING
+# 4. PRESENTING_CONCEPT_EXPLANATION
+# 5. REEXPLAINING_CONCEPT
+# 6. WAITING_KEYWORD_FOR_PAGE_SEARCH
+class ChatState(str, Enum):
+    WAITING_USER_SELECT_FEATURE = "WAITING_USER_SELECT_FEATURE"
+    WAITING_PROBLEM_CRITERIA_SELECTION = "WAITING_PROBLEM_CRITERIA_SELECTION"
+    WAITING_PROBLEM_CONTEXT_INPUT = "WAITING_PROBLEM_CONTEXT_INPUT"
+    GENERATING_QUESTION_WITH_RAG = "GENERATING_QUESTION_WITH_RAG"
+    GENERATING_ADDITIONAL_QUESTION_WITH_RAG = "GENERATING_ADDITIONAL_QUESTION_WITH_RAG"
+    EVALUATING_ANSWER_AND_LOGGING = "EVALUATING_ANSWER_AND_LOGGING"
+    WAITING_NEXT_ACTION_AFTER_LEARNING = "WAITING_NEXT_ACTION_AFTER_LEARNING"
+    PRESENTING_CONCEPT_EXPLANATION = "PRESENTING_CONCEPT_EXPLANATION"
+    WAITING_CONCEPT_RATING = "WAITING_CONCEPT_RATING"
+    WAITING_REASON_FOR_LOW_RATING = "WAITING_REASON_FOR_LOW_RATING"
+    REEXPLAINING_CONCEPT = "REEXPLAINING_CONCEPT"
+    WAITING_CONCEPT_INPUT = "WAITING_CONCEPT_INPUT"
+    WAITING_KEYWORD_FOR_PAGE_SEARCH = "WAITING_KEYWORD_FOR_PAGE_SEARCH"
+    PROCESSING_PAGE_SEARCH_RESULT = "PROCESSING_PAGE_SEARCH_RESULT"
+
 
 class UserMessageDto(BaseModel):
-    userId: str
-    bookId: int
+    userId: int  # 실제로는 long
+    bookId: int  # 실제로는 long
+    sender: Sender = Sender.USER
     content: str
-    sender: str
-    messageType: str
-    featureContext: Optional[FeatureContext] = FeatureContext.INITIAL
-    stageContext: Optional[StageContext] = StageContext.START
+    messageType: MessageType = MessageType.TEXT
+    chatState: ChatState
+
+    class Config:
+        use_enum_values = True
+
 
 class AiMessageDto(BaseModel):
-    userId: str
-    bookId: int
-    sender: str = "AI"
+    userId: int  # 실제로는 long
+    bookId: int  # 실제로는 long
+    sender: Sender = Sender.AI
     content: str
-    messageType: str = "TEXT"
-    featureContext: FeatureContext
-    stageContext: StageContext
+    messageType: MessageType = MessageType.TEXT
+    chatState: ChatState
+
+    class Config:
+        use_enum_values = True
