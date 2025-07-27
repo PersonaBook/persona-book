@@ -11,7 +11,13 @@
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
     <script>
         $( function() {
-            $( "#userBirthDate" ).datepicker();
+            $( "#userBirthDate" ).datepicker({
+                maxDate: "-10y", // Set maxDate to 10 years ago from today
+                changeMonth: true,
+                changeYear: true,
+                yearRange: "c-100:c", // Allow selecting years up to 100 years ago from current year
+                dateFormat: "yy-mm-dd" // Set date format to yyyy-mm-dd
+            });
         } );
     </script>
 </head>
@@ -78,19 +84,19 @@
                             <div class="mb-3">
 
                                 <label class="form-label" for="userBirthDate">생년월일 <span class="text-danger">*</span></label>
-                                <input class="form-control" id="userBirthDate" name="userBirthDate" type="text" required>
+                                <input class="form-control" id="userBirthDate" name="birthDate" type="text" required>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label" for="userJob">직업(학습경험) <span class="text-danger">*</span></label>
-                                <select class="form-select" id="userJob" name="userJob">
+                                <select class="form-select" id="userJob" name="job">
 
                                     <option selected>선택...</option>
-                                    <option value="beginner">초보자</option>
-                                    <option value="experience">프로젝트 경험 있음</option>
-                                    <option value="major">전공학생</option>
-                                    <option value="developer">전문 개발자</option>
-                                    <option value="other">기타</option>
+                                    <option value="초보자">초보자</option>
+                                    <option value="프로젝트 경험 있음">프로젝트 경험 있음</option>
+                                    <option value="전공학생">전공학생</option>
+                                    <option value="전문 개발자">전문 개발자</option>
+                                    <option value="기타">기타</option>
                                 </select>
                             </div>
 

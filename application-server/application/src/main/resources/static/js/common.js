@@ -114,7 +114,9 @@ const HeaderAuthManager = {
     // DOM 요소 캐싱
     elements: {
         loginNav: null,
-        logoutNav: null
+        loginJoin: null,
+        logoutNav: null,
+        logoutMenu: null,
     },
     
     // 초기화
@@ -128,7 +130,9 @@ const HeaderAuthManager = {
     // DOM 요소 캐싱
     cacheElements() {
         this.elements.loginNav = document.getElementById('login-nav');
+        this.elements.loginJoin = document.getElementById('login-join');
         this.elements.logoutNav = document.getElementById('logout-nav');
+        this.elements.logoutMenu = document.getElementById('logout-menu');
     },
     
     // 토큰 상태 확인 (만료 체크 포함)
@@ -151,7 +155,9 @@ const HeaderAuthManager = {
     updateUI() {
         const isLoggedIn = this.hasValidToken();
         this.toggleElement(this.elements.loginNav, !isLoggedIn);
+        this.toggleElement(this.elements.loginJoin, !isLoggedIn);
         this.toggleElement(this.elements.logoutNav, isLoggedIn);
+        this.toggleElement(this.elements.logoutMenu, isLoggedIn);
     },
     
     // 요소 표시/숨김 토글

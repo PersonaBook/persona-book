@@ -18,6 +18,8 @@
         <p>PDF를 로딩 중입니다...</p>
     </div>
 
+    <aside th:replace="fragments/aside :: aside"></aside>
+
     <script>
         $(document).ready(function(){
             /* section layout 최소 height */
@@ -35,7 +37,6 @@
             $(window).on('resize', adjustSectionHeight);
         });
 
-        console.log('스크립트 시작');
 
         console.log('즉시 실행');
         // Hidden div에서 JSON 가져오기 (이스케이프 문제 해결)

@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
-    <title th:text="'로그인' ?: 'PDF-Playground'">Layout</title>
+    <title th:text="'마이페이지' ?: 'PDF-Playground'">Layout</title>
 </head>
 
 <body>
@@ -11,83 +11,37 @@
     <div class="container d-flex justify-content-center align-items-center flex-direction-column">
         <div class="col-lg-6 col-12 my-5">
             <div class="w-100">
-                <h1 class="my-4">마이페이지</h1>
-                <!--                <div class="card">-->
-                <!--                    <div class="card-body p-4">-->
-                <!--                        <div id="myPageContent">-->
-                <!--                            <p>로딩 중...</p>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                </div>-->
+                <h1 class="fw-bold mb-4 text-center">마이페이지</h1>
 
-                <div class="card">
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+                <div th:if="${user}" class="card">
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label">이름</label>
-                            <div class="form-control">${data.userName}</div>
+                            <div class="form-control" th:text="${user.userName}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">이메일</label>
-                            <div class="form-control">${data.userEmail}</div>
+                            <div class="form-control" th:text="${user.userEmail}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">전화번호</label>
-                            <div class="form-control">${data.userPhoneNumber}</div>
+                            <div class="form-control" th:text="${user.userPhoneNumber}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">생년월일</label>
-                            <div class="form-control">${data.userBirthDate || ''}</div>
+                            <div class="form-control" th:text="${#temporals.format(user.userBirthDate, 'yyyy / MM / dd')}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">직업</label>
-                            <div class="form-control">${data.userJob || ''}</div>
+                            <div class="form-control" th:text="${user.userJob}"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-        authFetch('/api/my-page')
-            .then(res => {
-                if (!res.ok) throw new Error('인증 필요');
-                return res.json();
-            })
-            .then(data => {
-                document.getElementById('myPageContent').innerHTML = `
-      <div class="card">
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">이름</label>
-            <div class="form-control">${data.userName}</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">이메일</label>
-            <div class="form-control">${data.userEmail}</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">전화번호</label>
-            <div class="form-control">${data.userPhoneNumber}</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">생년월일</label>
-            <div class="form-control">${data.userBirthDate || ''}</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">직업</label>
-            <div class="form-control">${data.userJob || ''}</div>
-          </div>
-        </div>
-      </div>
-    `;
-            })
-            .catch(err => {
-                document.getElementById('myPageContent').innerHTML = '<div class="alert alert-danger">정보를 불러올 수 없습니다. 다시 로그인 해주세요.</div>';
-                console.error('마이페이지 로딩 에러:', err);
-            });
-    </script>
 </div>
 </body>
-
-
 </html>

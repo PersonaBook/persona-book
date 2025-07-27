@@ -69,6 +69,7 @@ public class AuthService {
         // Generate and save refresh token to session
         String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserEmail());
         session.setAttribute("refreshToken", refreshTokenString);
+        session.setAttribute("loginToken", jwt);
 
         return new JwtResponse(jwt, refreshTokenString, user.getUserId(), user.getUserEmail(), user.getUserEmail());
     }
@@ -113,6 +114,16 @@ public class AuthService {
 
         if (userRepository.existsByUserEmail(signUpRequest.getUserEmail())) {
             return false; // Email is already in use!
+        }
+
+        // Check if user is at least 10 years old
+        if (signUpRequest.getBirthDate() != null) {
+            java.time.LocalDate today = java.time.LocalDate.now();
+            java.time.LocalDate minBirthDate = today.minusYears(10);
+            if (signUpRequest.getBirthDate().isAfter(minBirthDate)) {
+                logger.warn("User tried to register with birth date {} which is less than 10 years old.", signUpRequest.getBirthDate());
+                return false; // User is too young
+            }
         }
 
         // Create new user's account

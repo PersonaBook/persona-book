@@ -1,11 +1,11 @@
- $(document).ready(function() {
-      console.log('main/script.js 실행');
+$(document).ready(function () {
+    console.log('main/script.js 실행');
 
-      if (getAuthToken()) {
-          loadPdfList();
-      }
+    if (getAuthToken()) {
+        loadPdfList();
+    }
 
-    $('#imageInput').on('change', function(event) {
+    $('#imageInput').on('change', function (event) {
         const file = this.files[0];
         const $originalPlusArea = $(this).closest('.pdf_contents > li');
 
@@ -21,26 +21,26 @@
 
                 const reader = new FileReader();
 
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const pdfData = e.target.result;
-                  
-                  
-    // 전체 PDF 파일을 base64로 변환 (청크 단위로 처리)
-                      const uint8Array = new Uint8Array(pdfData);
-                      let binaryString = '';
-                      const chunkSize = 8192; // 8KB씩 처리
-                      for (let i = 0; i < uint8Array.length; i += chunkSize) {
-                          const chunk = uint8Array.slice(i, i + chunkSize);
-                          binaryString += String.fromCharCode.apply(null, chunk);
-                      }
-                      const pdfBase64 = btoa(binaryString);
+
+
+                    // 전체 PDF 파일을 base64로 변환 (청크 단위로 처리)
+                    const uint8Array = new Uint8Array(pdfData);
+                    let binaryString = '';
+                    const chunkSize = 8192; // 8KB씩 처리
+                    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                        const chunk = uint8Array.slice(i, i + chunkSize);
+                        binaryString += String.fromCharCode.apply(null, chunk);
+                    }
+                    const pdfBase64 = btoa(binaryString);
 
 
                     // PDF.js를 사용하여 PDF 로드
-                    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-                    loadingTask.promise.then(function(pdf) {
+                    const loadingTask = pdfjsLib.getDocument({data: pdfData});
+                    loadingTask.promise.then(function (pdf) {
                         // 첫 번째 페이지 가져오기
-                        pdf.getPage(1).then(function(page) {
+                        pdf.getPage(1).then(function (page) {
                             // 1. 새로운 .plus_area 구조 복제
                             const $newPlusArea = $originalPlusArea.clone();
                             $newPlusArea.find('#imageInput').remove();
@@ -53,7 +53,7 @@
                             $newFileArea.css("z-index", "1");
 
                             const scale = 1.1;
-                            const viewport = page.getViewport({ scale: scale });
+                            const viewport = page.getViewport({scale: scale});
 
                             const $canvas = $('<canvas><a href=""></a></canvas>');
                             $canvas.css({
@@ -75,14 +75,13 @@
                                 canvasContext: context,
                                 viewport: viewport
                             };
-                            page.render(renderContext).promise.then(function() {
+                            page.render(renderContext).promise.then(function () {
                                 console.log('PDF rendered on new canvas!');
 
 
-                                
                                 // 전체 PDF 파일을 서버에 업로드 (이미 변환된 base64 사용)
                                 uploadPdfToServer(file.name, pdfBase64, $newPlusArea);
-                              
+
                             });
 
                             $originalPlusArea.before($newPlusArea);
@@ -90,11 +89,11 @@
                             $originalPlusArea.find('#imagePreview').html('<p></p>');
                             $(event.target).val('');
 
-                        }).catch(function(error) {
+                        }).catch(function (error) {
                             console.error('Error getting PDF page:', error);
                             $originalPlusArea.find('#imagePreview').html('<p style="color: red;">PDF 페이지 로드 실패.</p>');
                         });
-                    }).catch(function(error) {
+                    }).catch(function (error) {
                         console.error('Error loading PDF document:', error);
                         $originalPlusArea.find('#imagePreview').html('<p style="color: red;">PDF 문서 로드 실패.</p>');
                     });
@@ -103,7 +102,7 @@
                 reader.readAsArrayBuffer(file);
             } else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const $currentPreviewDiv = $originalPlusArea.find('#imagePreview');
                     $currentPreviewDiv.empty();
                     const $img = $('<img>');
@@ -137,12 +136,12 @@ function loadPdfList() {
         headers: {
             'Authorization': 'Bearer ' + getAuthToken()
         },
-        success: function(response) {
+        success: function (response) {
             if (Array.isArray(response)) {
                 displayPdfList(response);
             }
         },
-        error: function(xhr) {
+        error: function (xhr) {
             if (xhr.status === 401) {
                 alert('로그인이 필요합니다.');
                 window.location.href = '/user/login';
@@ -156,8 +155,8 @@ function loadPdfList() {
 function displayPdfList(pdfList) {
     const $pdfContents = $('.pdf_contents');
     const $originalPlusArea = $pdfContents.find('li:last-child');
-    
-    pdfList.forEach(function(pdf) {
+
+    pdfList.forEach(function (pdf) {
         const $pdfItem = $('<div class="pdf-item"></div>');
         $pdfItem.html(`
             <li class="pdf_li">
@@ -167,11 +166,11 @@ function displayPdfList(pdfList) {
             </li>
             <p class="pdf_title">${pdf.title}</p>
         `);
-        
+
         if (pdf.fileBase64) {
             renderPdfPreview(pdf.fileBase64, $pdfItem.find('canvas')[0]);
         }
-        
+
         $originalPlusArea.before($pdfItem);
     });
 }
@@ -183,22 +182,22 @@ function renderPdfPreview(base64Data, canvas) {
         for (let i = 0; i < binaryString.length; i++) {
             bytes[i] = binaryString.charCodeAt(i);
         }
-        
-        const loadingTask = pdfjsLib.getDocument({ data: bytes });
-        loadingTask.promise.then(function(pdf) {
-            pdf.getPage(1).then(function(page) {
+
+        const loadingTask = pdfjsLib.getDocument({data: bytes});
+        loadingTask.promise.then(function (pdf) {
+            pdf.getPage(1).then(function (page) {
                 const scale = 1.1;
-                const viewport = page.getViewport({ scale: scale });
+                const viewport = page.getViewport({scale: scale});
                 const context = canvas.getContext('2d');
-                
+
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
-                
+
                 const renderContext = {
                     canvasContext: context,
                     viewport: viewport
                 };
-                
+
                 page.render(renderContext);
             });
         });
@@ -219,7 +218,7 @@ function uploadPdfToServer(title, fileBase64, $pdfElement) {
             title: title,
             file_base64: fileBase64
         }),
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 console.log('PDF 업로드 성공:', response);
                 $pdfElement.attr('onclick', `goToPdfDetail(${response.bookId})`);
@@ -230,7 +229,7 @@ function uploadPdfToServer(title, fileBase64, $pdfElement) {
                 $pdfElement.remove();
             }
         },
-        error: function(xhr) {
+        error: function (xhr) {
             console.error('PDF 업로드 실패:', xhr.responseText);
             alert('PDF 업로드 실패');
             $pdfElement.remove();

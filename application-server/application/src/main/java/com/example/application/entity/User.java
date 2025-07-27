@@ -31,8 +31,10 @@ public class User {
     @Column(nullable = false, length = 15)
     private String userPhoneNumber;
 
+    @Column(name = "user_birth_date")
     private LocalDate userBirthDate;
 
+    @Column(name = "user_job")
     private String userJob;
 
     @Column(nullable = false)
