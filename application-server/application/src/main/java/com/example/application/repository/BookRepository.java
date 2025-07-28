@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
     
-    @Query("SELECT b FROM Book b WHERE b.userId = :userId AND b.deletedAt IS NULL ORDER BY b.createdAt DESC")
+    @Query("SELECT b FROM Book b WHERE b.userId = :userId AND b.deletedAt IS NULL ORDER BY b.createdAt ASC")
     List<Book> findByUserIdAndDeletedAtIsNull(@Param("userId") Long userId);
     
     @Query("SELECT b FROM Book b WHERE b.bookId = :bookId AND b.userId = :userId AND b.deletedAt IS NULL")
