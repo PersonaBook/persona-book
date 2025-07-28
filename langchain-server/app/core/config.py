@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     openai_model_name: str = "gpt-3.5-turbo"
     app_env: str = "development"
     debug: bool = True
-    elasticsearch_hosts: str
+    elasticsearch_hosts: str = "http://localhost:9200"
 
 
 settings = Settings()
