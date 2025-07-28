@@ -1,12 +1,14 @@
-from app.schemas.request.chat import FeatureContext, StageContext
 from pydantic import BaseModel
+from app.schemas.enum import Sender, MessageType, ChatState
 
 
 class AiMessageResponse(BaseModel):
-    userId: str
-    bookId: int
-    sender: str = "AI"
+    userId: int  # 실제로는 long
+    bookId: int  # 실제로는 long
+    sender: Sender = Sender.AI
     content: str
-    messageType: str = "TEXT"
-    featureContext: FeatureContext
-    stageContext: StageContext
+    messageType: MessageType = MessageType.TEXT
+    chatState: ChatState
+
+    class Config:
+        use_enum_values = True
