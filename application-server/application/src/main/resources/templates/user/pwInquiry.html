@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <title th:text="'비밀번호 찾기' ?: 'PDF-Playground'">Layout</title>
+    <script th:src="@{/js/effectiven.js}"></script>
+</head>
+
+<div layout:fragment="content">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
+                <h1 class="fw-bold mb-4 text-center">비밀번호 찾기</h1>
+
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/find_password_success" id="resetPasswordForm" method="post">
+                            <div class="mb-3">
+                                <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
+                                <input class="form-control" id="name" name="name" placeholder="이름을 입력해주세요." required
+                                       type="text">
+                                <div class="invalid-feedback" id="nameError"></div>
+                                <div class="valid-feedback" id="nameSuccess"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
+                                <div class="d-flex gap-2">
+                                    <input class="form-control" id="email" name="email" placeholder="example@email.com"
+                                           required type="email">
+                                    <button class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="min-width: 130px;"
+                                            type="button">인증번호 발송
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback" id="emailError"></div>
+                                <div class="valid-feedback" id="emailSuccess"></div>
+                            </div>
+
+                            <div class="mb-3" id="verificationCodeSection" style="display: none">
+                                <label class="form-label" for="verificationCode">인증번호 입력 <span class="text-danger">*</span></label>
+                                <div class="d-flex gap-2">
+                                    <input class="form-control" id="verificationCode" placeholder="인증번호를 입력하세요"
+                                           type="text">
+                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인
+                                    </button>
+                                </div>
+                                <div class="mt-2" id="codeVerificationMessage"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newPassword">새로운 비밀번호 <span class="text-danger">*</span></label>
+                                <input type="password" id="newPassword" name="newPassword" class="form-control" placeholder="영문, 숫자, 특수문자 포함 8~20자">
+                                <div id="newPasswordError" class="invalid-feedback" style="display: none;">
+                                </div>
+                                <div id="newPasswordSuccess" class="valid-feedback" style="display: none;">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="confirmNewPassword">새로운 비밀번호 확인 <span class="text-danger">*</span></label>
+                                <input type="password" id="confirmNewPassword" name="confirmNewPassword" class="form-control" placeholder="새로운 비밀번호와 동일하게 입력">
+                                <div id="confirmNewPasswordError" class="invalid-feedback" style="display: none;">
+                                </div>
+                                <div id="confirmNewPasswordSuccess" class="valid-feedback" style="display: none;">
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary w-100 mt-5" type="submit">비밀번호 변경</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+</html>

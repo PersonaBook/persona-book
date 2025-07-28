@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<aside th:fragment="aside">
+    <ul>
+        <!-- note icon start -->
+        <li style="display: none">
+            <a href="">
+                <img src="/image/img_pen.png" alt="">
+            </a>
+        </li>
+        <!-- note icon end -->
+
+        <!-- chat icon start -->
+<!--        <li>-->
+<!--            <a href="javascript:void(0);" onclick="toggleChatbot()">-->
+<!--                <img src="/image/img_chat.png" alt="Chat Icon">-->
+<!--            </a>-->
+<!--        </li>-->
+
+        <li>
+            <a th:href="@{/chat(userId=${book.userId}, bookId=${book.bookId})}">
+                <img src="/image/img_chat.png" alt="챗봇 이동 버튼">
+            </a>
+        </li>
+        <!-- chat icon end -->
+    </ul>
+</aside>

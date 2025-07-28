@@ -40,19 +40,15 @@ public class PageController {
     @GetMapping("/find_id")
     public String findId(Model model) {
         model.addAttribute("title", "아이디 찾기");
-        return "page/findId";
+        return "idInquiry";
     }
 
-    @GetMapping("/find_id_success")
-    public String findIdSuccess(Model model) {
-        model.addAttribute("title", "아이디 찾기 완료");
-        return "page/findIdSuccess";
-    }
+
 
     @GetMapping("/find_password")
     public String findPassword(Model model) {
         model.addAttribute("title", "비밀번호 찾기");
-        return "page/findPassword";
+        return "pwInquiry";
     }
 
     @GetMapping("/find_password_success")
@@ -61,11 +57,6 @@ public class PageController {
         return "page/findPasswordSuccess";
     }
 
-    @GetMapping("/pdf/detail/{id}")
-    public String pdfDetail(@PathVariable("id") Long id, Model model) {
-        model.addAttribute("title", "PDF 상세");
-        return "page/pdfDetail";
-    }
 
     @PostMapping("/api/find-id/send-verification-email")
     @ResponseBody

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <title>학습 도우미 챗봇</title>
+    <link rel="stylesheet" th:href="@{/css/chat.css}">
+    <script defer th:src="@{/js/chat.js}"></script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="chat-container">
+        <div class="chat-header">
+            🤖 학습 도우미 챗봇
+        </div>
+
+        <div class="chat-settings">
+            <button type="button" onclick="deleteChatHistoryAndRestart()" class="quick-btn">채팅 이력 삭제</button>
+            <button type="button" id="newChatButton" onclick="startNewChat()" class="quick-btn" style="display:none;">새로운 대화 시작</button>
+            <input type="hidden" id="userId" th:value="${userId}" />
+            <input type="hidden" id="bookId" th:value="${bookId}" />
+        </div>
+
+        <div class="debug-info">
+            상태: <span id="debugState"></span> |
+            연결: <span id="connectionStatus">확인 중...</span>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="loading" id="loadingIndicator">AI가 응답을 생성하고 있습니다...</div>
+
+        <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+                <input type="text" class="chat-input" id="messageInput" placeholder="메시지를 입력하세요..." autocomplete="off" />
+                <button type="submit" class="send-button" id="sendButton">전송</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

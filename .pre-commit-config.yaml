@@ -1,0 +1,51 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        files: ^langchain-server/
+
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: python-check-blanket-noqa
+        files: ^langchain-server/
+      - id: python-check-mock-methods
+        files: ^langchain-server/
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.19.0
+    hooks:
+      - id: pyupgrade
+        args: ['--py37-plus']
+        files: ^langchain-server/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+        files: ^langchain-server/
+      - id: trailing-whitespace
+        files: ^langchain-server/
+
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+      - id: autoflake
+        language: python
+        args:
+          - --remove-unused-variables
+          - --remove-all-unused-imports
+          - --in-place
+          - --expand-star-imports
+        files: ^langchain-server/
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        name: Markdown Lint
+        entry: markdownlint --fix
+        language: node
+        files: ^langchain-server/.*\.md$
+        types: [file]

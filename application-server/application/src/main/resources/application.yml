@@ -15,7 +15,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
 #    url: jdbc:mysql://127.0.0.1:3306/chatbot?useSSL=false&serverTimezone=Asia/Seoul
 #    username: root
-#    password: 1234
+#    password: 7164
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000
@@ -40,8 +40,10 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+#    username: ${MAIL_USERNAME}
+    username: ssy06116@gmail.com
+#    password: ${MAIL_PASSWORD}
+    password: jnnhbpoxzcsygcps
     properties:
       mail:
         smtp:
@@ -63,7 +65,7 @@ spring:
 server:
   port: 8080
   servlet:
-    context-path: /api
+    context-path: /
   error:
     whitelabel:
       enabled: false
@@ -90,9 +92,11 @@ management:
       enabled: true
 
 app:
-  jwtSecret: ${JWT_SECRET}
+#  jwtSecret: ${JWT_SECRET}
+  jwtSecret: QwErTyUiOpAsDfGhJkLzXcVbNmQwErTyUiOpAsDfGhJkLzXcVbNm1234567890QWERTYUIOPASDFGHJKLZXCVBNM
   jwtExpirationMs: 86400000
   jwtRefreshExpirationMs: 604800000
 
 file:
-  upload-dir: ${UPLOAD_DIR_PATH}
+#  upload-dir: ${UPLOAD_DIR_PATH}
+  upload-dir: D:/KDT_BE12_Toy_Project4/application-server/application/src/main/resources/static/pdf

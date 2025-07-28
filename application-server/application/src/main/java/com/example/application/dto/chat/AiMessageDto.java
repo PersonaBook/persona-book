@@ -1,7 +1,6 @@
 package com.example.application.dto.chat;
 
-import com.example.application.entity.ChatHistory.StageContext;
-import com.example.application.entity.ChatHistory.FeatureContext;
+import com.example.application.entity.ChatHistory.ChatState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,15 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AiMessageDto {
-    private String userId;
+    private Long userId;
     private Long bookId;
     @Builder.Default
     private String sender = "AI";
     private String content;
-    private String messageType; // TEXT, .. (추후 확장 예정)
+    @Builder.Default
+    private String messageType = "TEXT"; // TEXT, .. (추후 확장 예정)
 
-    private FeatureContext featureContext;
-    private StageContext stageContext;
+    private ChatState chatState;
 
     // 추가 필드 예시
     // private String source; // langchain, api, vectorDB 등

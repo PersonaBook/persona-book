@@ -3,15 +3,15 @@ package com.example.application.service;
 import com.example.application.dto.chat.AiMessageDto;
 import com.example.application.dto.chat.UserMessageDto;
 import com.example.application.entity.ChatHistory;
-import com.example.application.entity.ChatHistory.FeatureContext;
-import com.example.application.entity.ChatHistory.StageContext;
+import com.example.application.entity.ChatHistory.ChatState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,192 +21,192 @@ public class ChatService {
     private final ChatHistoryService chatHistoryService;
     private final WebClient webClient;
 
-    /**
-     * 상태 기반 챗봇 흐름의 메인 진입 메서드
-     * - 사용자 메시지를 받아 상태를 판단하고 LangChain 호출
-     * - 응답을 저장 및 다음 상태 계산
-     */
-    public AiMessageDto handleChatFlow(UserMessageDto userMessageDto) {
-        Long userId = Long.parseLong(userMessageDto.getUserId());
+    public List<AiMessageDto> handleChatFlow(UserMessageDto userMessageDto) {
+        List<AiMessageDto> responses = new ArrayList<>();
+
+        Long userId = userMessageDto.getUserId();
         Long bookId = userMessageDto.getBookId();
 
-        // ✅ 현재 상태 확보: DTO에서 오지 않았다면 마지막 채팅 이력으로 fallback
-        FeatureContext currentFeatureContext = Optional.ofNullable(userMessageDto.getFeatureContext())
-                .or(() -> chatHistoryService.findLastMessage(userId, bookId).map(ChatHistory::getFeatureContext))
-                .orElse(FeatureContext.INITIAL);
+        // userMessageDto에서 state가 넘어오면 그걸 우선 사용 (프론트에서 새로운 대화를 위해 WAITING_USER_SELECT_FEATURE를 보내는 경우가 있음)
+        ChatState currentState = userMessageDto.getChatState();
 
-        StageContext currentStageContext = Optional.ofNullable(userMessageDto.getStageContext())
-                .or(() -> chatHistoryService.findLastMessage(userId, bookId).map(ChatHistory::getStageContext))
-                .orElse(StageContext.START);
+        if (currentState == null) {
+            // fallback: DB에서 마지막 상태 조회
+            currentState = chatHistoryService.findLastMessage(userId, bookId)
+                    .map(ChatHistory::getChatState)
+                    .orElse(ChatState.WAITING_USER_SELECT_FEATURE);
+        }
 
-        // 🧠 LangChain 호출 (FastAPI에게 현재 상태를 포함한 메시지 전달)
-        AiMessageDto aiMessageDto = callLangChain(userMessageDto, currentFeatureContext, currentStageContext);
+        // 빈 메시지인 경우: 초기 진입 상태만 유도, 유저 메시지는 저장 X
+        if (userMessageDto.getContent() == null || userMessageDto.getContent().trim().isEmpty()) {
+            ChatState next = ChatState.WAITING_USER_SELECT_FEATURE;
+            AiMessageDto initial = buildLocalAiMessage(next, userId, bookId);
+            initial.setChatState(next);
+            chatHistoryService.saveAiMessage(initial, userId, bookId);
+            responses.add(initial);
+            return responses;
+        }
 
-        // 🔁 다음 상태 계산 (현재 응답 기반으로 다음 상태 판단)
-        FeatureContext nextFeatureContext = calculateNextFeatureContext(aiMessageDto, userMessageDto);
-        StageContext nextStageContext = calculateNextStageContext(aiMessageDto, userMessageDto);
+        // 다음 상태 전이 결정
+        ChatState nextState = determineNextState(currentState, userMessageDto.getContent());
+        userMessageDto.setChatState(nextState);
 
-        // 📨 다음 상태를 UserMessageDto에 기록 (다음 요청 시 기준이 됨)
-        userMessageDto.setFeatureContext(nextFeatureContext);
-        userMessageDto.setStageContext(nextStageContext);
+        // FastAPI 호출 여부 판단
+        AiMessageDto aiMessageDto = shouldCallFastApi(nextState)
+                ? callFastApi(userMessageDto)
+                : buildLocalAiMessage(nextState, userId, bookId);
 
-        // 💾 채팅 이력 저장 (기준은 현재 상태 - 응답이 아님)
-        chatHistoryService.saveUserMessage(userMessageDto, currentFeatureContext, currentStageContext);
+        // 다음 상태 설정 및 저장
+        aiMessageDto.setChatState(nextState);
+        chatHistoryService.saveUserMessage(userMessageDto, currentState);
         chatHistoryService.saveAiMessage(aiMessageDto, userId, bookId);
 
-        return aiMessageDto;
-    }
+        responses.add(aiMessageDto);
 
-    /**
-     * LangChain 호출
-     * - FastAPI에게 현재 상태를 포함한 UserMessageDto 전송
-     * - 실패 시 기본 응답 반환
-     */
-    private AiMessageDto callLangChain(UserMessageDto dto,
-                                       FeatureContext featureContext,
-                                       StageContext stageContext) {
-        // 현재 상태를 DTO에 설정하여 전송
-        dto.setFeatureContext(featureContext);
-        dto.setStageContext(stageContext);
-
-        return webClient.post()
-                .uri("/api/chat")
-                .bodyValue(dto)
-                .retrieve()
-                .bodyToMono(AiMessageDto.class)
-                .map(ai -> {
-                    ai.setUserId(dto.getUserId());
-                    ai.setBookId(dto.getBookId());
-                    return ai;
-                })
-                .onErrorResume(e -> {
-                    log.error("LangChain 호출 실패", e);
-                    // 실패 응답 처리 (fallback)
-                    return Mono.just(AiMessageDto.builder()
-                            .userId(dto.getUserId())
-                            .bookId(dto.getBookId())
-                            .sender("AI")
-                            .content("AI 응답 실패")
-                            .messageType("TEXT")
-                            .build());
-                }).block(); // 동기 방식 처리
-    }
-
-    /**
-     * 다음 FeatureContext (기능 단위) 계산
-     * - 사용자 입력이 "처음으로", "다른 기능으로 돌아가기"인 경우 초기화
-     * - 그 외에는 AI 응답의 stageContext 기준으로 기능 추론
-     */
-    private FeatureContext calculateNextFeatureContext(AiMessageDto ai, UserMessageDto user) {
-        String userInput = user.getContent();
-
-        // 🔁 사용자가 직접 초기화 요청한 경우
-        if ("처음으로".equalsIgnoreCase(userInput) || "종료".equals(userInput)) {
-            return FeatureContext.INITIAL;
+        // ✅ 추가 처리: EVALUATING_ANSWER_AND_LOGGING 후 자동 전이
+        // 추가 메시지 생성 (예: WAITING_CONCEPT_RATING)
+        if (nextState == ChatState.EVALUATING_ANSWER_AND_LOGGING || nextState == ChatState.REEXPLAINING_CONCEPT) {
+            ChatState nextAfterEvaluation = determineNextState(nextState, userMessageDto.getContent());
+            AiMessageDto followUpMessage = buildLocalAiMessage(nextAfterEvaluation, userId, bookId);
+            followUpMessage.setChatState(nextAfterEvaluation);
+            chatHistoryService.saveAiMessage(followUpMessage, userId, bookId);
+            responses.add(followUpMessage);
         }
 
-        // 🔀 AI 응답의 현재 단계(stageContext)에 따라 다음 기능 결정
-        return switch (ai.getStageContext()) {
-
-            // 초기 진입 or 기능 종료 후
-            case START, PROMPT_NEXT_ACTION -> FeatureContext.INITIAL;
-
-            // 문제 생성 흐름 (챕터/개념 선택, 생성 중 등)
-            case SELECT_TYPE,
-                 PROMPT_CHAPTER_PAGE,
-                 PROMPT_CONCEPT,
-                 GENERATING_PROBLEM -> FeatureContext.PROBLEM_GENERATION;
-
-            // 문제 풀이 흐름 (문제 제시, 정답/오답 피드백 등)
-            case PROBLEM_PRESENTED,
-                 USER_ANSWER,
-                 CORRECT_FEEDBACK,
-                 INCORRECT_FEEDBACK -> FeatureContext.PROBLEM_SOLVING;
-
-            // 개념 설명 및 피드백 흐름
-            case EXPLANATION_PRESENTED,
-                 FEEDBACK_RATING,
-                 PROMPT_FEEDBACK_TEXT,
-                 INPUT_FEEDBACK_TEXT,
-                 RE_EXPLANATION_PRESENTED -> FeatureContext.CONCEPT_EXPLANATION;
-        };
+        return responses;
     }
 
-    /**
-     * 다음 StageContext (기능 내 단계) 계산
-     * - 사용자 입력과 AI 응답의 현재 단계(stageContext)를 바탕으로 흐름 전이
-     */
-    private StageContext calculateNextStageContext(AiMessageDto ai, UserMessageDto user) {
-        String userInput = user.getContent();
+    private ChatState determineNextState(ChatState currentState, String content) {
+        return switch (currentState) {
+            // 초기 기능 선택 상태: 1. 문제 생성, 2. 페이지 찾기, 3. 개념 설명
+            case WAITING_USER_SELECT_FEATURE -> switch (content) {
+                case "1" -> ChatState.WAITING_PROBLEM_CRITERIA_SELECTION;
+                case "2" -> ChatState.WAITING_KEYWORD_FOR_PAGE_SEARCH;
+                case "3" -> ChatState.WAITING_CONCEPT_INPUT;
+                default -> ChatState.WAITING_USER_SELECT_FEATURE;
+            };
 
-        // 🔁 사용자 요청으로 흐름을 초기화 (예: "처음으로", "종료")
-        if ("처음으로".equalsIgnoreCase(userInput) || "종료".equalsIgnoreCase(userInput)) {
-            return StageContext.START;
-        }
+            // ✅ 1. 문제 생성 흐름
+            case WAITING_PROBLEM_CRITERIA_SELECTION -> ChatState.WAITING_PROBLEM_CONTEXT_INPUT; // 챕터/개념 입력 요청
+            case WAITING_PROBLEM_CONTEXT_INPUT -> ChatState.GENERATING_QUESTION_WITH_RAG; // 입력 기반 RAG 생성 요청
 
-        // 🔁 AI 응답 기준으로 다음 단계 결정
-        return switch (ai.getStageContext()) {
+            case GENERATING_QUESTION_WITH_RAG -> ChatState.EVALUATING_ANSWER_AND_LOGGING; // 문제 제시 완료
 
-            // 처음 진입: 기능 선택으로 유도
-            case START -> StageContext.SELECT_TYPE;
+            // FastAPI가 해설을 포함한 피드백 응답 → 사용자에게 바로 평가 요청
+            case EVALUATING_ANSWER_AND_LOGGING -> ChatState.WAITING_CONCEPT_RATING;
 
-            // 기능 선택지에 대한 사용자 응답
-            case SELECT_TYPE -> {
-                if ("1".equals(userInput)) yield StageContext.PROMPT_CHAPTER_PAGE;  // 챕터/페이지 선택
-                else if ("2".equals(userInput)) yield StageContext.PROMPT_CONCEPT;  // 개념 입력 선택
-                else yield StageContext.SELECT_TYPE;  // 잘못된 입력 → 반복
-            }
-
-            // 입력 이후 문제 생성 요청 단계로 전이
-            case PROMPT_CHAPTER_PAGE, PROMPT_CONCEPT -> StageContext.GENERATING_PROBLEM;
-
-            // 문제 생성 완료 후 문제 제시
-            case GENERATING_PROBLEM -> StageContext.PROBLEM_PRESENTED;
-
-            // 문제 제시 후 사용자 응답 대기
-            case PROBLEM_PRESENTED -> StageContext.USER_ANSWER;
-
-            // 사용자 응답을 받았지만 계속 문제 풀이 단계 유지
-            case USER_ANSWER -> StageContext.USER_ANSWER;
-
-            // 정답 피드백 이후 분기
-            case CORRECT_FEEDBACK -> {
-                if ("1".equals(userInput)) yield StageContext.PROBLEM_PRESENTED; // 다음 문제 계속
-                else yield StageContext.PROMPT_NEXT_ACTION; // 기능 전환
-            }
-
-            // 오답 피드백 이후 분기
-            case INCORRECT_FEEDBACK -> {
-                if ("1".equals(userInput)) yield StageContext.EXPLANATION_PRESENTED; // 개념 설명 선택
-                else if ("2".equals(userInput)) yield StageContext.PROBLEM_PRESENTED; // 다음 문제 선택
-                else yield StageContext.PROMPT_NEXT_ACTION; // 잘못된 응답 → 기능 전환
-            }
-
-            // 개념 설명 후 → 이해도 평가
-            case EXPLANATION_PRESENTED -> StageContext.FEEDBACK_RATING;
-
-            // 이해도 점수 평가
-            case FEEDBACK_RATING -> {
+            // 사용자 이해도 평가 → 점수에 따라 분기
+            case WAITING_CONCEPT_RATING -> {
                 try {
-                    int score = Integer.parseInt(userInput);
-                    if (score >= 4) yield StageContext.PROMPT_NEXT_ACTION; // 이해 완료
-                    else yield StageContext.PROMPT_FEEDBACK_TEXT; // 부족 → 상세 피드백 요청
+                    int score = Integer.parseInt(content.trim());
+                    if (score >= 4) yield ChatState.WAITING_NEXT_ACTION_AFTER_LEARNING;
+                    else yield ChatState.WAITING_REASON_FOR_LOW_RATING;
                 } catch (NumberFormatException e) {
-                    yield StageContext.FEEDBACK_RATING; // 숫자 아님 → 다시 요청
+                    yield ChatState.WAITING_CONCEPT_RATING;
                 }
             }
 
-            // 피드백 작성 단계
-            case PROMPT_FEEDBACK_TEXT -> StageContext.INPUT_FEEDBACK_TEXT;
+            // 낮은 점수 → 이유 입력 → 재설명 후 다시 평가 루프
+            case WAITING_REASON_FOR_LOW_RATING -> ChatState.REEXPLAINING_CONCEPT;
+            case REEXPLAINING_CONCEPT -> ChatState.WAITING_CONCEPT_RATING;
 
-            // 입력받은 피드백을 바탕으로 재설명
-            case INPUT_FEEDBACK_TEXT -> StageContext.RE_EXPLANATION_PRESENTED;
+            // 사용자 선택: 다음 문제 or 기능 선택으로 분기
+            case WAITING_NEXT_ACTION_AFTER_LEARNING -> {
+                if (content.equals("1")) yield ChatState.GENERATING_ADDITIONAL_QUESTION_WITH_RAG;
+                else yield ChatState.WAITING_USER_SELECT_FEATURE;
+            }
 
-            // 재설명 이후 다시 점수 요청
-            case RE_EXPLANATION_PRESENTED -> StageContext.FEEDBACK_RATING;
+            case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> ChatState.EVALUATING_ANSWER_AND_LOGGING;
 
-            // 기능 종료 후 기능 선택 화면 복귀
-            case PROMPT_NEXT_ACTION -> StageContext.SELECT_TYPE;
+
+            // ✅ 2. 페이지 찾기 흐름 → 키워드 입력 받기
+            case WAITING_KEYWORD_FOR_PAGE_SEARCH -> ChatState.PROCESSING_PAGE_SEARCH_RESULT;
+            case PROCESSING_PAGE_SEARCH_RESULT -> ChatState.WAITING_USER_SELECT_FEATURE;
+
+
+            // ✅ 3. 개념 설명 흐름 → 개념 입력 → 설명 → 평가
+            case WAITING_CONCEPT_INPUT -> ChatState.PRESENTING_CONCEPT_EXPLANATION;
+            case PRESENTING_CONCEPT_EXPLANATION -> ChatState.WAITING_CONCEPT_RATING;
+
+            default -> currentState;
         };
+    }
+
+    private boolean shouldCallFastApi(ChatState state) {
+        return switch (state) {
+            case GENERATING_QUESTION_WITH_RAG,
+                 GENERATING_ADDITIONAL_QUESTION_WITH_RAG,
+                 EVALUATING_ANSWER_AND_LOGGING,
+                 PRESENTING_CONCEPT_EXPLANATION,
+                 REEXPLAINING_CONCEPT,
+                 PROCESSING_PAGE_SEARCH_RESULT -> true;
+            default -> false;
+        };
+    }
+
+    // ChatState에 따라 다른 엔드 포인트로 FastAPI 호출할 수 있도록 로직 바꾸어야 함
+    private AiMessageDto callFastApi(UserMessageDto dto) {
+        return webClient.post()
+                .uri("/chat")
+                .bodyValue(dto)
+                .retrieve()
+                .bodyToMono(AiMessageDto.class)
+                .onErrorResume(e -> {
+                    log.error("FastAPI 호출 실패", e);
+                    return Mono.just(buildErrorMessage(dto));
+                })
+                .block();
+    }
+
+    private AiMessageDto buildLocalAiMessage(ChatState state, Long userId, Long bookId) {
+        String message = switch (state) {
+            case WAITING_USER_SELECT_FEATURE -> "무엇을 도와드릴까요?\n1. 예상 문제 생성\n2. 페이지 찾기\n3. 개념 설명";
+            case WAITING_PROBLEM_CRITERIA_SELECTION -> "문제를 어떤 기준으로 생성할까요?\n1. 챕터/페이지 범위\n2. 특정 개념";
+            case WAITING_PROBLEM_CONTEXT_INPUT -> "문제 생성을 위한 범위나 개념을 입력해주세요.";
+
+            case WAITING_KEYWORD_FOR_PAGE_SEARCH -> "페이지를 찾기 위한 키워드를 입력해주세요.";
+
+            case WAITING_NEXT_ACTION_AFTER_LEARNING -> "다음으로 무엇을 하시겠습니까?\n1. 다음 문제\n2. 기능 선택";
+            case WAITING_CONCEPT_RATING -> "설명이 도움이 되었나요? 1~5점으로 평가해주세요.";
+            case WAITING_REASON_FOR_LOW_RATING -> "이해가 어려웠던 점을 알려주세요. 보충 설명을 드릴게요.";
+
+            case WAITING_CONCEPT_INPUT -> "어떤 개념에 대한 설명이 필요한가요?";
+
+            default -> "입력을 확인했습니다. 다음 단계를 진행해주세요.";
+        };
+
+        // 상태에 따라서 message를 다르게 설정해주어야 함(현재는 똑같이 설정되어 있음)
+        return AiMessageDto.builder()
+                .userId(userId)
+                .bookId(bookId)
+                .content(message)
+                .messageType("TEXT")
+                .chatState(state)
+                .build();
+    }
+
+    private AiMessageDto buildErrorMessage(UserMessageDto dto) {
+        return AiMessageDto.builder()
+                .userId(dto.getUserId())
+                .bookId(dto.getBookId())
+                .content("⚠️ FastAPI 응답에 실패했습니다. 다시 시도해주세요.")
+                .chatState(dto.getChatState())
+                .messageType("TEXT")
+                .build();
+    }
+
+    public boolean checkLangChainConnection() {
+        try {
+            return webClient.get()
+                    .uri("/ping")
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block()
+                    .getStatusCode()
+                    .is2xxSuccessful();
+        } catch (Exception e) {
+            log.error("LangChain 연결 실패", e);
+            return false;
+        }
     }
 }
