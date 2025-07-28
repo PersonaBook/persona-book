@@ -18,6 +18,8 @@
         <p>PDF를 로딩 중입니다...</p>
     </div>
 
+    <aside th:replace="fragments/aside :: aside"></aside>
+
     <script>
         $(document).ready(function(){
             /* section layout 최소 height */
@@ -87,6 +89,10 @@
             }
         }
     </script>
+
+<!--    <link rel="stylesheet" th:href="@{/css/chatbot.css}">-->
+<!--    <script th:src="@{/js/chatbot.js}"></script>-->
+
 </div>
 </body>
 
