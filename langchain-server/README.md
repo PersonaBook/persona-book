@@ -96,10 +96,10 @@ poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ```text
 # Git 훅을 설치하여 커밋 시 자동으로 검사 실행
-pre-commit install
+poetry run pre-commit install
 
 # 모든 파일에 대해 수동으로 훅을 실행할 때 사용
-pre-commit run --all-files
+poetry run pre-commit run --all-files
 ```
 
 ## API 문서
