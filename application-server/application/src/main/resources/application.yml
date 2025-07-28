@@ -94,7 +94,7 @@ management:
 app:
 #  jwtSecret: ${JWT_SECRET}
   jwtSecret: QwErTyUiOpAsDfGhJkLzXcVbNmQwErTyUiOpAsDfGhJkLzXcVbNm1234567890QWERTYUIOPASDFGHJKLZXCVBNM
-  jwtExpirationMs: 86400000
+  jwtShortExpirationMs: 1800000
   jwtRefreshExpirationMs: 604800000
 
 file:

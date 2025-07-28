@@ -1,26 +1,17 @@
- $(document).ready(function() {
-      // URL 파라미터에서 토큰 확인 및 localStorage에 저장
-      console.log('main/script.js 실행');
-      console.log('현재 URL:', window.location.href);
+$(document).ready(function () {
+    console.log('main/script.js 실행');
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      console.log('URL에서 추출한 토큰:', token);
+    if (getAuthToken()) {
+        loadPdfList();
+    } else {
+        $("#imageInput").removeAttr('accept');
+        $("#imageInput").removeAttr("type");
+        $("#imageInput").click(function () {
+            alert("로그인 또는 회원가입을 해주세요.")
+        });
+    }
 
-      if (token) {
-          localStorage.setItem('accessToken', token);
-          console.log('토큰이 localStorage에 저장되었습니다:', localStorage.getItem('accessToken'));
-
-          // URL에서 토큰 파라미터 제거
-          window.history.replaceState({}, document.title, '/');
-          console.log('URL 정리 완료');
-      }
-
-      if (getAuthToken()) {
-          loadPdfList();
-      }
-
-    $('#imageInput').on('change', function(event) {
+    $('#imageInput').on('change', function (event) {
         const file = this.files[0];
         const $originalPlusArea = $(this).closest('.pdf_contents > li');
 
@@ -36,27 +27,25 @@
 
                 const reader = new FileReader();
 
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const pdfData = e.target.result;
-                  
-                  
-    // 전체 PDF 파일을 base64로 변환 (청크 단위로 처리)
-                      const uint8Array = new Uint8Array(pdfData);
-                      let binaryString = '';
-                      const chunkSize = 8192; // 8KB씩 처리
-                      for (let i = 0; i < uint8Array.length; i += chunkSize) {
-                          const chunk = uint8Array.slice(i, i + chunkSize);
-                          binaryString += String.fromCharCode.apply(null, chunk);
-                      }
-                      const pdfBase64 = btoa(binaryString);
 
+
+                    // 전체 PDF 파일을 base64로 변환 (청크 단위로 처리)
+                    const uint8Array = new Uint8Array(pdfData);
+                    let binaryString = '';
+                    const chunkSize = 8192; // 8KB씩 처리
+                    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                        const chunk = uint8Array.slice(i, i + chunkSize);
+                        binaryString += String.fromCharCode.apply(null, chunk);
+                    }
+                    const pdfBase64 = btoa(binaryString);
 
                     // PDF.js를 사용하여 PDF 로드
-                    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-                    loadingTask.promise.then(function(pdf) {
+                    const loadingTask = pdfjsLib.getDocument({data: pdfData});
+                    loadingTask.promise.then(function (pdf) {
                         // 첫 번째 페이지 가져오기
-                        pdf.getPage(1).then(function(page) {
-                            // 1. 새로운 .plus_area 구조 복제
+                        pdf.getPage(1).then(function (page) {
                             const $newPlusArea = $originalPlusArea.clone();
                             $newPlusArea.find('#imageInput').remove();
                             $newPlusArea.find('label.custom_file_button').remove();
@@ -66,11 +55,10 @@
                             const $newFileArea = $newPlusArea.find('.file_area');
                             $newFileArea.empty();
                             $newFileArea.css("z-index", "1");
-
                             const scale = 1.1;
-                            const viewport = page.getViewport({ scale: scale });
+                            const viewport = page.getViewport({scale: scale});
 
-                            const $canvas = $('<canvas><a href=""></a></canvas>');
+                            const $canvas = $('<canvas></canvas>');
                             $canvas.css({
                                 'max-width': '100%',
                                 'height': '100%',
@@ -90,14 +78,13 @@
                                 canvasContext: context,
                                 viewport: viewport
                             };
-                            page.render(renderContext).promise.then(function() {
+                            page.render(renderContext).promise.then(function () {
                                 console.log('PDF rendered on new canvas!');
 
 
-                                
                                 // 전체 PDF 파일을 서버에 업로드 (이미 변환된 base64 사용)
                                 uploadPdfToServer(file.name, pdfBase64, $newPlusArea);
-                              
+
                             });
 
                             $originalPlusArea.before($newPlusArea);
@@ -105,11 +92,11 @@
                             $originalPlusArea.find('#imagePreview').html('<p></p>');
                             $(event.target).val('');
 
-                        }).catch(function(error) {
+                        }).catch(function (error) {
                             console.error('Error getting PDF page:', error);
                             $originalPlusArea.find('#imagePreview').html('<p style="color: red;">PDF 페이지 로드 실패.</p>');
                         });
-                    }).catch(function(error) {
+                    }).catch(function (error) {
                         console.error('Error loading PDF document:', error);
                         $originalPlusArea.find('#imagePreview').html('<p style="color: red;">PDF 문서 로드 실패.</p>');
                     });
@@ -118,7 +105,7 @@
                 reader.readAsArrayBuffer(file);
             } else if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const $currentPreviewDiv = $originalPlusArea.find('#imagePreview');
                     $currentPreviewDiv.empty();
                     const $img = $('<img>');
@@ -152,12 +139,12 @@ function loadPdfList() {
         headers: {
             'Authorization': 'Bearer ' + getAuthToken()
         },
-        success: function(response) {
+        success: function (response) {
             if (Array.isArray(response)) {
                 displayPdfList(response);
             }
         },
-        error: function(xhr) {
+        error: function (xhr) {
             if (xhr.status === 401) {
                 alert('로그인이 필요합니다.');
                 window.location.href = '/user/login';
@@ -171,22 +158,20 @@ function loadPdfList() {
 function displayPdfList(pdfList) {
     const $pdfContents = $('.pdf_contents');
     const $originalPlusArea = $pdfContents.find('li:last-child');
-    
-    pdfList.forEach(function(pdf) {
-        const $pdfItem = $('<div class="pdf-item"></div>');
+
+    pdfList.forEach(function (pdf) {
+        const $pdfItem = $('<li class="pdf_li"></li>');
         $pdfItem.html(`
-            <li class="pdf_li">
-                <div class="file_area" style="cursor: pointer;" onclick="goToPdfDetail(${pdf.bookId})">
+                <div class="file_area" style="cursor: pointer;">
                     <canvas style="max-width: 100%; height: 100%; display: block; margin: auto;"></canvas>
                 </div>
-            </li>
-            <p class="pdf_title">${pdf.title}</p>
+                <div class="pdf_title" onclick="goToPdfDetail(${pdf.bookId});">${pdf.title}</div>
         `);
-        
+
         if (pdf.fileBase64) {
             renderPdfPreview(pdf.fileBase64, $pdfItem.find('canvas')[0]);
         }
-        
+
         $originalPlusArea.before($pdfItem);
     });
 }
@@ -198,22 +183,22 @@ function renderPdfPreview(base64Data, canvas) {
         for (let i = 0; i < binaryString.length; i++) {
             bytes[i] = binaryString.charCodeAt(i);
         }
-        
-        const loadingTask = pdfjsLib.getDocument({ data: bytes });
-        loadingTask.promise.then(function(pdf) {
-            pdf.getPage(1).then(function(page) {
+
+        const loadingTask = pdfjsLib.getDocument({data: bytes});
+        loadingTask.promise.then(function (pdf) {
+            pdf.getPage(1).then(function (page) {
                 const scale = 1.1;
-                const viewport = page.getViewport({ scale: scale });
+                const viewport = page.getViewport({scale: scale});
                 const context = canvas.getContext('2d');
-                
+
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
-                
+
                 const renderContext = {
                     canvasContext: context,
                     viewport: viewport
                 };
-                
+
                 page.render(renderContext);
             });
         });
@@ -234,18 +219,19 @@ function uploadPdfToServer(title, fileBase64, $pdfElement) {
             title: title,
             file_base64: fileBase64
         }),
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 console.log('PDF 업로드 성공:', response);
-                $pdfElement.attr('onclick', `goToPdfDetail(${response.bookId})`);
-                $pdfElement.find('.file_area').attr('onclick', `goToPdfDetail(${response.bookId})`);
-                $pdfElement.append(`<p class="pdf_title">${title}</p>`);
+                // $pdfElement.attr('onclick', `goToPdfDetail(${response.bookId})`);
+                $pdfElement.append(`<div class="pdf_title">${title}</div>`);
+                $pdfElement.find('.pdf_title').attr('onclick', `goToPdfDetail(${response.bookId})`);
+                window.location.reload();
             } else {
                 alert('PDF 업로드 실패: ' + response.message);
                 $pdfElement.remove();
             }
         },
-        error: function(xhr) {
+        error: function (xhr) {
             console.error('PDF 업로드 실패:', xhr.responseText);
             alert('PDF 업로드 실패');
             $pdfElement.remove();
@@ -256,7 +242,7 @@ function uploadPdfToServer(title, fileBase64, $pdfElement) {
 function goToPdfDetail(bookId) {
     const token = getAuthToken();
     if (token) {
-        window.location.href = `/pdf/detail/${bookId}?token=${token}`;
+        window.location.href = `/pdf/detail/${bookId}`;
     } else {
         alert('로그인이 필요합니다.');
         window.location.href = '/user/login';

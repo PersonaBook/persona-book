@@ -1,8 +1,6 @@
 package com.example.application.controller.user;
 
 import com.example.application.payload.response.MessageResponse;
-import com.example.application.service.UserService;
-import com.example.application.security.jwt.JwtTokenProvider;
 import com.example.application.entity.User;
 import com.example.application.repository.UserRepository;
 import com.example.application.util.JwtAuthUtil;
@@ -14,15 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @Controller
-public class MyPageController {
+public class MyPageViewController {
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -68,25 +60,3 @@ public class MyPageController {
     }
 }
 
-@RestController
-@RequestMapping("/api")
-class MyPageApiController {
-    @Autowired
-    private JwtAuthUtil jwtAuthUtil;
-
-    @GetMapping("/myPage")
-    public ResponseEntity<?> getMyPage(HttpServletRequest request) {
-        User user = jwtAuthUtil.getUserFromRequest(request);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 필요");
-        }
-        Map<String, Object> result = new java.util.HashMap<>();
-        result.put("userName", user.getUserName());
-        result.put("userEmail", user.getUserEmail());
-        result.put("userPhoneNumber", user.getUserPhoneNumber());
-        result.put("userBirthDate", user.getUserBirthDate());
-        result.put("userJob", user.getUserJob());
-        result.put("userId", user.getUserId());
-        return ResponseEntity.ok(result);
-    }
-}

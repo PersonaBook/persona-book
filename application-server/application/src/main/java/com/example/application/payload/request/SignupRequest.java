@@ -29,7 +29,7 @@ public class SignupRequest {
     @Size(min = 6, max = 40)
     private String password;
 
-    @DateTimeFormat(pattern = "MM/dd/yyyy")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
     private String job;
 }

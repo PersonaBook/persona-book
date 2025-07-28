@@ -9,8 +9,6 @@ import com.example.application.payload.response.UserProfileResponse;
 import com.example.application.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +20,11 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    AuthService authService;
+    private final AuthService authService;
+    
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpSession session) {
@@ -70,19 +71,56 @@ public class AuthController {
     @PostMapping("/sendVerificationEmail")
     public ResponseEntity<?> sendVerificationEmail(@RequestBody Map<String, String> request) {
         String email = request.get("email");
+        String type = request.get("type"); // "signup", "findId", "findPassword"
+        
         if (email == null || email.isEmpty()) {
             return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "이메일이 필요합니다."));
         }
 
-        if (authService.sendEmailVerificationCode(email, false)) {
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "인증번호를 보냈습니다."));
+        // type에 따라 mustExist 파라미터 결정 (type이 없으면 기본값 signup 처리)
+        boolean mustExist = "findId".equals(type) || "findPassword".equals(type);
+
+        String result = authService.sendEmailVerificationCode(email, mustExist);
+        if ("인증번호를 발송했습니다.".equals(result)) {
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, result));
         } else {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "인증번호 보내기에 실패했습니다."));
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, result));
+        }
+    }
+
+    @PostMapping("/findId")
+    public ResponseEntity<?> findId(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Email is required."));
+        }
+        String username = authService.findUsernameByEmail(email);
+        if (username != null) {
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Your username is: " + username));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "No user found with that email address."));
+        }
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String verificationCode = request.get("verificationCode");
+        String newPassword = request.get("newPassword");
+
+        if (email == null || email.isEmpty() || verificationCode == null || verificationCode.isEmpty() || newPassword == null || newPassword.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "All fields are required."));
+        }
+
+        try {
+            authService.resetPassword(email, verificationCode, newPassword);
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Password has been reset successfully."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, e.getMessage()));
         }
     }
 
     @GetMapping("/profile/{userId}")
-    
     public ResponseEntity<?> getUserProfile(@PathVariable Long userId) {
         UserProfileResponse userProfile = authService.getUserProfile(userId);
         if (userProfile != null) {
@@ -91,6 +129,4 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
         }
     }
-
-    
 }

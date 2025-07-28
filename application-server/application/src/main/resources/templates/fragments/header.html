@@ -22,13 +22,16 @@
 
               <div class="navbar-collapse collapse" id="navbarsExample05">
                   <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                      <li class="nav-item" id="login-nav">
-                          <a class="nav-link" th:href="@{'/login'}" id="login-button">로그인</a>
+                      <li class="nav-item" id="login-nav" style="display: none;">
+                          <a class="nav-link" th:href="@{'/login'}">로그인</a>
                       </li>
-                      <li class="nav-item" id="logout-nav">
-                          <a class="nav-link" href="#" id="logout-button" onclick="logout()">로그아웃</a>
+                      <li class="nav-item" id="login-join" style="display: none;">
+                          <a class="nav-link" th:href="@{'/join'}">회원가입</a>
                       </li>
-                      <li class="nav-item dropdown">
+                      <li class="nav-item" id="logout-nav" style="display: none;">
+                          <a class="nav-link" href="#" onclick="logout()">로그아웃</a>
+                      </li>
+                      <li class="nav-item dropdown" id="logout-menu" style="display: none;">
                           <a class="nav-link dropdown-toggle" href="#" id="dropdown05" data-bs-toggle="dropdown" aria-expanded="false">내 정보</a>
                           <ul class="dropdown-menu" aria-labelledby="dropdown05">
                               <li><a class="dropdown-item" th:href="@{'/myPage'}">마이페이지</a></li>
@@ -38,9 +41,11 @@
                       <li class="nav-item">
                           <a class="nav-link active" aria-current="page" href="/">Main</a>
                       </li>
-                      <li class="nav-item">
+                     <!--
+                        <li class="nav-item">
                           <a class="nav-link" th:href="@{'/settings'}">설정</a>
-                      </li>
+                        </li>
+                      -->
                   </ul>
               </div>
             </div>

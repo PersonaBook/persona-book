@@ -20,17 +20,19 @@ public class JwtTokenProvider {
     @Value("${app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${app.jwtExpirationMs}")
-    private int jwtExpirationMs;
+
+    @Value("${app.jwtShortExpirationMs}")
+    private int jwtShortExpirationMs;
 
     @Value("${app.jwtRefreshExpirationMs}")
     private int jwtRefreshExpirationMs;
 
-    public String generateJwtToken(String username) {
+    public String generateJwtToken(String username, boolean rememberMe) {
+        int expirationTime = rememberMe ? jwtRefreshExpirationMs : jwtShortExpirationMs;
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .setExpiration(new Date((new Date()).getTime() + expirationTime))
                 .signWith(key(), SignatureAlgorithm.HS512)
                 .compact();
     }
