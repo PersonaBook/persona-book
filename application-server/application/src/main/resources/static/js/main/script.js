@@ -3,6 +3,12 @@ $(document).ready(function () {
 
     if (getAuthToken()) {
         loadPdfList();
+    } else {
+        $("#imageInput").removeAttr('accept');
+        $("#imageInput").removeAttr("type");
+        $("#imageInput").click(function () {
+            alert("로그인 또는 회원가입을 해주세요.")
+        });
     }
 
     $('#imageInput').on('change', function (event) {
@@ -35,13 +41,11 @@ $(document).ready(function () {
                     }
                     const pdfBase64 = btoa(binaryString);
 
-
                     // PDF.js를 사용하여 PDF 로드
                     const loadingTask = pdfjsLib.getDocument({data: pdfData});
                     loadingTask.promise.then(function (pdf) {
                         // 첫 번째 페이지 가져오기
                         pdf.getPage(1).then(function (page) {
-                            // 1. 새로운 .plus_area 구조 복제
                             const $newPlusArea = $originalPlusArea.clone();
                             $newPlusArea.find('#imageInput').remove();
                             $newPlusArea.find('label.custom_file_button').remove();
@@ -51,11 +55,10 @@ $(document).ready(function () {
                             const $newFileArea = $newPlusArea.find('.file_area');
                             $newFileArea.empty();
                             $newFileArea.css("z-index", "1");
-
                             const scale = 1.1;
                             const viewport = page.getViewport({scale: scale});
 
-                            const $canvas = $('<canvas><a href=""></a></canvas>');
+                            const $canvas = $('<canvas></canvas>');
                             $canvas.css({
                                 'max-width': '100%',
                                 'height': '100%',
@@ -157,14 +160,12 @@ function displayPdfList(pdfList) {
     const $originalPlusArea = $pdfContents.find('li:last-child');
 
     pdfList.forEach(function (pdf) {
-        const $pdfItem = $('<div class="pdf-item"></div>');
+        const $pdfItem = $('<li class="pdf_li"></li>');
         $pdfItem.html(`
-            <li class="pdf_li">
-                <div class="file_area" style="cursor: pointer;" onclick="goToPdfDetail(${pdf.bookId})">
+                <div class="file_area" style="cursor: pointer;">
                     <canvas style="max-width: 100%; height: 100%; display: block; margin: auto;"></canvas>
                 </div>
-            </li>
-            <p class="pdf_title">${pdf.title}</p>
+                <div class="pdf_title" onclick="goToPdfDetail(${pdf.bookId});">${pdf.title}</div>
         `);
 
         if (pdf.fileBase64) {
@@ -221,9 +222,10 @@ function uploadPdfToServer(title, fileBase64, $pdfElement) {
         success: function (response) {
             if (response.success) {
                 console.log('PDF 업로드 성공:', response);
-                $pdfElement.attr('onclick', `goToPdfDetail(${response.bookId})`);
-                $pdfElement.find('.file_area').attr('onclick', `goToPdfDetail(${response.bookId})`);
-                $pdfElement.append(`<p class="pdf_title">${title}</p>`);
+                // $pdfElement.attr('onclick', `goToPdfDetail(${response.bookId})`);
+                $pdfElement.append(`<div class="pdf_title">${title}</div>`);
+                $pdfElement.find('.pdf_title').attr('onclick', `goToPdfDetail(${response.bookId})`);
+                window.location.reload();
             } else {
                 alert('PDF 업로드 실패: ' + response.message);
                 $pdfElement.remove();
