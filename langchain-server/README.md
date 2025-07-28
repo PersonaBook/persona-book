@@ -132,10 +132,11 @@ langchain-server/
 │   │   ├── request/        # API 요청 스키마
 │   │   └── response/       # API 응답 스키마
 │   ├── services/           # 유즈케이스 / 비즈니스 로직
-│   └── main.py            # FastAPI 진입점
-├── tests/                 # 테스트 코드
-├── pyproject.toml         # Poetry 설정
-├── env.example            # 환경 변수 예시
-├── Dockerfile             # Docker 설정
-└── README.md              # 프로젝트 문서
+│   ├── utils/              # 재사용 가능한 유틸리티 함수
+│   └── main.py             # FastAPI 진입점
+├── tests/                  # 테스트 코드
+├── pyproject.toml          # Poetry 설정
+├── env.example             # 환경 변수 예시
+├── Dockerfile              # Docker 설정
+└── README.md               # 프로젝트 문서
 ```
