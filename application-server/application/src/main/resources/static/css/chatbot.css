@@ -1,0 +1,32 @@
+.chat-container.floating {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 360px;
+    max-height: 85vh;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    z-index: 9999;
+    overflow: hidden;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+}

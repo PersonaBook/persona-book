@@ -1,209 +1,110 @@
+from app.schemas.request.chat import FeatureContext, StageContext, UserMessageRequest
+from app.schemas.response.chat import AiMessageResponse
 from fastapi import APIRouter
 from app.schemas.chat import UserMessageDto, AiMessageDto, FeatureContext, StageContext
 
 router = APIRouter()
 
+@router.get("/ping")
+def ping():
+    return {"status": "ok"}
+
+
 @router.post("/chat", response_model=AiMessageDto)
 def chat(user: UserMessageDto):
-    match user.stageContext:
-        # 1. 초기 진입
-        case StageContext.START:
+    # FastAPI는 chatState에 따라 메시지 응답만 생성하며, 상태 전이는 Spring에서 수행됨
+    match user.chatState:
+        # ───────────── 예상 문제 생성 흐름 ─────────────
+        case ChatState.GENERATING_QUESTION_WITH_RAG:
+            # 사용자가 선택한 기준에 따라 예상 문제 생성
             return AiMessageDto(
                 userId=user.userId,
                 bookId=user.bookId,
-                content="안녕하세요! 무엇을 도와드릴까요?\n1. 예상 문제 생성\n2. 페이지 찾기\n3. 개념 설명",
-                featureContext=FeatureContext.INITIAL,
-                stageContext=StageContext.SELECT_TYPE
+                content="(생성한 예상 문제)",
+                messageType="TEXT",
+                sender="AI",
+                chatState=user.chatState
             )
 
-        # 2. 기능 선택
-        case StageContext.SELECT_TYPE:
-            match user.content:
-                case "1":  # 예상 문제 생성 선택
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="문제를 어떤 기준으로 생성할까요?\n1. 챕터/페이지 범위\n2. 특정 개념",
-                        featureContext=FeatureContext.PROBLEM_GENERATION,
-                        stageContext=StageContext.SELECT_PROBLEM_TYPE
-                    )
-                case "2":  # 페이지 찾기 (향후 확장)
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="찾고 싶은 개념이나 키워드를 입력해주세요.\n예: 프로세스와 스레드 차이",
-                        featureContext=FeatureContext.INITIAL,
-                        stageContext=StageContext.PROMPT_CHAPTER_PAGE
-                    )
-                case "3":  # 개념 설명
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="설명을 듣고 싶은 개념을 입력해주세요.\n예: 다형성, HTTP, 세션/쿠키",
-                        featureContext=FeatureContext.CONCEPT_EXPLANATION,
-                        stageContext=StageContext.EXPLANATION_PRESENTED
-                    )
-                case _:
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="잘못된 입력입니다. 1, 2 또는 3을 입력해주세요.",
-                        featureContext=user.featureContext,
-                        stageContext=user.stageContext
-                    )
-
-        # 문제 생성 기준 선택
-        case StageContext.SELECT_PROBLEM_TYPE:
-            match user.content:
-                case "1":
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="챕터나 페이지 범위를 입력해주세요.\n예: 챕터 3 또는 150-160페이지",
-                        featureContext=FeatureContext.PROBLEM_GENERATION,
-                        stageContext=StageContext.PROMPT_CHAPTER_PAGE
-                    )
-                case "2":
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="어떤 개념에 대한 문제를 원하시나요?\n예: OOP, DB, 네트워크 등",
-                        featureContext=FeatureContext.PROBLEM_GENERATION,
-                        stageContext=StageContext.PROMPT_CONCEPT
-                    )
-                case _:
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="잘못된 입력입니다. 1 또는 2를 입력해주세요.",
-                        featureContext=user.featureContext,
-                        stageContext=user.stageContext
-                    )
-
-        # 챕터/페이지 입력 → 문제 생성
-        case StageContext.PROMPT_CHAPTER_PAGE:
+        case ChatState.GENERATING_ADDITIONAL_QUESTION_WITH_RAG:
+            # 추가 예상 문제 생성 로직
+            # 문제를 풀고 <문제 더 풀기> 선택지를 선택한 경우, 기존에 선택한 문제 유형에 해당하는 추가 예상 문제 생성
             return AiMessageDto(
                 userId=user.userId,
                 bookId=user.bookId,
-                content=f"[문제] {user.content}에 대한 예상 문제입니다:\n\nQ. 다형성이란 무엇인가요?",
-                featureContext=FeatureContext.PROBLEM_SOLVING,
-                stageContext=StageContext.PROBLEM_PRESENTED
+                content="(생성한 추가 예상 문제)",
+                messageType="TEXT",
+                sender="AI",
+                chatState=user.chatState
             )
 
-        # 개념 입력 → 문제 생성
-        case StageContext.PROMPT_CONCEPT:
-            return AiMessageDto(
-                userId=user.userId,
-                bookId=user.bookId,
-                content=f"[문제] '{user.content}'에 대한 질문입니다:\n\nQ. {user.content}의 핵심 개념을 설명해보세요.",
-                featureContext=FeatureContext.PROBLEM_SOLVING,
-                stageContext=StageContext.PROBLEM_PRESENTED
-            )
-
-        # 문제 제시 → 정답 피드백
-        case StageContext.PROBLEM_PRESENTED:
-            return AiMessageDto(
-                userId=user.userId,
-                bookId=user.bookId,
-                content="정답입니다! 다음 문제를 풀어보시겠습니까?\n1. 네\n2. 아니오",
-                featureContext=FeatureContext.PROBLEM_SOLVING,
-                stageContext=StageContext.CORRECT_FEEDBACK
-            )
-
-        # 정답 이후 피드백
-        case StageContext.CORRECT_FEEDBACK:
-            if user.content == "1":
+        case ChatState.EVALUATING_ANSWER_AND_LOGGING:
+            # 정답 여부 판단 및 해설
+            # + 추가 기능(오답 기록)
+            if "정답" in user.content:
                 return AiMessageDto(
                     userId=user.userId,
                     bookId=user.bookId,
-                    content="[문제] 다형성의 예시를 설명해보세요.",
-                    featureContext=FeatureContext.PROBLEM_SOLVING,
-                    stageContext=StageContext.PROBLEM_PRESENTED
+                    content="정답 (정답 여부 판별)",
+                    messageType="TEXT",
+                    sender="AI",
+                    chatState=user.chatState
                 )
             else:
                 return AiMessageDto(
                     userId=user.userId,
                     bookId=user.bookId,
-                    content="다음에 무엇을 하시겠어요?\n1. 문제 생성\n2. 개념 설명",
-                    featureContext=FeatureContext.INITIAL,
-                    stageContext=StageContext.PROMPT_NEXT_ACTION
+                    content="오답 (정답 여부 판별)",
+                    messageType="TEXT",
+                    sender="AI",
+                    chatState=user.chatState
                 )
 
-        # 다음 기능 제안
-        case StageContext.PROMPT_NEXT_ACTION:
+        case ChatState.REEXPLAINING_CONCEPT:
+            # 사용자로 부터 해설에 대한 평가를 낮게한 이유를 받아
+            # 이를 바탕으로 이전에 설명한 개념을 보충 설명
             return AiMessageDto(
                 userId=user.userId,
                 bookId=user.bookId,
-                content="다음 기능을 선택해주세요.\n1. 문제 생성\n2. 개념 설명",
-                featureContext=FeatureContext.INITIAL,
-                stageContext=StageContext.SELECT_TYPE
+                content="(재설명)",
+                messageType="TEXT",
+                sender="AI",
+                chatState=user.chatState
             )
 
-        # 개념 설명 요청
-        case StageContext.EXPLANATION_PRESENTED:
+
+        # ───────────── 개념 설명 흐름 ─────────────
+        case ChatState.PRESENTING_CONCEPT_EXPLANATION:
+            # 사용자가 요청한 개념에 대한 설명
             return AiMessageDto(
                 userId=user.userId,
                 bookId=user.bookId,
-                content=f"{user.content}에 대한 설명입니다.\n\n이해가 되셨나요? 1~5점으로 평가해주세요.",
-                featureContext=FeatureContext.CONCEPT_EXPLANATION,
-                stageContext=StageContext.FEEDBACK_RATING
+                content="(개념 설명)",
+                messageType="TEXT",
+                sender="AI",
+                chatState=user.chatState
             )
 
-        # 별점 평가
-        case StageContext.FEEDBACK_RATING:
-            try:
-                score = int(user.content)
-                if score >= 4:
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="좋습니다! 다음 기능을 선택해주세요.\n1. 문제 생성\n2. 개념 설명",
-                        featureContext=FeatureContext.INITIAL,
-                        stageContext=StageContext.SELECT_TYPE
-                    )
-                else:
-                    return AiMessageDto(
-                        userId=user.userId,
-                        bookId=user.bookId,
-                        content="어떤 점이 이해되지 않았는지 설명해주세요.",
-                        featureContext=FeatureContext.CONCEPT_EXPLANATION,
-                        stageContext=StageContext.PROMPT_FEEDBACK_TEXT
-                    )
-            except ValueError:
-                return AiMessageDto(
-                    userId=user.userId,
-                    bookId=user.bookId,
-                    content="1~5 사이의 숫자로 입력해주세요.",
-                    featureContext=FeatureContext.CONCEPT_EXPLANATION,
-                    stageContext=StageContext.FEEDBACK_RATING
-                )
 
-        # 사용자 피드백 → 재설명
-        case StageContext.PROMPT_FEEDBACK_TEXT:
+        # ───────────── 페이지 찾기 흐름 ─────────────
+        case ChatState.WAITING_KEYWORD_FOR_PAGE_SEARCH:
             return AiMessageDto(
                 userId=user.userId,
                 bookId=user.bookId,
-                content="감사합니다. 피드백을 반영하여 다시 설명드릴게요.",
-                featureContext=FeatureContext.CONCEPT_EXPLANATION,
-                stageContext=StageContext.RE_EXPLANATION_PRESENTED
+                content="(페이지 찾기)",
+                messageType="TEXT",
+                sender="AI",
+                chatState=user.chatState
             )
 
-        # 재설명 → 다시 평가
-        case StageContext.RE_EXPLANATION_PRESENTED:
-            return AiMessageDto(
-                userId=user.userId,
-                bookId=user.bookId,
-                content="다시 설명드렸습니다. 이제 얼마나 이해가 되셨나요? 1~5점으로 평가해주세요.",
-                featureContext=FeatureContext.CONCEPT_EXPLANATION,
-                stageContext=StageContext.FEEDBACK_RATING
-            )
 
-        # 디폴트 fallback
+        # 기타 처리되지 않은 상태
         case _:
             return AiMessageDto(
                 userId=user.userId,
                 bookId=user.bookId,
-                content=f"[DEBUG] 정의되지 않은 단계입니다. 입력: {user.content}",
-                featureContext=user.featureContext,
-                stageContext=user.stageContext
+                content="죄송합니다. 아직 처리되지 않은 상태입니다.",
+                messageType="TEXT",
+                sender="AI",
+                chatState=user.chatState
             )

@@ -20,9 +20,8 @@ public class ChatController {
     private final ChatHistoryService chatHistoryService;
 
     @PostMapping("/send")
-    public ResponseEntity<AiMessageDto> sendMessage(@RequestBody UserMessageDto userMessageDto) {
-        AiMessageDto aiMessageDto = chatService.handleChatFlow(userMessageDto);
-        return ResponseEntity.ok(aiMessageDto);
+    public List<AiMessageDto> sendMessage(@RequestBody UserMessageDto userMessageDto) {
+        return chatService.handleChatFlow(userMessageDto);
     }
 
     @GetMapping("/history")
