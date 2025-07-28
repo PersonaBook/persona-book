@@ -1,5 +1,7 @@
+from app.schemas.request.chat import FeatureContext, StageContext, UserMessageRequest
+from app.schemas.response.chat import AiMessageResponse
 from fastapi import APIRouter
-from app.schemas.chat import UserMessageDto, AiMessageDto, ChatState
+from app.schemas.chat import UserMessageDto, AiMessageDto, FeatureContext, StageContext
 
 router = APIRouter()
 

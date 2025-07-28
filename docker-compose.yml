@@ -51,7 +51,9 @@ services: # 여러 개의 컨테이너를 정의할 수 있는 블록
       - backend
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    build:
+      context: ./langchain-server
+      dockerfile: Dockerfile.elasticsearch
     container_name: elasticsearch
     environment:
       - discovery.type=single-node

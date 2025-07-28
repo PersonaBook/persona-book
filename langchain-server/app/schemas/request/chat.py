@@ -1,5 +1,5 @@
-from enum import Enum
 from pydantic import BaseModel
+from enum import Enum
 from typing import Optional
 
 class Sender(str, Enum):
