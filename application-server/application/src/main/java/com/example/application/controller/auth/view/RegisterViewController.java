@@ -1,6 +1,6 @@
 package com.example.application.controller.auth.view;
 
-import com.example.application.payload.request.SignupRequest;
+import com.example.application.dto.auth.request.SignupRequest;
 import com.example.application.repository.UserRepository;
 import com.example.application.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;

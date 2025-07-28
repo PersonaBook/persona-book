@@ -1,14 +1,13 @@
 package com.example.application.controller.auth.view;
 
-import com.example.application.payload.request.LoginRequest;
-import com.example.application.payload.response.JwtResponse;
+import com.example.application.dto.auth.request.LoginRequest;
+import com.example.application.dto.auth.response.JwtResponse;
 import com.example.application.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class LoginViewController {

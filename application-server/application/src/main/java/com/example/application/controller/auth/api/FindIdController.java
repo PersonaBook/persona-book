@@ -1,6 +1,6 @@
 package com.example.application.controller.auth.api;
 
-import com.example.application.payload.response.MessageResponse;
+import com.example.application.dto.auth.response.MessageResponse;
 import com.example.application.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

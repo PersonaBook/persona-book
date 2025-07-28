@@ -1,11 +1,11 @@
 package com.example.application.controller.auth.api;
 
-import com.example.application.payload.request.LoginRequest;
-import com.example.application.payload.request.SignupRequest;
-import com.example.application.payload.request.TokenRefreshRequest;
-import com.example.application.payload.response.JwtResponse;
-import com.example.application.payload.response.MessageResponse;
-import com.example.application.payload.response.UserProfileResponse;
+import com.example.application.dto.auth.request.LoginRequest;
+import com.example.application.dto.auth.request.SignupRequest;
+import com.example.application.dto.auth.request.TokenRefreshRequest;
+import com.example.application.dto.auth.response.JwtResponse;
+import com.example.application.dto.auth.response.MessageResponse;
+import com.example.application.dto.auth.response.UserProfileResponse;
 import com.example.application.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;

@@ -3,10 +3,10 @@ package com.example.application.service;
 import com.example.application.entity.User;
 import com.example.application.entity.VerificationToken;
 
-import com.example.application.payload.request.LoginRequest;
-import com.example.application.payload.request.SignupRequest;
-import com.example.application.payload.response.JwtResponse;
-import com.example.application.payload.response.UserProfileResponse;
+import com.example.application.dto.auth.request.LoginRequest;
+import com.example.application.dto.auth.request.SignupRequest;
+import com.example.application.dto.auth.response.JwtResponse;
+import com.example.application.dto.auth.response.UserProfileResponse;
 import com.example.application.repository.UserRepository;
 import com.example.application.repository.VerificationTokenRepository;
 
@@ -18,18 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import com.example.application.exception.InvalidVerificationCodeException;
 import com.example.application.exception.UserNotFoundException;
 
-import java.time.Duration;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
+
 import jakarta.servlet.http.HttpSession;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthService {

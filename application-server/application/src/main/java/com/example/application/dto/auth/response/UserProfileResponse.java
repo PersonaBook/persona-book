@@ -1,4 +1,4 @@
-package com.example.application.payload.response;
+package com.example.application.dto.auth.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

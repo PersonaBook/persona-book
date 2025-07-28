@@ -1,6 +1,6 @@
 package com.example.application.controller.user;
 
-import com.example.application.payload.response.MessageResponse;
+import com.example.application.dto.auth.response.MessageResponse;
 import com.example.application.entity.User;
 import com.example.application.repository.UserRepository;
 import com.example.application.util.JwtAuthUtil;
