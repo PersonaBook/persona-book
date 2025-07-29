@@ -66,6 +66,7 @@ public class AuthService {
         // Generate and save refresh token to session
         String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserEmail());
         session.setAttribute("refreshToken", refreshTokenString);
+        session.setAttribute("rememberMe", loginRequest.isRememberMe());
         session.setAttribute("loginToken", jwt);
 
         return new JwtResponse(jwt, refreshTokenString, user.getUserId(), user.getUserEmail(), user.getUserEmail());
@@ -85,14 +86,17 @@ public class AuthService {
         User user = userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + userEmail));
 
-        // Generate new access token (기본값으로 rememberMe=true 사용, 추후 개선 필요)
-        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail(), true);
+        // Generate new access token with original rememberMe setting
+        Boolean rememberMe = (Boolean) session.getAttribute("rememberMe");
+        boolean useRememberMe = rememberMe != null ? rememberMe : false;
+        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail(), useRememberMe);
 
         return new JwtResponse(newAccessToken, refreshTokenString, user.getUserId(), user.getUserName(), user.getUserEmail());
     }
 
     public void logout(HttpSession session) {
         session.removeAttribute("refreshToken");
+        session.removeAttribute("rememberMe");
         session.invalidate();
     }
 
