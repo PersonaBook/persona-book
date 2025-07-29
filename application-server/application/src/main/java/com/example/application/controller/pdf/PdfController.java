@@ -2,8 +2,6 @@ package com.example.application.controller.pdf;
 
 import com.example.application.entity.Book;
 import com.example.application.repository.BookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,11 +16,14 @@ import java.util.Map;
 @Controller
 public class PdfController {
 
-    @Autowired
-    private JwtAuthUtil jwtAuthUtil;
+    private final JwtAuthUtil jwtAuthUtil;
 
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
+
+    public PdfController(JwtAuthUtil jwtAuthUtil, BookRepository bookRepository) {
+        this.jwtAuthUtil = jwtAuthUtil;
+        this.bookRepository = bookRepository;
+    }
 
     @PostMapping("/api/pdf/upload")
     @ResponseBody

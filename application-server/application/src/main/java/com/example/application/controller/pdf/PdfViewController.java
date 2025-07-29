@@ -3,10 +3,10 @@ package com.example.application.controller.pdf;
 import com.example.application.entity.Book;
 import com.example.application.entity.User;
 import com.example.application.repository.BookRepository;
+import com.example.application.service.PdfService;
 import com.example.application.util.JwtAuthUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,17 +18,20 @@ import java.util.Optional;
 public class PdfViewController {
 
 
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
 
-    @Autowired
-    private JwtAuthUtil jwtAuthUtil;
+    private final JwtAuthUtil jwtAuthUtil;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private org.springframework.web.reactive.function.client.WebClient webClient;
+    private final com.example.application.service.PdfService pdfService;
+
+    public PdfViewController(BookRepository bookRepository, JwtAuthUtil jwtAuthUtil, ObjectMapper objectMapper, PdfService pdfService) {
+        this.bookRepository = bookRepository;
+        this.jwtAuthUtil = jwtAuthUtil;
+        this.objectMapper = objectMapper;
+        this.pdfService = pdfService;
+    }
 
     @GetMapping("/pdf/detail/{bookId}")
     public String pdfDetail(@PathVariable Long bookId, HttpServletRequest request, Model model) {
@@ -65,7 +68,7 @@ public class PdfViewController {
 
             // FastAPI 전송 메서드 호출 (비동기)
             if (book.getFileBase64() != null) {
-                callFastApiForQuestionGeneration(book.getFileBase64());
+                pdfService.sendPdfToFastApi(book.getFileBase64());
             }
 
             // Book 객체를 JSON으로 수동 직렬화
@@ -83,27 +86,5 @@ public class PdfViewController {
         }
     }
 
-    private void callFastApiForQuestionGeneration(String pdfBase64) {
-        try {
-            System.out.println("=== PDF 데이터를 FastAPI로 전송 중 ===");
-            
-            var requestBody = java.util.Map.of(
-                "pdf_base64", pdfBase64,
-                "query", ""
-            );
-
-            webClient.post()
-                .uri("/generate-question")
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(String.class)
-                .subscribe(
-                    response -> System.out.println("FastAPI 응답: " + response),
-                    error -> System.out.println("FastAPI 오류: " + error.getMessage())
-                );
-        } catch (Exception e) {
-            System.out.println("FastAPI 호출 예외: " + e.getMessage());
-        }
-    }
 
 }
