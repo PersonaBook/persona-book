@@ -1,20 +1,189 @@
-# 토이 프로젝트 4 : 챗봇을 넘어 콜봇으로 based on AI (RAG + LLM)
-### [프로젝트 개요] 
-- **프로젝트 명** : 챗봇을 넘어 콜봇으로 based on AI (RAG + LLM)
-- **상세 내용 :** [프로젝트 RFP 노션 링크](https://www.notion.so/Toy-Project-4-22f9047c353d80fea377d6a4c4b23415?source=copy_link)
-- **수행 및 결과물 제출 기한** : 7/14 (월) ~ 8/1 (금) 14:00
-- **멘토진 코드리뷰 기한** : 8/4 (월) ~ 8/17 (일), 2주 간 진행 
+# 📚 AI 기반 학습 도우미 시스템
+
+> Spring Boot + Thymleaf + FastAPI + LangChain + MySQL + Elasticsearch 기반의 실시간 개인화 학습 지원 플랫폼
+
+---
+
+## 🧠 주요 서비스 개요
+
+> 사용자가 직접 업로드한 교재(PDF)를 기반으로, 개인의 학습 상황에 맞춘 문제 생성, 개념 설명, 페이지 추천 등을 제공하는 상태 기반 학습 도우미 챗봇 서비스입니다. LangChain과 GPT-4를 활용해, 단순한 챗봇이 아닌 대화 흐름에 따라 반복 학습과 오답 피드백 루프를 구성할 수 있으며, 이를 위해 Spring Boot ↔ FastAPI(LangChain) ↔ Elasticsearch가 유기적으로 연결됩니다.
+
+---
+
+## 🖼️ 시스템 아키텍처
+
+![System Architecture](assets/시스템_아키텍처.jpg)
+
+---
+
+## 🧱 시스템 개요
+
+본 시스템은 Docker Compose 네트워크 기반의 멀티 컨테이너 아키텍처로, Spring Boot, FastAPI, MySQL, Elasticsearch 등 주요 컴포넌트를 통합하여 다음과 같은 기능을 제공합니다:
+
+- ✍️ 노트/메모 기반 학습 지원
+- 💬 상태 기반 챗봇과의 자연스러운 대화 흐름
+- 🧠 LangChain 기반 문제 생성 및 오답 피드백
+- 🔍 Elasticsearch를 통한 교재 검색 및 유사 문서 탐색
+
+---
+
+## ⚙️ 기술 스택
+
+| 구분 | 기술 |
+|------|------|
+| **프론트엔드** | Thymeleaf (Spring 기반 SSR) |
+| **백엔드 (메인)** | Spring Boot (Java 17) |
+| **AI 서버** | FastAPI (Python 3.10) + LangChain |
+| **데이터베이스** | MySQL 8.0 |
+| **검색엔진** | Elasticsearch 8.x |
+| **컨테이너화** | Docker, Docker Compose |
+| **LLM 연동** | OpenAI GPT-4 API |
+| **문서 검색 최적화** | RAG (Retrieval-Augmented Generation) 기반 구조 |
+
+---
+
+## 📌 주요 구성 요소 및 역할
+
+| 구성 요소                     | 역할                              |
+|---------------------------| ------------------------------- |
+| 👥 사용자                    | 웹 UI에서 챗봇과 상호작용, 노트 작성, PDF 열람  |
+| 🌱 Spring Boot + Thymleaf | 상태 제어, 사용자 인증, PDF 렌더링 및 노트 관리  |
+| ⚡ FastAPI (LangChain)     | 예상 문제 생성, 오답 분석, 개념 설명 (LLM 호출) |
+| 🔎 Elasticsearch          | 교재 문서 임베딩 및 RAG 기반 검색           |
+| 🐬 MySQL                  | 사용자/노트/이력 정보 저장                 |
+| 🌐 외부 API                 | 위키/백과 등을 통한 개념 설명 보강            |
 
 
-### [프로젝트 진행 및 제출 방법]
-- 본 패스트캠퍼스 Github의 Repository를 각 조별의 Github Repository를 생성 후 Fork합니다.
-    - 패스트캠퍼스 깃헙은 Private 형태 (Public 불가)
-- 조별 레포의 최종 branch → 패스트캠퍼스 업스트림 Repository의 main branch의 **PR 상태**로 제출합니다.
-    - **PR TITLE : N조 최종 제출**
-    - Pull Request 링크를 LMS로도 제출해 주셔야 최종 제출 완료 됩니다. (제출자: 조별 대표자 1인)
-    - LMS를 통한 과제 미제출 시 점수가 부여되지 않습니다. 
-- PR 제출 시 유의사항
-    - 프로젝트 진행 결과 및 과업 수행 내용은 README.md에 상세히 작성 부탁 드립니다. 
-    - 멘토님들께서 어플리케이션 실행을 위해 확인해야 할 환경설정 값 등도 반드시 PR 부가 설명란 혹은 README.md에 작성 부탁 드립니다.
-    - **Pull Request에서 제출 후 절대 병합(Merge)하지 않도록 주의하세요!**
-    - 수행 및 제출 과정에서 문제가 발생한 경우, 바로 질의응답 멘토님이나 강사님에게 얘기하세요! (강사님께서 필요시 개별 힌트 제공)
+---
+
+## 🔁 주요 시나리오 흐름
+
+### 🤖 챗봇 서비스 흐름 및 시퀀스 다이어그램
+
+```plaintext
+[사용자 요청]
+     ↓
+[Spring ChatService: 상태 판단 + 흐름 제어]
+     ↓                     ↘️
+[상태 전이에 따른 로직 처리]  → (필요 시) [FastAPI (/chat)] 호출
+     ↓
+[다음 상태 + 메시지 결정]
+     ↓
+[ChatHistory 저장 + 응답 반환]
+```
+
+![Sequence Diagram](assets/서비스_흐름_시퀀스_다이어그램.png)
+
+### 🤖 AI 학습 도우미 챗봇(상태 기반 흐름)
+
+```plaintext
+📍 START → WAITING_USER_SELECT_FEATURE
+         // 기능 선택 대기 (1. 문제 생성 / 2. 페이지 찾기 / 3. 개념 설명)
+
+         ├─ 1. 예상 문제 생성
+         │   → WAITING_PROBLEM_CRITERIA_SELECTION
+         │     // 문제 기준 선택 요청
+         │     → WAITING_PROBLEM_CONTEXT_INPUT
+         │       // 챕터/개념 입력 요청
+         │       → ⚡ GENERATING_QUESTION_WITH_RAG
+         │         // FastAPI 호출로 문제 생성
+         │         → ⚡ EVALUATING_ANSWER_AND_LOGGING
+         │           // FastAPI 호출로 정오답 판단 및 해설 포함
+         │           → WAITING_CONCEPT_RATING
+         │             // 해설에 대한 이해도 평가 요청
+         │             ├─ 4~5점 → WAITING_NEXT_ACTION_AFTER_LEARNING
+         │             │           // 다음 행동 선택 (1. 다음 문제 / 2. 기능 선택)
+         │             │           ├─ 1. 다음 문제 → ⚡ GENERATING_ADDITIONAL_QUESTION_WITH_RAG
+         │             │           │                        → ⚡ EVALUATING_ANSWER_AND_LOGGING → ...
+         │             │           └─ 2. 기능 선택 → WAITING_USER_SELECT_FEATURE
+         │             └─ 1~3점 → WAITING_REASON_FOR_LOW_RATING
+         │                          // 낮은 점수 이유 요청
+         │                          → ⚡ REEXPLAINING_CONCEPT
+         │                            // FastAPI 호출로 보충 설명
+         │                            → WAITING_CONCEPT_RATING (반복)
+
+         ├─ 2. 페이지 찾기
+         │   → WAITING_KEYWORD_FOR_PAGE_SEARCH
+         │     // 키워드 입력 대기
+         │     → ⚡ PROCESSING_PAGE_SEARCH_RESULT
+         │       // FastAPI 호출로 페이지/챕터 추천
+         │       → WAITING_USER_SELECT_FEATURE (루프)
+
+         └─ 3. 개념 설명
+             → WAITING_CONCEPT_INPUT
+             // 개념 입력 대기
+               → ⚡ PRESENTING_CONCEPT_EXPLANATION
+               // FastAPI 호출로 개념 설명
+                 → WAITING_CONCEPT_RATING
+                   // 설명에 대한 평가
+                   ├─ 4~5점 → WAITING_NEXT_ACTION_AFTER_LEARNING → (선택에 따라 루프)
+                   └─ 1~3점 → WAITING_REASON_FOR_LOW_RATING → ⚡ REEXPLAINING_CONCEPT → WAITING_CONCEPT_RATING (반복)
+```
+
+
+---
+
+## 📂 프로젝트 디렉토리 구조
+
+```plaintext
+📦KDT_BE12_Toy_Project4/
+├─ 📁 application-server/             # Spring Boot 애플리케이션
+│  └─ 📁 application/                 # 핵심 서버 애플리케이션 모듈
+│     ├─ 📁 src/                      # Java 소스 코드
+│     ├─ 📜 build.gradle              # Gradle 빌드 스크립트
+│     ├─ 📜 Dockerfile                # Spring Boot Dockerfile
+│     └─ ...
+│
+├─ 📁 langchain-server/              # FastAPI + LangChain 기반 AI 서버
+│  ├─ 📁 app/                         # FastAPI 라우터 및 서비스 코드
+│  ├─ 📁 tests/                       # 테스트 코드
+│  ├─ 📜 Dockerfile                   # FastAPI Dockerfile
+│  ├─ 📜 Dockerfile.elasticsearch     # Elasticsearch 포함 빌드용 Dockerfile
+│  └─ 📜 pyproject.toml              # Python 프로젝트 설정
+│
+├─ 📜 docker-compose.yml             # 전체 멀티 컨테이너 구성 파일
+├─ 📜 .env.dev                        # 개발용 환경 변수
+├─ 📜 .env.prod                       # 운영용 민감 정보 (Git 제외 권장)
+├─ 📜 README.md
+└─ ...
+```
+
+---
+
+## 🐳 Docker 기반 환경 구성
+
+### 📂 주요 서비스 요약
+
+| 구성 요소                 | 설명                 | 호스트 포트 → 컨테이너 포트 |
+| --------------------- | ------------------ | ---------------- |
+| `Spring Boot`         | 사용자 API / View 렌더링 | `8080:8080`      |
+| `MySQL`               | 관계형 데이터베이스         | `3307:3306`      |
+| `FastAPI (LangChain)` | AI 기반 응답 처리        | `8000:8000`      |
+| `Elasticsearch`       | 검색 기반 시스템          | `9200:9200`      |
+
+
+### 🧭 네트워크 구성
+
+- 모든 컨테이너는 Docker Compose의 `backend` 네트워크로 연결
+- 내부 DNS 이름 (`mysql`, `langchain`, `elasticsearch`)으로 서로 접근
+
+---
+
+## 🔐 환경 변수 관리 전략
+
+| 파일명         | 목적                                 | 비고                                     |
+| ----------- | ---------------------------------- | -------------------------------------- |
+| `.env.dev`  | **개발 환경용 설정** (DB 포트, 서비스 이름 등)    | 로컬 개발자들이 공통으로 사용할 수 있도록 Git에 포함        |
+| `.env.prod` | **운영 또는 배포용 민감 정보** (API 키, 시크릿 등) | **보안상 Git에 포함 ❌**, 로컬 또는 서버에서 개별 관리 필요 |
+
+
+### .env.prod 예시
+```bash
+OPENAI_API_KEY=sk-xxxxxxxxxxxx
+OPENAI_MODEL_NAME=gpt-4
+```
+
+---
+
+
+

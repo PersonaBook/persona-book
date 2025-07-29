@@ -160,19 +160,77 @@ public class ChatService {
 
     private AiMessageDto buildLocalAiMessage(ChatState state, Long userId, Long bookId) {
         String message = switch (state) {
-            case WAITING_USER_SELECT_FEATURE -> "무엇을 도와드릴까요?\n1. 예상 문제 생성\n2. 페이지 찾기\n3. 개념 설명";
-            case WAITING_PROBLEM_CRITERIA_SELECTION -> "문제를 어떤 기준으로 생성할까요?\n1. 챕터/페이지 범위\n2. 특정 개념";
-            case WAITING_PROBLEM_CONTEXT_INPUT -> "문제 생성을 위한 범위나 개념을 입력해주세요.";
+            case WAITING_USER_SELECT_FEATURE ->
+                    """
+                    👋 안녕하세요! 어떤 걸 도와드릴까요?
+            
+                    1️⃣ 예상 문제 생성  
+                    2️⃣ 페이지 찾기  
+                    3️⃣ 개념 설명
+                    """;
 
-            case WAITING_KEYWORD_FOR_PAGE_SEARCH -> "페이지를 찾기 위한 키워드를 입력해주세요.";
+            case WAITING_PROBLEM_CRITERIA_SELECTION ->
+                    """
+                    🧠 문제를 어떤 기준으로 생성할까요?
+            
+                    1️⃣ 챕터나 페이지 범위  
+                    2️⃣ 특정 개념
+                    """;
 
-            case WAITING_NEXT_ACTION_AFTER_LEARNING -> "다음으로 무엇을 하시겠습니까?\n1. 다음 문제\n2. 기능 선택";
-            case WAITING_CONCEPT_RATING -> "설명이 도움이 되었나요? 1~5점으로 평가해주세요.";
-            case WAITING_REASON_FOR_LOW_RATING -> "이해가 어려웠던 점을 알려주세요. 보충 설명을 드릴게요.";
+            case WAITING_PROBLEM_CONTEXT_INPUT ->
+                    """
+                    ✏️ 문제 생성을 위한 범위나 개념을 입력해주세요.
+            
+                    예시  
+                    - '2장 3절'  
+                    - '운영체제의 스케줄링 알고리즘'
+                    """;
 
-            case WAITING_CONCEPT_INPUT -> "어떤 개념에 대한 설명이 필요한가요?";
+            case WAITING_KEYWORD_FOR_PAGE_SEARCH ->
+                    """
+                    🔍 찾고 싶은 내용을 입력해주세요.
+            
+                    예시  
+                    - 'OSI 7계층'  
+                    - '힙 정렬 예제'
+                    """;
 
-            default -> "입력을 확인했습니다. 다음 단계를 진행해주세요.";
+            case WAITING_NEXT_ACTION_AFTER_LEARNING ->
+                    """
+                    ✅ 다음으로 무엇을 할까요?
+            
+                    1️⃣ 다음 문제 풀기  
+                    2️⃣ 다른 기능 선택
+                    """;
+
+            case WAITING_CONCEPT_RATING ->
+                    """
+                    ⭐ 설명이 얼마나 도움이 되었나요?
+            
+                    1점 (전혀 이해 안 됨) ~ 5점 (매우 도움 됨) 중 숫자로 평가해주세요.
+                    """;
+
+            case WAITING_REASON_FOR_LOW_RATING ->
+                    """
+                    🤔 이해가 어려웠던 점을 알려주세요!
+            
+                    어떤 부분이 헷갈렸는지 알려주시면 더 쉽게 다시 설명드릴게요.
+                    """;
+
+            case WAITING_CONCEPT_INPUT ->
+                    """
+                    📘 어떤 개념을 설명해드릴까요?
+            
+                    예시  
+                    - '데드락'  
+                    - 'DFS와 BFS의 차이점'
+                    """;
+
+            default ->
+                    """
+                    ✅ 입력을 확인했어요.  
+                    다음 단계로 넘어갈게요!
+                    """;
         };
 
         // 상태에 따라서 message를 다르게 설정해주어야 함(현재는 똑같이 설정되어 있음)
