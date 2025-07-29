@@ -63,7 +63,7 @@ public class PdfViewController {
             book.setLastAccessedAt(java.time.LocalDateTime.now());
             bookRepository.save(book);
 
-            // FastAPI로 PDF 문서 요청 (비동기)
+            // FastAPI 전송 메서드 호출 (비동기)
             if (book.getFileBase64() != null) {
                 callFastApiForQuestionGeneration(book.getFileBase64());
             }
@@ -85,7 +85,7 @@ public class PdfViewController {
 
     private void callFastApiForQuestionGeneration(String pdfBase64) {
         try {
-            System.out.println("=== FastAPI PDF 요청 ===");
+            System.out.println("=== PDF 데이터를 FastAPI로 전송 중 ===");
             
             var requestBody = java.util.Map.of(
                 "pdf_base64", pdfBase64,
