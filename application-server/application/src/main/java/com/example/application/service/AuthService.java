@@ -157,21 +157,18 @@ public class AuthService {
         return null;
     }
 
-    public String findUsernameByEmail(String email) {
-        Optional<User> userOptional = userRepository.findByUserEmail(email);
-        return userOptional.map(User::getUserEmail).orElse(null);
+    public String findUsernameByNameAndEmail(String userName, String email) {
+        Optional<User> userOptional = userRepository.findByUserNameAndUserEmail(userName, email);
+        return userOptional.map(User::getUserName).orElse(null);
     }
 
     @Transactional
-    public void resetPassword(String userName, String email, String verificationCode, String newPassword) {
-        verifyVerificationCode(email, verificationCode);
-
+    public void resetPassword(String userName, String email, String newPassword) {
         User user = userRepository.findByUserNameAndUserEmail(userName, email)
                 .orElseThrow(() -> new UserNotFoundException("이름과 이메일이 일치하지 않습니다."));
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        verificationTokenRepository.deleteByEmail(email);
     }
 
     private String generateVerificationCode() {

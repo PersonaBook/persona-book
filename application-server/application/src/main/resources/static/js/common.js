@@ -209,6 +209,57 @@ function checkTokenAndUpdateUI() {
     HeaderAuthManager.updateUI();
 }
 
+// ID 찾기 함수
+function findUserId(userName, email) {
+    return $.ajax({
+        url: '/api/auth/findId',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            userName: userName,
+            email: email
+        }),
+        success: function(response) {
+            console.log('응답:', response);
+            if (response.status === 'OK') {
+                alert(response.message);
+                window.location.href = '/';
+            } else {
+                alert(response.message || 'ID 찾기에 실패했습니다.');
+            }
+        },
+        error: function(xhr) {
+            handleApiError(xhr, 'ID 찾기 중 오류가 발생했습니다.');
+        }
+    });
+}
+
+// 비밀번호 리셋 함수
+function resetPassword(userName, email, newPassword) {
+    return $.ajax({
+        url: '/api/findPassword/reset',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            userName: userName,
+            email: email,
+            newPassword: newPassword
+        }),
+        success: function(response) {
+            console.log('응답:', response);
+            if (response.status === 'OK' || response.message === '비밀번호가 성공적으로 변경되었습니다.') {
+                alert('비밀번호 변경에 성공하였습니다');
+                window.location.href = '/';
+            } else {
+                alert(response.message || '비밀번호 변경에 실패했습니다.');
+            }
+        },
+        error: function(xhr) {
+            handleApiError(xhr, '비밀번호 변경 중 오류가 발생했습니다.');
+        }
+    });
+}
+
 $(document).ready(function(){
     /* section layout 최소 height */
     function adjustSectionHeight() {
@@ -225,6 +276,43 @@ $(document).ready(function(){
     
     // 헤더 인증 관리자 초기화
     HeaderAuthManager.init();
+    
+    // 비밀번호 리셋 폼 이벤트 처리
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userName = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const verificationCode = document.getElementById('verificationCode').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            
+            // 비밀번호 확인 검증
+            if (newPassword !== confirmNewPassword) {
+                alert('새로운 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+                return;
+            }
+            
+            // 비밀번호 리셋 함수 호출
+            resetPassword(userName, email, newPassword);
+        });
+    }
+    
+    // ID 찾기 폼 이벤트 처리
+    const idInquiryForm = document.getElementById('form_area');
+    if (idInquiryForm) {
+        idInquiryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userName = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            // ID 찾기 함수 호출
+            findUserId(userName, email);
+        });
+    }
     
     // URL에서 토큰 파라미터 처리
     const urlParams = new URLSearchParams(window.location.search);

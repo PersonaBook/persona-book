@@ -22,15 +22,18 @@ public class FindIdController {
     @PostMapping("/api/findId")
     @ResponseBody
     public ResponseEntity<?> findId(@RequestBody Map<String, String> request) {
+        String userName = request.get("userName");
         String email = request.get("email");
-        if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Email is required."));
+        
+        if (userName == null || userName.isEmpty() || email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "이름과 이메일이 모두 필요합니다."));
         }
-        String username = authService.findUsernameByEmail(email);
+        
+        String username = authService.findUsernameByNameAndEmail(userName, email);
         if (username != null) {
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Your username is: " + username));
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "귀하의 아이디는: " + username));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "No user found with that email address."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "이름과 이메일이 일치하지 않습니다."));
         }
     }
 }

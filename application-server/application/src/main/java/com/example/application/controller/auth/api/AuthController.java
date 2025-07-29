@@ -90,35 +90,21 @@ public class AuthController {
 
     @PostMapping("/findId")
     public ResponseEntity<?> findId(@RequestBody Map<String, String> request) {
+        String userName = request.get("userName");
         String email = request.get("email");
-        if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Email is required."));
+        
+        if (userName == null || userName.isEmpty() || email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "이름과 이메일이 모두 필요합니다."));
         }
-        String username = authService.findUsernameByEmail(email);
+        
+        String username = authService.findUsernameByNameAndEmail(userName, email);
         if (username != null) {
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Your username is: " + username));
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "귀하의 아이디는: " + username));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "No user found with that email address."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "이름과 이메일이 일치하지 않습니다."));
         }
     }
 
-    @PostMapping("/resetPassword")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        String verificationCode = request.get("verificationCode");
-        String newPassword = request.get("newPassword");
-
-        if (email == null || email.isEmpty() || verificationCode == null || verificationCode.isEmpty() || newPassword == null || newPassword.isEmpty()) {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "All fields are required."));
-        }
-
-        try {
-            authService.resetPassword(email, verificationCode, newPassword);
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Password has been reset successfully."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, e.getMessage()));
-        }
-    }
 
     @GetMapping("/profile/{userId}")
     public ResponseEntity<?> getUserProfile(@PathVariable Long userId) {
