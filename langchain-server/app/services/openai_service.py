@@ -7,6 +7,7 @@ from openai import OpenAI
 
 class OpenAIService:
     def __init__(self):
+        # OpenAI API 키는 .env.prod 파일에서 로드
         self.client = OpenAI(api_key=settings.openai_api_key)
 
     def ask_openai(self, req: OpenAIChatRequest) -> str:
