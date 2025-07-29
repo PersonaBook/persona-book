@@ -3,7 +3,6 @@ package com.example.application.controller.user;
 import com.example.application.entity.User;
 import com.example.application.util.JwtAuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +14,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 class MyPageApiController {
-    @Autowired
-    private JwtAuthUtil jwtAuthUtil;
+    
+    private final JwtAuthUtil jwtAuthUtil;
+
+    public MyPageApiController(JwtAuthUtil jwtAuthUtil) {
+        this.jwtAuthUtil = jwtAuthUtil;
+    }
 
     @GetMapping("/myPage")
     public ResponseEntity<?> getMyPage(HttpServletRequest request) {

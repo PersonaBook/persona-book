@@ -11,8 +11,7 @@ import com.example.application.repository.UserRepository;
 import com.example.application.repository.VerificationTokenRepository;
 
 import com.example.application.security.jwt.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Import BCryptPasswordEncoder
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -32,22 +31,24 @@ public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
+    // 이메일 인증 코드 유지시간
     private static final long VERIFICATION_CODE_EXPIRY_MINUTES = 5; // 5분
 
-    @Autowired
-    UserRepository userRepository;
-
-    // Directly instantiate BCryptPasswordEncoder
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
+    private final VerificationTokenRepository verificationTokenRepository;
 
-    @Autowired
-    JwtTokenProvider jwtTokenProvider;
-
-    @Autowired
-    EmailService emailService;
-
-    @Autowired
-    VerificationTokenRepository verificationTokenRepository;
+    public AuthService(UserRepository userRepository,
+                      JwtTokenProvider jwtTokenProvider,
+                      EmailService emailService,
+                      VerificationTokenRepository verificationTokenRepository) {
+        this.userRepository = userRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.emailService = emailService;
+        this.verificationTokenRepository = verificationTokenRepository;
+    }
 
     
 
@@ -55,16 +56,17 @@ public class AuthService {
         User user = userRepository.findByUserEmail(loginRequest.getUserEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + loginRequest.getUserEmail()));
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) { // Use passwordEncoder
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password!");
         }
 
         // rememberMe에 따라 다른 만료시간의 토큰 생성
         String jwt = jwtTokenProvider.generateJwtToken(user.getUserEmail(), loginRequest.isRememberMe());
 
-        // Generate and save refresh token to session
+        // refresh token 생성하고 세션에 저장
         String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserEmail());
         session.setAttribute("refreshToken", refreshTokenString);
+        session.setAttribute("rememberMe", loginRequest.isRememberMe());
         session.setAttribute("loginToken", jwt);
 
         return new JwtResponse(jwt, refreshTokenString, user.getUserId(), user.getUserEmail(), user.getUserEmail());
@@ -77,21 +79,21 @@ public class AuthService {
             throw new RuntimeException("Invalid or expired refresh token");
         }
 
-        // Assuming the user information can be extracted from the refresh token or is available in the session
-        // For simplicity, we'll assume the user email can be extracted from the refresh token for now.
-        // In a real application, you might store user ID in the session or have a more robust way to get user.
         String userEmail = jwtTokenProvider.getUserEmailFromRefreshToken(refreshTokenString);
         User user = userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + userEmail));
 
-        // Generate new access token (기본값으로 rememberMe=true 사용, 추후 개선 필요)
-        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail(), true);
+        // rememberMe 설정으로 새 액세스 토큰 생성
+        Boolean rememberMe = (Boolean) session.getAttribute("rememberMe");
+        boolean useRememberMe = rememberMe != null ? rememberMe : false;
+        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail(), useRememberMe);
 
         return new JwtResponse(newAccessToken, refreshTokenString, user.getUserId(), user.getUserName(), user.getUserEmail());
     }
 
     public void logout(HttpSession session) {
         session.removeAttribute("refreshToken");
+        session.removeAttribute("rememberMe");
         session.invalidate();
     }
 
@@ -104,37 +106,33 @@ public class AuthService {
     }
 
     public boolean registerUser(SignupRequest signUpRequest) {
-        if (userRepository.existsByUserName(signUpRequest.getUserName())) {
-            return false; // Username is already taken!
+        if (!validateUserRegistration(signUpRequest)) {
+            return false;
         }
+        
+        User user = createUserFromRequest(signUpRequest);
+        userRepository.save(user);
+        
+        return sendVerificationEmailToNewUser(user);
+    }
 
-        if (userRepository.existsByUserEmail(signUpRequest.getUserEmail())) {
-            return false; // Email is already in use!
-        }
+    private boolean validateUserRegistration(SignupRequest signUpRequest) {
+        return !userRepository.existsByUserName(signUpRequest.getUserName()) &&
+               !userRepository.existsByUserEmail(signUpRequest.getUserEmail());
+    }
 
-        // Check if user is at least 10 years old
-        if (signUpRequest.getBirthDate() != null) {
-            java.time.LocalDate today = java.time.LocalDate.now();
-            java.time.LocalDate minBirthDate = today.minusYears(10);
-            if (signUpRequest.getBirthDate().isAfter(minBirthDate)) {
-                logger.warn("User tried to register with birth date {} which is less than 10 years old.", signUpRequest.getBirthDate());
-                return false; // User is too young
-            }
-        }
-
-        // Create new user's account
+    private User createUserFromRequest(SignupRequest signUpRequest) {
         User user = new User();
         user.setUserName(signUpRequest.getUserName());
         user.setUserEmail(signUpRequest.getUserEmail());
-        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword())); // Use passwordEncoder
+        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         user.setUserBirthDate(signUpRequest.getBirthDate());
         user.setUserJob(signUpRequest.getJob());
         user.setUserPhoneNumber(signUpRequest.getUserPhoneNumber());
-        
+        return user;
+    }
 
-        userRepository.save(user);
-
-        // Generate verification code and send email
+    private boolean sendVerificationEmailToNewUser(User user) {
         String verificationCode = generateVerificationCode();
         VerificationToken verificationToken = new VerificationToken(verificationCode, user);
         verificationTokenRepository.save(verificationToken);
@@ -156,29 +154,26 @@ public class AuthService {
             User user = userOptional.get();
             return new UserProfileResponse(user.getUserId(), user.getUserName(), user.getUserEmail(), user.getUserBirthDate(), user.getUserJob());
         }
-        return null; // User not found
+        return null;
     }
 
-    public String findUsernameByEmail(String email) {
-        Optional<User> userOptional = userRepository.findByUserEmail(email);
-        return userOptional.map(User::getUserEmail).orElse(null);
+    public String findUsernameByNameAndEmail(String userName, String email) {
+        Optional<User> userOptional = userRepository.findByUserNameAndUserEmail(userName, email);
+        return userOptional.map(User::getUserName).orElse(null);
     }
 
     @Transactional
-    public void resetPassword(String email, String verificationCode, String newPassword) {
-        verifyVerificationCode(email, verificationCode);
+    public void resetPassword(String userName, String email, String newPassword) {
+        User user = userRepository.findByUserNameAndUserEmail(userName, email)
+                .orElseThrow(() -> new UserNotFoundException("이름과 이메일이 일치하지 않습니다."));
 
-        User user = userRepository.findByUserEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
-
-        user.setPassword(passwordEncoder.encode(newPassword)); // Use passwordEncoder
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        verificationTokenRepository.deleteByEmail(email);
     }
 
     private String generateVerificationCode() {
         Random random = new Random();
-        int code = 100000 + random.nextInt(900000); // 6-digit code
+        int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
 
@@ -215,37 +210,53 @@ public class AuthService {
 
     @Transactional
     public String sendEmailVerificationCode(String email, boolean mustExist) {
+        String validationResult = validateEmailForVerification(email, mustExist);
+        if (!"VALID".equals(validationResult)) {
+            return validationResult;
+        }
+        
+        return processVerificationCodeSending(email);
+    }
+
+    private String validateEmailForVerification(String email, boolean mustExist) {
         if (mustExist) {
             // 이메일이 반드시 존재해야 함 (id/pw찾기, 마이페이지)
             if (!userRepository.existsByUserEmail(email)) {
                 logger.warn("Email {} does not exist. Cannot send verification code.", email);
-                return "해당 이메일로 가입된 계정이 없습니다."; // Email does not exist
+                return "해당 이메일로 가입된 계정이 없습니다.";
             }
         } else {
             // 이메일이 존재하면 안 됨 (회원가입)
             if (userRepository.existsByUserEmail(email)) {
                 logger.warn("Email {} already exists. Cannot send verification code.", email);
-                return "이미 가입된 이메일입니다."; // Email already exists, do not send code
+                return "이미 가입된 이메일입니다.";
             }
         }
+        return "VALID";
+    }
+
+    private String processVerificationCodeSending(String email) {
         try {
             String verificationCode = generateVerificationCode();
-            VerificationToken existingToken = verificationTokenRepository.findByEmail(email);
-
-            if (existingToken != null) {
-                existingToken.setToken(verificationCode);
-                existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(15)); // Reset expiry
-                verificationTokenRepository.save(existingToken);
-            } else {
-                VerificationToken newToken = new VerificationToken(verificationCode, email);
-                verificationTokenRepository.save(newToken);
-            }
-
+            saveOrUpdateVerificationToken(email, verificationCode);
             emailService.sendEmail(email, "Email Verification Code", "Your verification code is: " + verificationCode);
-            return "인증번호를 발송했습니다."; // 성공 메시지
+            return "인증번호를 발송했습니다.";
         } catch (Exception e) {
             logger.error("Failed to send email verification code to {}: {}", email, e.getMessage());
             return "이메일 발송 중 오류가 발생했습니다.";
+        }
+    }
+
+    private void saveOrUpdateVerificationToken(String email, String verificationCode) {
+        VerificationToken existingToken = verificationTokenRepository.findByEmail(email);
+        
+        if (existingToken != null) {
+            existingToken.setToken(verificationCode);
+            existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRY_MINUTES));
+            verificationTokenRepository.save(existingToken);
+        } else {
+            VerificationToken newToken = new VerificationToken(verificationCode, email);
+            verificationTokenRepository.save(newToken);
         }
     }
 }
