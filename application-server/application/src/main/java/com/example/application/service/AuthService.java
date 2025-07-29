@@ -177,10 +177,6 @@ public class AuthService {
         return String.valueOf(code);
     }
 
-    public boolean forgotPassword(String email) {
-        String result = sendEmailVerificationCode(email, true);
-        return "인증번호를 발송했습니다.".equals(result); // 성공 메시지면 성공
-    }
 
     @Transactional
     public void verifyVerificationCode(String email, String code) {
