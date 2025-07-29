@@ -11,7 +11,7 @@ import com.example.application.repository.UserRepository;
 import com.example.application.repository.VerificationTokenRepository;
 
 import com.example.application.security.jwt.JwtTokenProvider;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Import BCryptPasswordEncoder
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -56,14 +56,14 @@ public class AuthService {
         User user = userRepository.findByUserEmail(loginRequest.getUserEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + loginRequest.getUserEmail()));
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) { // Use passwordEncoder
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password!");
         }
 
         // rememberMe에 따라 다른 만료시간의 토큰 생성
         String jwt = jwtTokenProvider.generateJwtToken(user.getUserEmail(), loginRequest.isRememberMe());
 
-        // Generate and save refresh token to session
+        // refresh token 생성하고 세션에 저장
         String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserEmail());
         session.setAttribute("refreshToken", refreshTokenString);
         session.setAttribute("rememberMe", loginRequest.isRememberMe());
@@ -79,14 +79,11 @@ public class AuthService {
             throw new RuntimeException("Invalid or expired refresh token");
         }
 
-        // Assuming the user information can be extracted from the refresh token or is available in the session
-        // For simplicity, we'll assume the user email can be extracted from the refresh token for now.
-        // In a real application, you might store user ID in the session or have a more robust way to get user.
         String userEmail = jwtTokenProvider.getUserEmailFromRefreshToken(refreshTokenString);
         User user = userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + userEmail));
 
-        // Generate new access token with original rememberMe setting
+        // rememberMe 설정으로 새 액세스 토큰 생성
         Boolean rememberMe = (Boolean) session.getAttribute("rememberMe");
         boolean useRememberMe = rememberMe != null ? rememberMe : false;
         String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail(), useRememberMe);
@@ -110,28 +107,28 @@ public class AuthService {
 
     public boolean registerUser(SignupRequest signUpRequest) {
         if (userRepository.existsByUserName(signUpRequest.getUserName())) {
-            return false; // Username is already taken!
+            return false;
         }
 
         if (userRepository.existsByUserEmail(signUpRequest.getUserEmail())) {
-            return false; // Email is already in use!
+            return false;
         }
 
-        // Check if user is at least 10 years old
+        // 사용자가 최소 10세 이상인지 확인
         if (signUpRequest.getBirthDate() != null) {
             java.time.LocalDate today = java.time.LocalDate.now();
             java.time.LocalDate minBirthDate = today.minusYears(10);
             if (signUpRequest.getBirthDate().isAfter(minBirthDate)) {
                 logger.warn("User tried to register with birth date {} which is less than 10 years old.", signUpRequest.getBirthDate());
-                return false; // User is too young
+                return false;
             }
         }
 
-        // Create new user's account
+        // 새 사용자 계정 생성
         User user = new User();
         user.setUserName(signUpRequest.getUserName());
         user.setUserEmail(signUpRequest.getUserEmail());
-        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword())); // Use passwordEncoder
+        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         user.setUserBirthDate(signUpRequest.getBirthDate());
         user.setUserJob(signUpRequest.getJob());
         user.setUserPhoneNumber(signUpRequest.getUserPhoneNumber());
@@ -139,7 +136,7 @@ public class AuthService {
 
         userRepository.save(user);
 
-        // Generate verification code and send email
+        // 인증 코드 생성 및 이메일 발송
         String verificationCode = generateVerificationCode();
         VerificationToken verificationToken = new VerificationToken(verificationCode, user);
         verificationTokenRepository.save(verificationToken);
@@ -161,7 +158,7 @@ public class AuthService {
             User user = userOptional.get();
             return new UserProfileResponse(user.getUserId(), user.getUserName(), user.getUserEmail(), user.getUserBirthDate(), user.getUserJob());
         }
-        return null; // User not found
+        return null;
     }
 
     public String findUsernameByEmail(String email) {
@@ -176,14 +173,14 @@ public class AuthService {
         User user = userRepository.findByUserEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
 
-        user.setPassword(passwordEncoder.encode(newPassword)); // Use passwordEncoder
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         verificationTokenRepository.deleteByEmail(email);
     }
 
     private String generateVerificationCode() {
         Random random = new Random();
-        int code = 100000 + random.nextInt(900000); // 6-digit code
+        int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
 
@@ -239,7 +236,7 @@ public class AuthService {
 
             if (existingToken != null) {
                 existingToken.setToken(verificationCode);
-                existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRY_MINUTES)); // Reset expiry
+                existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRY_MINUTES));
                 verificationTokenRepository.save(existingToken);
             } else {
                 VerificationToken newToken = new VerificationToken(verificationCode, email);
