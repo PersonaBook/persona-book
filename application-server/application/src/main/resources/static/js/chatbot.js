@@ -1,259 +1,255 @@
-function toggleChatbot() {
-    const chatbotWindow = document.getElementById('chatbot-window');
-    chatbotWindow.style.display = chatbotWindow.style.display === 'none' ? 'block' : 'none';
-}
+$(function() {
+    const chatBtn = $('.chat_btn > button');
+    const chatArea = $('.chat_area');
 
-function windowClose(id) {
-    document.getElementById(id).style.display = 'none';
-}
+    if (!chatBtn.length) return;
 
-function windowMinimize(id) {
-    const win = document.getElementById(id);
-    win.querySelector('.card-body').style.display = 'none';
-    win.querySelector('.card-footer').style.display = 'none';
-}
+    chatBtn.on('click', function() {
+        chatArea.toggleClass('on');
 
-function windowMaximize(id) {
-    const win = document.getElementById(id);
-    win.querySelector('.card-body').style.display = 'block';
-    win.querySelector('.card-footer').style.display = 'flex';
-}
-
-
-
-
-
-
-const chatMessages = document.getElementById('chatMessages');
-const messageInput = document.getElementById('messageInput');
-const sendButton = document.getElementById('sendButton');
-const loadingIndicator = document.getElementById('loadingIndicator');
-const chatForm = document.getElementById('chatForm');
-const statusIndicator = document.getElementById('statusIndicator');
-const errorMessage = document.getElementById('errorMessage');
-const debugStateEl = document.getElementById('debugState');
-
-// 현재 상태 관리
-let currentFeatureContext = 'INITIAL';
-let currentStageContext = 'START';
-let sending = false;
-
-// 페이지 로딩 시 동작
-document.addEventListener('DOMContentLoaded', async function() {
-    messageInput.focus();
-    await loadChatHistory();
-    await checkConnection();
-    // 기존 이력이 없을 경우 자동으로 초기 메시지 전송
-    if (chatMessages.children.length === 0) await startNewChat();
+        if (chatArea.hasClass('on')) {
+            const userId = $(this).data('user-id');
+            const bookId = $(this).data('book-id');
+            renderChatWindow(chatArea, userId, bookId);
+        } else {
+            chatArea.empty();
+        }
+    });
 });
 
-// 채팅 제출
-chatForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const message = messageInput.value.trim();
-    if (message) sendMessage(message);
-});
+function renderChatWindow(container, userId, bookId) {
+    const chatHtml = `
+        <div class="chat-container">
+            <div class="chat-header">
+                chat
+                <div class="d-flex align-items-center">
+                    <button type="button" class="chat_window">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/></svg>
+                    </button>
+                    <button type="button" class="chat_close">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-settings d-flex">
+                <button type="button" id="deleteHistoryBtn" class="quick-btn btn btn-light rounded-0 w-50">채팅 이력 삭제</button>
+                <button type="button" id="newChatButton" class="quick-btn btn btn-light rounded-0 w-50">새로운 대화</button>
+                <input type="hidden" id="userId" value="${userId}" />
+                <input type="hidden" id="bookId" value="${bookId}" />
+            </div>
+            <div style="display: none">
+                상태: <span id="debugState">INITIAL / START</span>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="loading" id="loadingIndicator">AI가 응답을 생성하고 있습니다...</div>
+            <div class="chat-input-container">
+                <form class="chat-input-form" id="chatForm">
+                    <input type="text" class="chat-input" id="messageInput" placeholder="메시지를 입력하세요..." />
+                    <button type="submit" class="send-button" id="sendButton">전송</button>
+                </form>
+            </div>
+        </div>`;
 
-function updateDebugState() {
-    debugStateEl.textContent = `${currentFeatureContext} / ${currentStageContext}`;
-    toggleNewChatButtonVisibility();
+    container.html(chatHtml);
+    initializeChatFunctionality(userId, bookId);
 }
 
-function toggleNewChatButtonVisibility() {
-    const newChatBtn = document.getElementById('newChatButton');
-    const isStart = currentStageContext === 'SELECT_TYPE';
-    newChatBtn.style.display = isStart ? 'none' : 'inline-block';
-}
+function initializeChatFunctionality(userId, bookId) {
+    const chatForm = $('#chatForm');
+    const messageInput = $('#messageInput');
+    const chatMessages = $('#chatMessages');
+    const loadingIndicator = $('#loadingIndicator');
+    const debugStateEl = $('#debugState');
+    const newChatButton = $('#newChatButton');
+    const deleteHistoryBtn = $('#deleteHistoryBtn');
+    const chatWindow = $('.chat_window');
+    const closeButton = $('.chat_close');
+    const sendButton = $('#sendButton');
 
-function addMessage(sender, content, messageType = 'TEXT', options = []) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}`;
-    const timestamp = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-    let innerContent = '';
+    let currentState = 'WAITING_USER_SELECT_FEATURE';
+    let initialMessageSent = false;
 
-    if (messageType === 'TEXT') {
-        innerContent = `<div class="message-content">${content}</div>`;
-    } else if (messageType === 'SELECTION') {
-        innerContent = `<div class="message-content">${content}<br>${options.map((opt, idx) => `<button class='quick-btn' onclick='sendQuickMessage("${opt}")'>${idx+1}. ${opt}</button>`).join(' ')}</div>`;
-    } else if (messageType === 'RATING') {
-        innerContent = `<div class="message-content">${content}<br><input type='number' min='1' max='5' placeholder='1~5점 입력' onkeypress='handleRatingInput(event)'></div>`;
+    // --- Event Listeners ---
+    chatForm.on('submit', function(e) {
+        e.preventDefault();
+        const message = messageInput.val().trim();
+        if (message) {
+            sendMessage(message);
+        }
+    });
+
+    newChatButton.on('click', () => {
+        chatMessages.empty();
+        initialMessageSent = false;
+        startNewChat();
+    });
+    deleteHistoryBtn.on('click', () => deleteChatHistoryAndRestart());
+    closeButton.on('click', () => {
+        $('.chat_area').removeClass('on').empty();
+    });
+
+    chatWindow.click(function(){
+        if( $(".chat_area").hasClass("small") ){
+            $(".chat_area").removeClass("small");
+            $(".chat_area").addClass("big");
+        } else {
+            $(".chat_area").removeClass("big");
+            $(".chat_area").addClass("small");
+        }
+    });
+
+    // --- Core Functions ---
+    function sendMessage(messageContent) {
+        const payload = {
+            userId: userId,
+            bookId: bookId,
+            content: messageContent,
+            sender: 'USER',
+            messageType: 'TEXT',
+            chatState: currentState
+        };
+
+        if (messageContent.trim()) {
+            addMessage('user', messageContent);
+        }
+
+        messageInput.val('');
+        setSendButtonState(false);
+        showLoading(true);
+
+        $.ajax({
+            url: '/api/chat/send',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function(aiResponses) {
+                aiResponses.forEach(ai => {
+                    if (ai.content?.trim()) {
+                        addMessage('ai', ai.content, ai.messageType, ai.options || []);
+                    }
+                });
+                if (aiResponses.length > 0) {
+                    currentState = aiResponses[aiResponses.length - 1].chatState;
+                }
+                updateDebugState();
+            },
+            error: function(err) {
+                console.error("서버 전송 오류:", err);
+                addMessage('ai', '⚠️ 서버 전송에 실패했습니다.');
+            },
+            complete: function() {
+                setSendButtonState(true);
+                showLoading(false);
+                messageInput.focus();
+            }
+        });
     }
 
-    messageDiv.innerHTML = `<div class="message-sender">${sender.toUpperCase()} ${timestamp}</div>${innerContent}`;
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+    function addMessage(sender, text, messageType = 'TEXT', options = []) {
+        const escapedText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let contentHTML = `<div class="message-content">${escapedText}</div>`;
 
-function handleRatingInput(e) {
-    if (e.key === 'Enter') {
-        const value = e.target.value;
-        if (value) sendMessage(value);
+        if (messageType === 'SELECTION') {
+            const buttonsHTML = options.map((opt, idx) =>
+                `<button class="quick-btn" onclick="sendMessageWrapper('${idx + 1}')">${idx + 1}. ${opt}</button>`
+            ).join('');
+            contentHTML = `<div class="message-content">${escapedText}<div class="quick-actions">${buttonsHTML}</div></div>`;
+        } else if (messageType === 'RATING') {
+            let starsHTML = `<div class="rating-stars" onmouseout="styleStars(this, 0)">`;
+            for (let i = 1; i <= 5; i++) {
+                starsHTML += `<span id="star_${i}" onmouseover="styleStars(this.parentElement, ${i})" onclick="sendMessageWrapper('${i}')">☆</span>`;
+            }
+            starsHTML += `</div>`;
+            contentHTML = `<div class="message-content">${escapedText}<br>${starsHTML}</div>`;
+        }
+
+        const messageDiv = $('<div>').addClass('message').addClass(sender).html(contentHTML);
+        chatMessages.append(messageDiv);
+        chatMessages.scrollTop(chatMessages.prop("scrollHeight"));
     }
-}
 
-async function sendMessage(content) {
-    const userId = document.getElementById('userId').value;
-    const bookId = parseInt(document.getElementById('bookId').value);
-    if (!userId || !bookId) return showError('사용자 ID와 교재 ID를 입력해주세요.');
-
-    // ✅ 빈 문자열이면 user 메시지 렌더링 생략
-    if (content.trim() !== '') {
-        addMessage('user', content);
-    }
-
-    messageInput.value = '';
-    setSendButtonState(false);
-    showLoading(true);
-    hideError();
-
-    const userMessage = {
-        userId, bookId, content, sender: 'USER', messageType: 'TEXT',
-        featureContext: currentFeatureContext,
-        stageContext: currentStageContext
+    window.sendMessageWrapper = (message) => sendMessage(message);
+    window.styleStars = (container, rating) => {
+        for (let i = 1; i <= 5; i++) {
+            $(container).find(`#star_${i}`).text(i <= rating ? '★' : '☆');
+        }
     };
 
-    try {
-        const response = await fetch('/api/chat/send', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userMessage)
+    function loadChatHistory() {
+        showLoading(true);
+        $.ajax({
+            url: `/api/chat/history?userId=${userId}&bookId=${bookId}`,
+            type: 'GET',
+            success: function(history) {
+                chatMessages.empty();
+                if (history?.length) {
+                    history.forEach(msg => {
+                        if (msg.content?.trim()) {
+                            addMessage(msg.sender.toLowerCase(), msg.content, msg.messageType, msg.options || []);
+                        }
+                    });
+                    currentState = history[history.length - 1].chatState;
+                }
+            },
+            error: function(err) {
+                console.error("이력 로딩 실패:", err);
+            },
+            complete: function() {
+                showLoading(false);
+                updateDebugState();
+                // 대화 기록 로딩이 완료된 후, 대화창이 비어있으면 새 대화를 시작합니다.
+                if (chatMessages.children().length === 0) {
+                    startNewChat();
+                }
+            }
         });
-
-        if (response.ok) {
-            const aiResponse = await response.json();
-            addMessage('ai', aiResponse.content, aiResponse.messageType, aiResponse.options || []);
-            currentFeatureContext = aiResponse.featureContext || currentFeatureContext;
-            currentStageContext = aiResponse.stageContext || currentStageContext;
-            updateDebugState();
-            updateConnectionStatus(true);
-        } else {
-            const errorMsg = (await response.json().catch(() => ({}))).message || `서버 오류 (${response.status})`;
-            showError(errorMsg);
-            addMessage('ai', '죄송합니다. 오류가 발생했습니다.');
-            updateConnectionStatus(false);
-        }
-    } catch (err) {
-        console.error(err);
-        showError('네트워크 오류 발생');
-        updateConnectionStatus(false);
-    } finally {
-        setSendButtonState(true);
-        showLoading(false);
-        messageInput.focus();
     }
-}
 
-function sendQuickMessage(content) {
-    if (sending) return;
-    sending = true;
-    sendMessage(content).finally(() => sending = false);
-}
+    function startNewChat() {
+        if (initialMessageSent) return;
+        initialMessageSent = true; // 플래그를 true로 설정하여 중복 실행 방지
 
-function setSendButtonState(enabled) {
-    sendButton.disabled = !enabled;
-    sendButton.textContent = enabled ? '전송' : '전송 중...';
-}
-
-function showLoading(show) {
-    loadingIndicator.classList.toggle('show', show);
-    if (show) chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function showError(message) {
-    errorMessage.textContent = message;
-    errorMessage.classList.add('show');
-    setTimeout(hideError, 5000);
-}
-
-function hideError() {
-    errorMessage.classList.remove('show');
-}
-
-function updateConnectionStatus(connected) {
-    statusIndicator.className = connected ? 'status-indicator connected' : 'status-indicator disconnected';
-    statusIndicator.textContent = connected ? '🟢 연결됨' : '🔴 연결 끊김';
-}
-
-// ✅ 채팅 이력만 삭제하는 함수
-async function deleteChatHistory() {
-    const userId = document.getElementById('userId').value;
-    const bookId = parseInt(document.getElementById('bookId').value);
-    if (!userId || !bookId) return;
-
-    try {
-        await fetch(`/api/chat/history?userId=${userId}&bookId=${bookId}`, { method: 'DELETE' });
-    } catch (err) {
-        console.error('채팅 이력 삭제 실패:', err);
+        currentState = 'WAITING_USER_SELECT_FEATURE';
+        sendMessage('');
     }
-}
 
-// ✅ 새로운 채팅 흐름을 시작 (START 상태로 전환)
-async function startNewChat() {
-    currentFeatureContext = 'INITIAL';
-    currentStageContext = 'START';
-    updateDebugState();
-    messageInput.focus();
-    hideError();
-    await sendMessage(''); // START 상태 흐름 유도
-}
+    function deleteChatHistoryAndRestart() {
+        if (!confirm('모든 대화 기록을 삭제하고 새로 시작하시겠습니까?')) return;
 
-// ✅ 전체 리셋 흐름 (사용자 트리거)
-async function deleteChatHistoryAndRestart() {
-    if (!confirm('정말로 채팅 이력을 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.')) return;
+        initialMessageSent = false;
 
-    await deleteChatHistory();         // 🔸 DB에서 채팅 이력 삭제
-    chatMessages.innerHTML = '';       // 🔸 화면의 기존 메시지 제거
-    currentFeatureContext = 'INITIAL'; // 🔸 상태 초기화
-    currentStageContext = 'START';
-    updateDebugState();                // 🔸 상태 디버그 UI 갱신
-    await loadChatHistory();           // 🔸 DB 기준으로 이력 로딩 (일반적으로 없음)
-    await sendMessage('');             // 🔸 START 메시지 흐름 유도
-}
-
-async function loadChatHistory() {
-    const userId = document.getElementById('userId').value;
-    const bookId = parseInt(document.getElementById('bookId').value);
-    if (!userId || !bookId) return;
-
-    try {
-        const response = await fetch(`/api/chat/history?userId=${userId}&bookId=${bookId}`);
-        if (!response.ok) return;
-
-        const history = await response.json();
-        chatMessages.innerHTML = ''; // 기존 메시지 초기화
-
-        history.forEach(msg => {
-            // ✅ 빈 문자열 메시지는 렌더링 생략
-            if (!msg.content || msg.content.trim() === '') return;
-            addMessage(msg.sender.toLowerCase(), msg.content, msg.messageType || 'TEXT');
+        showLoading(true);
+        $.ajax({
+            url: `/api/chat/history?userId=${userId}&bookId=${bookId}`,
+            type: 'DELETE',
+            success: function() {
+                chatMessages.empty();
+                startNewChat();
+            },
+            error: function() {
+                showError("이력 삭제 실패");
+            },
+            complete: function() {
+                showLoading(false);
+            }
         });
-
-        const last = history[history.length - 1];
-        if (last) {
-            currentFeatureContext = last.featureContext || 'INITIAL';
-            currentStageContext = last.stageContext || 'START';
-            updateDebugState();
-        }
-    } catch (err) {
-        console.error(err);
-        showError('채팅 기록을 불러오는 데 실패했습니다.');
     }
+
+    function updateDebugState() {
+        debugStateEl.text(currentState || 'N/A');
+        newChatButton.css('display', currentState !== 'WAITING_USER_SELECT_FEATURE' ? 'inline-block' : 'none');
+    }
+
+    function showLoading(show) {
+        loadingIndicator.css('display', show ? 'block' : 'none');
+    }
+
+    function setSendButtonState(enabled) {
+        sendButton.prop('disabled', !enabled);
+        sendButton.text(enabled ? '전송' : '전송 중...');
+    }
+
+    // Initial Load
+    loadChatHistory();
 }
-
-async function checkConnection() {
-    try {
-        const res = await fetch('/api/chat/ping');
-        updateConnectionStatus(res.ok);
-    } catch {
-        updateConnectionStatus(false);
-    }
-}
-
-
-messageInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        chatForm.dispatchEvent(new Event('submit'));
-    }
-});
-
-setInterval(checkConnection, 30000);
