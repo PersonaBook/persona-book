@@ -52,16 +52,4 @@ public class FindPasswordController {
         }
     }
 
-    @PostMapping("/resetPassword")
-    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "Email is required."));
-        }
-        if (authService.forgotPassword(email)) {
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "Password reset email sent. Please check your inbox."));
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "No user found with that email address."));
-        }
-    }
 }
