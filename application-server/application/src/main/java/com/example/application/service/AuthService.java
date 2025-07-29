@@ -11,7 +11,6 @@ import com.example.application.repository.UserRepository;
 import com.example.application.repository.VerificationTokenRepository;
 
 import com.example.application.security.jwt.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Import BCryptPasswordEncoder
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,22 +31,24 @@ public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
+    // 이메일 인증 코드 유지시간
     private static final long VERIFICATION_CODE_EXPIRY_MINUTES = 5; // 5분
 
-    @Autowired
-    UserRepository userRepository;
-
-    // Directly instantiate BCryptPasswordEncoder
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
+    private final VerificationTokenRepository verificationTokenRepository;
 
-    @Autowired
-    JwtTokenProvider jwtTokenProvider;
-
-    @Autowired
-    EmailService emailService;
-
-    @Autowired
-    VerificationTokenRepository verificationTokenRepository;
+    public AuthService(UserRepository userRepository,
+                      JwtTokenProvider jwtTokenProvider,
+                      EmailService emailService,
+                      VerificationTokenRepository verificationTokenRepository) {
+        this.userRepository = userRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.emailService = emailService;
+        this.verificationTokenRepository = verificationTokenRepository;
+    }
 
     
 
@@ -234,7 +235,7 @@ public class AuthService {
 
             if (existingToken != null) {
                 existingToken.setToken(verificationCode);
-                existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(15)); // Reset expiry
+                existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRY_MINUTES)); // Reset expiry
                 verificationTokenRepository.save(existingToken);
             } else {
                 VerificationToken newToken = new VerificationToken(verificationCode, email);
