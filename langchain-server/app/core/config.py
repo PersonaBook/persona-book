@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-# load_dotenv(BASE_DIR / ".env.dev")  # 개발 환경 - 삭제됨
-load_dotenv(BASE_DIR / ".env.prod")  # 운영 환경만 사용
+load_dotenv(BASE_DIR / ".env.dev")  
+load_dotenv(BASE_DIR / ".env.prod")  
 
 
 class Settings(BaseSettings):
