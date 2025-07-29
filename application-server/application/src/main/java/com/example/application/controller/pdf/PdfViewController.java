@@ -27,6 +27,9 @@ public class PdfViewController {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private org.springframework.web.reactive.function.client.WebClient webClient;
+
     @GetMapping("/pdf/detail/{bookId}")
     public String pdfDetail(@PathVariable Long bookId, HttpServletRequest request, Model model) {
         System.out.println("=== PDF Detail 요청 ===");
@@ -47,7 +50,7 @@ public class PdfViewController {
             if (bookOpt.isEmpty()) {
                 System.out.println("책을 찾을 수 없음");
                 model.addAttribute("errorMessage", "PDF를 찾을 수 없습니다.");
-                return "error/404";
+                return "index";
             }
 
             Book book = bookOpt.get();
@@ -59,6 +62,11 @@ public class PdfViewController {
 
             book.setLastAccessedAt(java.time.LocalDateTime.now());
             bookRepository.save(book);
+
+            // FastAPI로 PDF 문서 요청 (비동기)
+            if (book.getFileBase64() != null) {
+                callFastApiForQuestionGeneration(book.getFileBase64());
+            }
 
             // Book 객체를 JSON으로 수동 직렬화
             String bookJson = objectMapper.writeValueAsString(book);
@@ -72,6 +80,29 @@ public class PdfViewController {
             e.printStackTrace();
             model.addAttribute("errorMessage", "PDF 로드에 실패했습니다: " + e.getMessage());
             return "error/500";
+        }
+    }
+
+    private void callFastApiForQuestionGeneration(String pdfBase64) {
+        try {
+            System.out.println("=== FastAPI PDF 요청 ===");
+            
+            var requestBody = java.util.Map.of(
+                "pdf_base64", pdfBase64,
+                "query", ""
+            );
+
+            webClient.post()
+                .uri("/generate-question")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .subscribe(
+                    response -> System.out.println("FastAPI 응답: " + response),
+                    error -> System.out.println("FastAPI 오류: " + error.getMessage())
+                );
+        } catch (Exception e) {
+            System.out.println("FastAPI 호출 예외: " + e.getMessage());
         }
     }
 
