@@ -20,7 +20,7 @@
                             <p class="mb-0" th:text="${loginError}"></p>
                         </div>
 
-                        <form id="form_area" method="post" th:action="@{/user/login}">
+                        <form id="loginForm" method="post" th:action="@{/user/login}">
                             <div class="mb-3">
                                 <label for="email" class="form-label">이메일 <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required>
