@@ -17,7 +17,7 @@ class QuestionGenerationRequest(BaseModel):
     query: str
     difficulty: str = "보통"
     question_type: str = "객관식"
-    max_pages: Optional[int] = None
+    max_pages: Optional[int] = NULL
     count: int = 1
 
 
