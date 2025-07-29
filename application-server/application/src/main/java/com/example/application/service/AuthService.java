@@ -106,25 +106,22 @@ public class AuthService {
     }
 
     public boolean registerUser(SignupRequest signUpRequest) {
-        if (userRepository.existsByUserName(signUpRequest.getUserName())) {
+        if (!validateUserRegistration(signUpRequest)) {
             return false;
         }
+        
+        User user = createUserFromRequest(signUpRequest);
+        userRepository.save(user);
+        
+        return sendVerificationEmailToNewUser(user);
+    }
 
-        if (userRepository.existsByUserEmail(signUpRequest.getUserEmail())) {
-            return false;
-        }
+    private boolean validateUserRegistration(SignupRequest signUpRequest) {
+        return !userRepository.existsByUserName(signUpRequest.getUserName()) &&
+               !userRepository.existsByUserEmail(signUpRequest.getUserEmail());
+    }
 
-        // 사용자가 최소 10세 이상인지 확인
-        if (signUpRequest.getBirthDate() != null) {
-            java.time.LocalDate today = java.time.LocalDate.now();
-            java.time.LocalDate minBirthDate = today.minusYears(10);
-            if (signUpRequest.getBirthDate().isAfter(minBirthDate)) {
-                logger.warn("User tried to register with birth date {} which is less than 10 years old.", signUpRequest.getBirthDate());
-                return false;
-            }
-        }
-
-        // 새 사용자 계정 생성
+    private User createUserFromRequest(SignupRequest signUpRequest) {
         User user = new User();
         user.setUserName(signUpRequest.getUserName());
         user.setUserEmail(signUpRequest.getUserEmail());
@@ -132,11 +129,10 @@ public class AuthService {
         user.setUserBirthDate(signUpRequest.getBirthDate());
         user.setUserJob(signUpRequest.getJob());
         user.setUserPhoneNumber(signUpRequest.getUserPhoneNumber());
-        
+        return user;
+    }
 
-        userRepository.save(user);
-
-        // 인증 코드 생성 및 이메일 발송
+    private boolean sendVerificationEmailToNewUser(User user) {
         String verificationCode = generateVerificationCode();
         VerificationToken verificationToken = new VerificationToken(verificationCode, user);
         verificationTokenRepository.save(verificationToken);
@@ -167,11 +163,11 @@ public class AuthService {
     }
 
     @Transactional
-    public void resetPassword(String email, String verificationCode, String newPassword) {
+    public void resetPassword(String userName, String email, String verificationCode, String newPassword) {
         verifyVerificationCode(email, verificationCode);
 
-        User user = userRepository.findByUserEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        User user = userRepository.findByUserNameAndUserEmail(userName, email)
+                .orElseThrow(() -> new UserNotFoundException("이름과 이메일이 일치하지 않습니다."));
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
@@ -217,37 +213,53 @@ public class AuthService {
 
     @Transactional
     public String sendEmailVerificationCode(String email, boolean mustExist) {
+        String validationResult = validateEmailForVerification(email, mustExist);
+        if (!"VALID".equals(validationResult)) {
+            return validationResult;
+        }
+        
+        return processVerificationCodeSending(email);
+    }
+
+    private String validateEmailForVerification(String email, boolean mustExist) {
         if (mustExist) {
             // 이메일이 반드시 존재해야 함 (id/pw찾기, 마이페이지)
             if (!userRepository.existsByUserEmail(email)) {
                 logger.warn("Email {} does not exist. Cannot send verification code.", email);
-                return "해당 이메일로 가입된 계정이 없습니다."; // Email does not exist
+                return "해당 이메일로 가입된 계정이 없습니다.";
             }
         } else {
             // 이메일이 존재하면 안 됨 (회원가입)
             if (userRepository.existsByUserEmail(email)) {
                 logger.warn("Email {} already exists. Cannot send verification code.", email);
-                return "이미 가입된 이메일입니다."; // Email already exists, do not send code
+                return "이미 가입된 이메일입니다.";
             }
         }
+        return "VALID";
+    }
+
+    private String processVerificationCodeSending(String email) {
         try {
             String verificationCode = generateVerificationCode();
-            VerificationToken existingToken = verificationTokenRepository.findByEmail(email);
-
-            if (existingToken != null) {
-                existingToken.setToken(verificationCode);
-                existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRY_MINUTES));
-                verificationTokenRepository.save(existingToken);
-            } else {
-                VerificationToken newToken = new VerificationToken(verificationCode, email);
-                verificationTokenRepository.save(newToken);
-            }
-
+            saveOrUpdateVerificationToken(email, verificationCode);
             emailService.sendEmail(email, "Email Verification Code", "Your verification code is: " + verificationCode);
-            return "인증번호를 발송했습니다."; // 성공 메시지
+            return "인증번호를 발송했습니다.";
         } catch (Exception e) {
             logger.error("Failed to send email verification code to {}: {}", email, e.getMessage());
             return "이메일 발송 중 오류가 발생했습니다.";
+        }
+    }
+
+    private void saveOrUpdateVerificationToken(String email, String verificationCode) {
+        VerificationToken existingToken = verificationTokenRepository.findByEmail(email);
+        
+        if (existingToken != null) {
+            existingToken.setToken(verificationCode);
+            existingToken.setExpiryDate(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRY_MINUTES));
+            verificationTokenRepository.save(existingToken);
+        } else {
+            VerificationToken newToken = new VerificationToken(verificationCode, email);
+            verificationTokenRepository.save(newToken);
         }
     }
 }
