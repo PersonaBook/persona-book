@@ -2,6 +2,7 @@ package com.example.application.controller.pdf;
 
 import com.example.application.entity.Book;
 import com.example.application.repository.BookRepository;
+import com.example.application.service.PdfService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -17,12 +18,13 @@ import java.util.Map;
 public class PdfController {
 
     private final JwtAuthUtil jwtAuthUtil;
-
     private final BookRepository bookRepository;
+    private final PdfService pdfService;
 
-    public PdfController(JwtAuthUtil jwtAuthUtil, BookRepository bookRepository) {
+    public PdfController(JwtAuthUtil jwtAuthUtil, BookRepository bookRepository, PdfService pdfService) {
         this.jwtAuthUtil = jwtAuthUtil;
         this.bookRepository = bookRepository;
+        this.pdfService = pdfService;
     }
 
     @PostMapping("/api/pdf/upload")
@@ -36,6 +38,14 @@ public class PdfController {
         try {
             validateUploadRequest(requestData);
             Book savedBook = createAndSaveBook(requestData, user);
+            
+            // PDF를 langchain-server로 전송하여 임베딩 처리 (비동기)
+            pdfService.sendPdfToLangchainServerAsync(
+                savedBook.getFileBase64(),
+                savedBook.getBookId(),
+                savedBook.getUserId()
+            );
+            
             return ResponseEntity.ok(buildSuccessResponse(savedBook));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

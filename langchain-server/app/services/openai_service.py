@@ -2,34 +2,33 @@ from app.core.config import settings
 from app.entity.chat_history import ChatHistory
 from app.repository.chat_history_repository import chat_history_repository
 from app.schemas.request.openai_chat import OpenAIChatRequest
-from openai import OpenAI
+import google.generativeai as genai
 
 
 class OpenAIService:
     def __init__(self):
-        # OpenAI API 키는 .env.prod 파일에서 로드
-        self.client = OpenAI(api_key=settings.openai_api_key)
+        # Google API 키는 .env.prod 파일에서 로드
+        genai.configure(api_key=settings.google_api_key)
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
 
     def ask_openai(self, req: OpenAIChatRequest) -> str:
-        # prompt = f"""
-        # 사용자의 정보:
-        # - 나이: {req.age}
-        # - 배경: {req.background}
-        # 이전 답변에 대한 피드백: {req.feedback}
+        prompt = f"""
+        사용자의 정보:
+        - 나이: {req.age}
+        - 배경: {req.background}
+        이전 답변에 대한 피드백: {req.feedback}
 
-        # 아래 질문에 대해 위의 정보를 참고하여, 사용자의 수준에 맞는 답변을 해주세요.
-        # 질문: {req.question}
-        # """
+        아래 질문에 대해 위의 정보를 참고하여, 사용자의 수준에 맞는 답변을 해주세요.
+        질문: {req.question}
+        """
 
-        # OpenAI API 호출 (주석 처리)
-        # response = self.client.chat.completions.create(
-        #     model=settings.openai_model_name,
-        #     messages=[{"role": "user", "content": prompt}]
-        # )
-        # answer = response.choices[0].message.content
-
-        # Mock 응답 (개발/테스트용)
-        answer = self._get_mock_response(req)
+        try:
+            # Google Gemini API 호출
+            response = self.model.generate_content(prompt)
+            answer = response.text
+        except Exception as e:
+            print(f"Google Gemini API 호출 중 오류 발생: {e}")
+            answer = self._get_mock_response(req)
 
         # 응답을 Elasticsearch에 저장
         try:

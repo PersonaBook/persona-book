@@ -1,0 +1,84 @@
+{
+  "chapters": {
+    "1": {
+      "title": "자바 언어의 이해와 개발환경",
+      "keywords": ["자바", "Java", "JVM", "컴파일", "개발환경", "설치", "IDE"],
+      "page_range": [1, 50]
+    },
+    "2": {
+      "title": "변수와 데이터 타입",
+      "keywords": ["변수", "variable", "데이터타입", "primitive", "reference", "int", "double", "boolean", "char", "String", "선언", "초기화"],
+      "page_range": [51, 120]
+    },
+    "3": {
+      "title": "연산자",
+      "keywords": ["연산자", "operator", "산술연산자", "비교연산자", "논리연산자", "비트연산자", "대입연산자", "증감연산자", "우선순위"],
+      "page_range": [121, 180]
+    },
+    "4": {
+      "title": "조건문과 반복문",
+      "keywords": ["조건문", "반복문", "if", "else", "switch", "case", "for", "while", "do-while", "break", "continue", "제어문"],
+      "page_range": [181, 260]
+    },
+    "5": {
+      "title": "배열",
+      "keywords": ["배열", "array", "1차원배열", "2차원배열", "다차원배열", "배열길이", "length", "인덱스", "index"],
+      "page_range": [261, 320]
+    },
+    "6": {
+      "title": "객체지향 프로그래밍 I",
+      "keywords": ["객체지향", "OOP", "클래스", "class", "메서드", "method", "변수", "생성자", "constructor", "오버로딩", "overloading", "인스턴스", "instance"],
+      "page_range": [321, 420]
+    },
+    "7": {
+      "title": "객체지향 프로그래밍 II",
+      "keywords": ["상속", "inheritance", "오버라이딩", "overriding", "super", "패키지", "package", "import", "접근제어자", "캡슐화"],
+      "page_range": [421, 520]
+    },
+    "8": {
+      "title": "인터페이스와 추상클래스",
+      "keywords": ["인터페이스", "interface", "추상클래스", "abstract", "다형성", "polymorphism", "내부클래스", "inner class"],
+      "page_range": [521, 600]
+    },
+    "9": {
+      "title": "예외처리",
+      "keywords": ["예외처리", "exception", "try", "catch", "finally", "throw", "throws", "RuntimeException", "checked", "unchecked"],
+      "page_range": [601, 680]
+    },
+    "10": {
+      "title": "java.lang 패키지",
+      "keywords": ["java.lang", "Object", "String", "StringBuffer", "StringBuilder", "Math", "wrapper", "Boxing", "Unboxing"],
+      "page_range": [681, 760]
+    },
+    "11": {
+      "title": "날짜와 시간 및 형식화",
+      "keywords": ["Date", "Calendar", "SimpleDateFormat", "LocalDate", "LocalTime", "LocalDateTime", "형식화", "formatting"],
+      "page_range": [761, 840]
+    },
+    "12": {
+      "title": "컬렉션 프레임워크",
+      "keywords": ["컬렉션", "Collection", "ArrayList", "LinkedList", "HashMap", "HashSet", "TreeMap", "TreeSet", "Iterator"],
+      "page_range": [841, 940]
+    },
+    "13": {
+      "title": "지네릭스",
+      "keywords": ["지네릭스", "generics", "타입파라미터", "와일드카드", "제한", "bounds", "타입안전성"],
+      "page_range": [941, 1020]
+    },
+    "14": {
+      "title": "람다와 스트림",
+      "keywords": ["람다", "lambda", "스트림", "stream", "함수형인터페이스", "메서드참조", "filter", "map", "reduce"],
+      "page_range": [1021, 1120]
+    },
+    "15": {
+      "title": "입출력",
+      "keywords": ["입출력", "IO", "NIO", "File", "InputStream", "OutputStream", "Reader", "Writer", "버퍼", "직렬화"],
+      "page_range": [1121, 1220]
+    },
+    "16": {
+      "title": "네트워킹",
+      "keywords": ["네트워킹", "networking", "URL", "URLConnection", "socket", "TCP", "UDP", "클라이언트", "서버"],
+      "page_range": [1221, 1300]
+    }
+  }
+}

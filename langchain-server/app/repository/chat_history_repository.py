@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 
-from app.core.elasticsearch_client import es_client
+from app.core.elasticsearch_client import ElasticsearchClient
 from app.entity.chat_history import ChatHistory
-from elasticsearch import Elasticsearch
+from elasticsearch import AsyncElasticsearch
 
 print("[DEBUG] ChatHistoryRepository module loaded successfully!")
 
@@ -12,15 +12,22 @@ class ChatHistoryRepository:
     INDEX_NAME = "chat_history"
 
     def __init__(self):
-        self.es_client: Elasticsearch = es_client
+        self.es_client: AsyncElasticsearch = None
         self.index_name = self.INDEX_NAME
         print(
             f"[DEBUG] ChatHistoryRepository initialized with index: {self.index_name}"
         )
 
-    def create_index_if_not_exists(self):
+    async def get_es_client(self) -> AsyncElasticsearch:
+        """Elasticsearch 클라이언트를 가져옵니다."""
+        if self.es_client is None:
+            self.es_client = await ElasticsearchClient.get_client()
+        return self.es_client
+
+    async def create_index_if_not_exists(self):
         """인덱스가 존재하지 않으면 생성합니다."""
-        if not self.es_client.indices.exists(index=self.index_name):
+        es_client = await self.get_es_client()
+        if not await es_client.indices.exists(index=self.index_name):
             mapping = {
                 "settings": {
                     "analysis": {
@@ -62,23 +69,25 @@ class ChatHistoryRepository:
                     }
                 },
             }
-            self.es_client.indices.create(index=self.index_name, body=mapping)
+            await es_client.indices.create(index=self.index_name, body=mapping)
 
-    def save_chat_history(self, chat_history: ChatHistory) -> str:
+    async def save_chat_history(self, chat_history: ChatHistory) -> str:
         """채팅 이력을 Elasticsearch에 저장합니다."""
-        self.create_index_if_not_exists()
+        await self.create_index_if_not_exists()
 
         # 엔티티의 메서드를 사용하여 Elasticsearch 문서로 변환
         document = chat_history.to_elasticsearch_doc()
 
-        response = self.es_client.index(index=self.index_name, body=document)
+        es_client = await self.get_es_client()
+        response = await es_client.index(index=self.index_name, body=document)
 
         return response["_id"]
 
-    def get_chat_history_by_id(self, history_id: str) -> Optional[ChatHistory]:
+    async def get_chat_history_by_id(self, history_id: str) -> Optional[ChatHistory]:
         """ID로 채팅 이력을 조회합니다."""
         try:
-            response = self.es_client.get(index=self.index_name, id=history_id)
+            es_client = await self.get_es_client()
+            response = await es_client.get(index=self.index_name, id=history_id)
 
             # 엔티티의 클래스 메서드를 사용하여 생성
             return ChatHistory.from_elasticsearch_doc(
@@ -87,7 +96,7 @@ class ChatHistoryRepository:
         except Exception:
             return None
 
-    def search_chat_history(self, query: str, size: int = 10) -> List[ChatHistory]:
+    async def search_chat_history(self, query: str, size: int = 10) -> List[ChatHistory]:
         """채팅 이력을 검색합니다."""
         print(f"[DEBUG] Searching for query: '{query}' in index: {self.index_name}")
 
@@ -101,7 +110,8 @@ class ChatHistoryRepository:
         print(f"[DEBUG] Search body: {search_body}")
 
         try:
-            response = self.es_client.search(index=self.index_name, body=search_body)
+            es_client = await self.get_es_client()
+            response = await es_client.search(index=self.index_name, body=search_body)
             print(f"[DEBUG] ES response hits total: {response['hits']['total']}")
             print(f"[DEBUG] ES response hits: {len(response['hits']['hits'])}")
 
@@ -120,7 +130,7 @@ class ChatHistoryRepository:
             print(f"[DEBUG] Search error: {e}")
             return []
 
-    def get_all_chat_history(self, size: int = 100) -> List[ChatHistory]:
+    async def get_all_chat_history(self, size: int = 100) -> List[ChatHistory]:
         """모든 채팅 이력을 조회합니다."""
         search_body = {
             "query": {"match_all": {}},
@@ -128,7 +138,8 @@ class ChatHistoryRepository:
             "size": size,
         }
 
-        response = self.es_client.search(index=self.index_name, body=search_body)
+        es_client = await self.get_es_client()
+        response = await es_client.search(index=self.index_name, body=search_body)
 
         results = []
         for hit in response["hits"]["hits"]:
@@ -140,15 +151,16 @@ class ChatHistoryRepository:
 
         return results
 
-    def delete_chat_history(self, history_id: str) -> bool:
+    async def delete_chat_history(self, history_id: str) -> bool:
         """채팅 이력을 삭제합니다."""
         try:
-            response = self.es_client.delete(index=self.index_name, id=history_id)
+            es_client = await self.get_es_client()
+            response = await es_client.delete(index=self.index_name, id=history_id)
             return response["result"] == "deleted"
         except Exception:
             return False
 
-    def get_recent_chat_history(
+    async def get_recent_chat_history(
         self, days: int = 7, size: int = 50
     ) -> List[ChatHistory]:
         """최근 N일 내의 채팅 이력을 조회합니다."""
@@ -162,7 +174,8 @@ class ChatHistoryRepository:
             "size": size,
         }
 
-        response = self.es_client.search(index=self.index_name, body=search_body)
+        es_client = await self.get_es_client()
+        response = await es_client.search(index=self.index_name, body=search_body)
 
         results = []
         for hit in response["hits"]["hits"]:
@@ -173,7 +186,7 @@ class ChatHistoryRepository:
 
         return results
 
-    def get_chat_history_by_age_group(
+    async def get_chat_history_by_age_group(
         self, age_group: str, size: int = 50
     ) -> List[ChatHistory]:
         """연령대별 채팅 이력을 조회합니다."""
@@ -195,7 +208,8 @@ class ChatHistoryRepository:
             "size": size,
         }
 
-        response = self.es_client.search(index=self.index_name, body=search_body)
+        es_client = await self.get_es_client()
+        response = await es_client.search(index=self.index_name, body=search_body)
 
         results = []
         for hit in response["hits"]["hits"]:

@@ -48,11 +48,11 @@ docker run -d --name elasticsearch \
 ### 4. 서버 실행
 
 ```bash
-poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+poetry run uvicorn app.main:app --host 30.0.0.0 --port 8000 --reload
 ```
-
+3
 ## 개발 환경 설정 (VS Code)
-
+zz
 ### Poetry 가상환경 설정
 
 1. **의존성 설치 및 가상환경 생성**

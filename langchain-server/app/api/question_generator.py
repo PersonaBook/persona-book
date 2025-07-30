@@ -30,6 +30,8 @@ class QuestionGenerationResponse(BaseModel):
 
 @router.post("/generate-question", response_model=QuestionGenerationResponse)
 async def generate_question(request: QuestionGenerationRequest):
+    print(f"🎯 /generate-question 엔드포인트 호출됨 - 이 메시지가 보이면 question_generator.py가 호출된 것입니다!")
+    print(f"📊 요청 데이터: query={request.query}, difficulty={request.difficulty}, question_type={request.question_type}")
     """
     PDF를 처리하고 연습문제를 생성합니다.
 
@@ -102,14 +104,7 @@ async def generate_question(request: QuestionGenerationRequest):
             os.remove(temp_file_path)
 
 
-@router.get("/ping")
-def ping():
-    """
-    헬스 체크
 
-    서버 상태와 API 가용성을 확인합니다.
-    """
-    return {"status": "ok", "message": "Question Generator API is running"}
 
 
 @router.post("/test-pdf-processing")

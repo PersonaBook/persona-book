@@ -1,5 +1,5 @@
 # 1단계: 빌드 스테이지
-FROM gradle:8.5-jdk17-alpine AS build
+FROM gradle:8.5-jdk17 AS build
 
 USER root
 ENV GRADLE_USER_HOME=/workspace/.gradle
@@ -11,7 +11,7 @@ COPY . .
 RUN gradle bootJar -x test --no-daemon
 
 # 2단계: 실행 스테이지
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk
 
 WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar app.jar
