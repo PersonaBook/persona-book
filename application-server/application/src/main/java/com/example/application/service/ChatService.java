@@ -39,11 +39,11 @@ public class ChatService {
 
         // 빈 메시지인 경우: 초기 진입 상태만 유도, 유저 메시지는 저장 X
         if (userMessageDto.getContent() == null || userMessageDto.getContent().trim().isEmpty()) {
-            ChatState next = ChatState.WAITING_USER_SELECT_FEATURE;
-            AiMessageDto initial = buildLocalAiMessage(next, userId, bookId);
-            initial.setChatState(next);
-            chatHistoryService.saveAiMessage(initial, userId, bookId);
-            responses.add(initial);
+            ChatState initState = ChatState.WAITING_USER_SELECT_FEATURE;
+            AiMessageDto initMessage = buildLocalAiMessage(initState, userId, bookId);
+            initMessage.setChatState(initState);
+            chatHistoryService.saveAiMessage(initMessage, initState);
+            responses.add(initMessage);
             return responses;
         }
 
@@ -57,19 +57,18 @@ public class ChatService {
                 : buildLocalAiMessage(nextState, userId, bookId);
 
         // 다음 상태 설정 및 저장
-        aiMessageDto.setChatState(nextState);
         chatHistoryService.saveUserMessage(userMessageDto, currentState);
-        chatHistoryService.saveAiMessage(aiMessageDto, userId, bookId);
+        chatHistoryService.saveAiMessage(aiMessageDto, nextState);
 
         responses.add(aiMessageDto);
 
-        // ✅ 추가 처리: EVALUATING_ANSWER_AND_LOGGING 후 자동 전이
-        // 추가 메시지 생성 (예: WAITING_CONCEPT_RATING)
+        // 추가 메시지가 필요한 경우
         if (nextState == ChatState.EVALUATING_ANSWER_AND_LOGGING || nextState == ChatState.REEXPLAINING_CONCEPT) {
-            ChatState nextAfterEvaluation = determineNextState(nextState, userMessageDto.getContent());
-            AiMessageDto followUpMessage = buildLocalAiMessage(nextAfterEvaluation, userId, bookId);
-            followUpMessage.setChatState(nextAfterEvaluation);
-            chatHistoryService.saveAiMessage(followUpMessage, userId, bookId);
+            ChatState afterNextState = determineNextState(nextState, userMessageDto.getContent());
+            AiMessageDto followUpMessage = buildLocalAiMessage(afterNextState, userId, bookId);
+
+            chatHistoryService.saveAiMessage(followUpMessage, afterNextState);
+
             responses.add(followUpMessage);
         }
 
@@ -144,18 +143,64 @@ public class ChatService {
         };
     }
 
-    // ChatState에 따라 다른 엔드 포인트로 FastAPI 호출할 수 있도록 로직 바꾸어야 함
+    // ChatState에 따라 다른 엔드 포인트로 FastAPI 호출할 수 있도록 로직 구성
     private AiMessageDto callFastApi(UserMessageDto dto) {
-        return webClient.post()
-                .uri("/chat")
-                .bodyValue(dto)
-                .retrieve()
-                .bodyToMono(AiMessageDto.class)
-                .onErrorResume(e -> {
-                    log.error("FastAPI 호출 실패", e);
-                    return Mono.just(buildErrorMessage(dto));
-                })
-                .block();
+        ChatState state = dto.getChatState();
+
+        try {
+            switch (state) {
+                case GENERATING_QUESTION_WITH_RAG -> {
+                    return webClient.post()
+                            .uri("/generate/question")
+                            .bodyValue(dto)
+                            .retrieve()
+                            .bodyToMono(AiMessageDto.class)
+                            .block();
+                }
+
+                case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> {
+                    return webClient.post()
+                            .uri("/generate/question/additional")
+                            .bodyValue(dto)
+                            .retrieve()
+                            .bodyToMono(AiMessageDto.class)
+                            .block();
+                }
+
+                case EVALUATING_ANSWER_AND_LOGGING -> {
+                    return webClient.post()
+                            .uri("/evaluate/answer")
+                            .bodyValue(dto)
+                            .retrieve()
+                            .bodyToMono(AiMessageDto.class)
+                            .block();
+                }
+
+                case PRESENTING_CONCEPT_EXPLANATION, REEXPLAINING_CONCEPT -> {
+                    return webClient.post()
+                            .uri("/explain/concept")
+                            .bodyValue(dto)
+                            .retrieve()
+                            .bodyToMono(AiMessageDto.class)
+                            .block();
+                }
+
+                case PROCESSING_PAGE_SEARCH_RESULT -> {
+                    return webClient.post()
+                            .uri("/search/page")
+                            .bodyValue(dto)
+                            .retrieve()
+                            .bodyToMono(AiMessageDto.class)
+                            .block();
+                }
+
+                default -> throw new IllegalArgumentException("FastAPI 호출이 정의되지 않은 상태입니다: " + state);
+            }
+
+        } catch (Exception e) {
+            log.error("FastAPI 호출 실패 (state = {})", state, e);
+            return buildErrorMessage(dto);
+        }
     }
 
     private AiMessageDto buildLocalAiMessage(ChatState state, Long userId, Long bookId) {
@@ -253,7 +298,7 @@ public class ChatService {
                 .build();
     }
 
-    public boolean checkLangChainConnection() {
+    public boolean checkFastApiConnection() {
         try {
             return webClient.get()
                     .uri("/ping")

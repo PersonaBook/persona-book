@@ -36,12 +36,15 @@ public class Question {
     @Column(name = "concept_keyword")
     private String conceptKeyword;
 
-    @Column(name = "is_concept_explained")
-    private Boolean isConceptExplained;
+//    @Column(name = "is_concept_explained")
+//    private Boolean isConceptExplained;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "user_answer")
+    private String userAnswer;
 
     @Column(name = "cor_answer")
     private String correctAnswer;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
