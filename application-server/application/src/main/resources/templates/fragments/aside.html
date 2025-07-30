@@ -17,11 +17,16 @@
 <!--            </a>-->
 <!--        </li>-->
 
-        <li>
-            <a th:href="@{/chat(userId=${book.userId}, bookId=${book.bookId})}">
-                <img src="/image/img_chat.png" alt="챗봇 이동 버튼">
-            </a>
+        <li class="chat_btn">
+            <button type="button" th:data-user-id="${book.userId}" th:data-book-id="${book.bookId}">
+                <img src="/image/img_chat.svg" alt="챗봇 이동 버튼">
+            </button>
         </li>
         <!-- chat icon end -->
     </ul>
+
+    <div class="chat_area small"></div>
+
+    <script th:src="@{/js/chatbot.js}"></script>
+
 </aside>
