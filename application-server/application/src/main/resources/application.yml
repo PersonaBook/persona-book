@@ -10,7 +10,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${SPRING_DATASOURCE_URL}&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    url: ${SPRING_DATASOURCE_URL}&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Seoul&allowMultiQueries=true
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
 #    url: jdbc:mysql://127.0.0.1:3306/chatbot?useSSL=false&serverTimezone=Asia/Seoul

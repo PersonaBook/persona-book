@@ -13,7 +13,7 @@ class VectorStoreManager:
     def __init__(self, embeddings=None):
         if embeddings is None:
             self.embeddings = GoogleGenerativeAIEmbeddings(
-                model="text-embedding-004"
+                model="models/embedding-001"
             )
         else:
             self.embeddings = embeddings

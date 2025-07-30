@@ -88,51 +88,74 @@ class JavaTextbookCleaner:
             r'결합규칙.*?연산자',
             r'우선순위.*?높음.*?낮음',
         ]
-    
+
     def clean_line(self, line: str) -> str:
-        """라인을 정제합니다."""
-        # 제거할 패턴에 해당하는 라인 제거
+        """라인별로 불필요한 내용을 정리합니다."""
+        line = line.strip()
+        if not line:
+            return ""
+        
+        # 더 관대한 조건: 2글자 이상이면 유지
+        if len(line) < 2:
+            return ""
+        
         for pattern in self.remove_line_patterns:
             if re.match(pattern, line):
                 return ""
         
-        # 앞뒤 공백 제거
-        return line.strip()
-    
+        # 특수문자만 있는 라인 제거 (더 관대하게)
+        if re.match(r'^[^\w\s가-힣]+$', line) and len(line) < 5:
+            return ""
+        
+        return line
+
     def is_code_block(self, text: str) -> bool:
-        """코드 블록인지 판단합니다."""
-        code_indicators = ['public', 'class', 'void', 'main', 'System.out', 'import', 'package']
+        """Java 코드 블록인지 추정합니다."""
+        code_indicators = ['class ', 'public ', 'static ', 'void ', 'import ', '//', '/*', '{', '}', ';']
         return any(indicator in text for indicator in code_indicators)
-    
+
     def is_table_block(self, lines: list[str]) -> bool:
-        """표 블록인지 판단합니다."""
-        text = '\n'.join(lines)
-        return any(re.search(pattern, text) for pattern in self.table_content_patterns)
-    
-    def is_valid_content_block(self, block_text: str) -> bool:
-        """유효한 콘텐츠 블록인지 판단합니다."""
-        if not block_text or len(block_text.strip()) < 10:
+        """여러 줄로 구성된 텍스트 블록이 표인지 추정합니다."""
+        if len(lines) < 2:
             return False
         
-        # 코드 블록이나 표 블록은 유효
-        if self.is_code_block(block_text):
+        full_text = '\n'.join(lines)
+        for pattern in self.table_content_patterns:
+            if re.search(pattern, full_text, re.DOTALL):
+                return True
+        
+        # 대부분의 라인이 짧고(70% 이상), 숫자 포함 라인이 절반 이상이면 표로 간주
+        short_lines = sum(1 for line in lines if len(line.strip()) < 20)
+        numeric_lines = sum(1 for line in lines if re.search(r'\d', line))
+        if len(lines) > 0 and short_lines / len(lines) > 0.7 and numeric_lines / len(lines) > 0.5:
             return True
         
-        lines = block_text.splitlines()
+        return False
+
+    def is_valid_content_block(self, block_text: str) -> bool:
+        """유효한 콘텐츠(코드 또는 설명)를 담고 있는 텍스트 블록인지 판단합니다."""
+        if not block_text.strip():
+            return False
+        
+        lines = block_text.split('\n')
         if self.is_table_block(lines):
+            return False
+        
+        # 더 관대한 조건: 한글이 있거나, 코드의 일부이거나, 영어 문장이 있으면 유효한 블록으로 간주
+        if re.search(r'[가-힣]', block_text) or self.is_code_block(block_text):
             return True
         
-        # 일반 텍스트는 최소 길이 확인
-        return len(block_text.strip()) >= 20
+        # 영어 문장이 있는지 확인 (더 관대하게)
+        sentences = re.split(r'[.!?]', block_text)
+        return any(len(s.strip()) > 5 for s in sentences if s.strip())
 
 
 def sort_blocks_by_reading_order(text_blocks: list) -> list:
     """PyMuPDF 텍스트 블록을 읽기 순서(위->아래, 왼쪽->오른쪽)로 정렬합니다."""
-    def get_block_position(block):
-        # block[0]: x0, block[1]: y0, block[2]: x1, block[3]: y1
-        return (block[1], block[0])  # (y, x) 순서로 정렬
-    
-    return sorted(text_blocks, key=get_block_position)
+    # 텍스트 블록(type=0)만 필터링
+    text_only_blocks = [b for b in text_blocks if b[6] == 0]
+    # y좌표(b[1]) 우선, 같은 라인이면 x좌표(b[0]) 순으로 정렬
+    return sorted(text_only_blocks, key=lambda b: (b[1], b[0]))
 
 
 def extract_preprocessed_pdf_text(pdf_path: str) -> list[dict]:
@@ -181,9 +204,7 @@ class PDFProcessingService:
     """PDF 처리 서비스"""
     
     def __init__(self):
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="text-embedding-004"
-        )
+        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     
     def process_pdf_and_create_chunks(self, pdf_path: str, max_pages: Optional[int] = None) -> List[Document]:
         """

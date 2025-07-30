@@ -30,7 +30,7 @@ class RAGService:
             max_tokens=2000
         )
         self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="text-embedding-004"
+            model="models/embedding-001"
         )
         self.vector_store = None
         self.current_chunks = []

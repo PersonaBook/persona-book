@@ -1,59 +1,78 @@
-from fastapi import APIRouter, HTTPException
-from app.schemas.request.rag_apis import ConceptExplanationRequest
-from app.schemas.response.rag_apis import ConceptExplanationResponse
+"""
+개념 설명 관련 API
+"""
+from app.schemas.request.chat import UserMessageRequest
+from app.schemas.response.chat import AiMessageResponse
+from app.schemas.enum import ChatState
 from app.services.openai_service import openai_service
-from app.schemas.request.openai_chat import OpenAIChatRequest
-import time
+from fastapi import APIRouter, HTTPException
 
-router = APIRouter(tags=["Concept Explanation"])
+router = APIRouter()
 
 
-@router.post("/concept-explanation", response_model=ConceptExplanationResponse)
-async def concept_explanation(request: ConceptExplanationRequest):
-    """개념에 대한 설명을 생성합니다."""
-    start_time = time.time()
-    
+@router.post("/presenting-concept-explanation", response_model=AiMessageResponse)
+def handle_presenting_concept_explanation(user: UserMessageRequest):
+    """개념 설명 처리"""
     try:
-        # OpenAI 서비스를 사용하여 개념 설명 생성
+        print(f"🚀 개념 설명 API 호출됨")
+        print(f"📊 설명할 개념: {user.content}")
+        
+        concept_query = user.content if user.content else "Java 기본 개념"
+        
+        # OpenAI 서비스를 사용한 개념 설명
+        from app.schemas.request.openai_chat import OpenAIChatRequest
+        
         openai_request = OpenAIChatRequest(
             age=25,  # 기본값
             background="학습자",
             feedback="",
-            question=f"{request.concept_query}에 대해 자세히 설명해주세요."
+            question=f"{concept_query}에 대해 자세히 설명해주세요."
         )
         
         explanation = openai_service.ask_openai(openai_request)
         
-        # 예시, 핵심 포인트, 관련 개념 추출 (간단한 구현)
-        examples = [
-            f"{request.concept_query}의 예시 1",
-            f"{request.concept_query}의 예시 2"
-        ]
-        
-        key_points = [
-            f"{request.concept_query}의 핵심 포인트 1",
-            f"{request.concept_query}의 핵심 포인트 2"
-        ]
-        
-        related_concepts = [
-            f"{request.concept_query}와 관련된 개념 1",
-            f"{request.concept_query}와 관련된 개념 2"
-        ]
-        
-        return ConceptExplanationResponse(
-            success=True,
-            message="개념 설명이 완료되었습니다.",
-            userId=request.userId,
-            bookId=request.bookId,
-            concept_name=request.concept_query,
-            explanation=explanation,
-            examples=examples,
-            key_points=key_points,
-            related_concepts=related_concepts,
-            difficulty_level=request.user_level.value,
-            chunks_used=0,  # 실제 구현에서는 청크 수 계산
-            processing_time=time.time() - start_time
+        return AiMessageResponse(
+            userId=user.userId,
+            bookId=user.bookId,
+            content=explanation,
+            messageType="TEXT",
+            sender="AI",
+            chatState=ChatState.PRESENTING_CONCEPT_EXPLANATION,
         )
-            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"개념 설명 중 오류가 발생했습니다: {str(e)}") 
+        print(f"❌ 개념 설명 중 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"개념 설명 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.post("/reexplaining-concept", response_model=AiMessageResponse)
+def handle_reexplaining_concept(user: UserMessageRequest):
+    """개념 재설명 처리"""
+    try:
+        print(f"🚀 개념 재설명 API 호출됨")
+        print(f"📊 사용자 피드백: {user.content}")
+        
+        # 사용자의 피드백을 바탕으로 재설명
+        feedback = user.content if user.content else "이해가 안 됩니다"
+        
+        from app.schemas.request.openai_chat import OpenAIChatRequest
+        
+        openai_request = OpenAIChatRequest(
+            age=25,
+            background="학습자",
+            feedback=feedback,
+            question="이전 설명이 이해되지 않았습니다. 더 쉽게 다시 설명해주세요."
+        )
+        
+        reexplanation = openai_service.ask_openai(openai_request)
+        
+        return AiMessageResponse(
+            userId=user.userId,
+            bookId=user.bookId,
+            content=reexplanation,
+            messageType="TEXT",
+            sender="AI",
+            chatState=ChatState.REEXPLAINING_CONCEPT,
+        )
+    except Exception as e:
+        print(f"❌ 개념 재설명 중 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"개념 재설명 중 오류가 발생했습니다: {str(e)}")

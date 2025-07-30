@@ -4,7 +4,6 @@ from app.schemas.enum import ChatState
 from app.services.question_generator_service import question_generator_service
 from app.services.pdf_service import pdf_service
 from app.services.openai_service import openai_service
-from app.services.enhanced_local_question_generator import get_enhanced_local_question_generator_service
 from fastapi import APIRouter, HTTPException
 import base64
 import tempfile
@@ -35,11 +34,11 @@ def chat(user: UserMessageRequest):
             # ───────────── 예상 문제 생성 흐름 ─────────────
             case ChatState.GENERATING_QUESTION_WITH_RAG:
                 print(f"🎯 GENERATING_QUESTION_WITH_RAG 매칭됨")
-                return _handle_generating_question_with_rag(user)
+                return _handle_generating_question(user)
                 
-            case ChatState.GENERATING_ADDITIONAL_QUESTION_WITH_RAG:
-                print(f"🎯 GENERATING_ADDITIONAL_QUESTION_WITH_RAG 매칭됨")
-                return _handle_generating_additional_question_with_rag(user)
+            case ChatState.GENERATING_ADDITIONAL_QUESTION:
+                print(f"🎯 GENERATING_ADDITIONAL_QUESTION 매칭됨")
+                return _handle_generating_additional_question(user)
                 
             case ChatState.EVALUATING_ANSWER_AND_LOGGING:
                 print(f"🎯 EVALUATING_ANSWER_AND_LOGGING 매칭됨")
@@ -78,118 +77,65 @@ def chat(user: UserMessageRequest):
         raise HTTPException(status_code=500, detail=f"채팅 처리 중 오류가 발생했습니다: {str(e)}")
 
 
-def _handle_generating_question_with_rag(user: UserMessageRequest) -> AiMessageResponse:
+def _handle_generating_question(user: UserMessageRequest) -> AiMessageResponse:
     """RAG와 로컬 임베딩을 모두 사용한 문제 생성 처리"""
     global current_question_answer
     try:
-        print(f"🚀 _handle_generating_question_with_rag 시작")
-        print(f"🔍 새로운 향상된 RAG 시스템 사용")
+        print(f"🚀 _handle_generating_question 시작")
+        print(f"🔍 question_generator_service 사용")
         # 사용자 메시지를 쿼리로 사용
         query = user.content if user.content else "Java 프로그래밍"
         print(f"📝 쿼리: {query}")
         
-        # 방법 1: 로컬 PDF 서비스 사용 (정답 정보 제거가 잘 되는 방식)
+        # PDF 처리 및 청킹 (pdf_service 사용)
         pdf_path = "/app/javajungsuk4_sample.pdf"
         if os.path.exists(pdf_path):
-            print(f"🔄 로컬 방식으로 진행...")
-            enhanced_question_service = get_enhanced_local_question_generator_service()
-            
-            # PDF 처리 및 청킹
-            from app.services.local_pdf_service import get_local_pdf_service
-            local_pdf_service = get_local_pdf_service()
-            print(f"📄 local_pdf_service 호출 중...")
-            chunks = local_pdf_service.process_pdf_and_create_chunks(pdf_path, max_pages=20)
-            
-            if chunks:
-                # 문서 설정
-                success = enhanced_question_service.setup_documents(chunks)
-                if success:
-                    # 문제 생성
-                    result = enhanced_question_service.generate_question_with_rag(
-                        query=query,
-                        difficulty="보통",
-                        question_type="객관식"
-                    )
-                    
-                    if result.get("success", False):
-                        # 문제와 정답 정보를 함께 저장
-                        question = result.get("question", "문제가 생성되었습니다.")
-                        answer = result.get("answer", "")
-                        explanation = result.get("explanation", "")
-                        
-                        # 문제 텍스트 생성 (정답 정보는 제외)
-                        content = f"{question}"
-                        
-                        # content에서 정답 정보 완전 제거
-                        import re
-                        content = re.sub(r'\[정답 정보:.*?\]', '', content, flags=re.DOTALL).strip()
-                        content = re.sub(r'정답 정보:.*?$', '', content, flags=re.DOTALL).strip()
-                        content = re.sub(r'\[정답.*?\]', '', content, flags=re.DOTALL).strip()
-                        content = re.sub(r'정답.*?$', '', content, flags=re.DOTALL).strip()
-                        print(f"🔍 enhanced_local_question_generator content: {content}")
-                        
-                        # 정답 정보를 세션에 저장
-                        global current_question_answer
-                        current_question_answer = {
-                            "answer": answer,
-                            "explanation": explanation
-                        }
-                        
-                        # 최종 응답에서 정답 정보 제거
-                        import re
-                        final_content = re.sub(r'\[정답 정보:.*?\]', '', content, flags=re.DOTALL).strip()
-                        final_content = re.sub(r'정답 정보:.*?$', '', final_content, flags=re.DOTALL).strip()
-                        final_content = re.sub(r'\[정답.*?\]', '', final_content, flags=re.DOTALL).strip()
-                        final_content = re.sub(r'정답.*?$', '', final_content, flags=re.DOTALL).strip()
-                        print(f"🔍 최종 응답 content: {final_content}")
-                        
-                        return AiMessageResponse(
-                            userId=user.userId,
-                            bookId=user.bookId,
-                            content=final_content,
-                            messageType="TEXT",
-                            sender="AI",
-                            chatState=user.chatState,
-                        )
-                    else:
-                        print(f"❌ 로컬 방식 문제 생성 실패")
-                        # fallback으로 진행
-                else:
-                    print(f"❌ 로컬 방식 문서 설정 실패")
-                    # fallback으로 진행
-            else:
-                print(f"❌ 로컬 방식 PDF 처리 실패")
-                # fallback으로 진행
-        
-        # 방법 2: 로컬 임베딩을 사용한 문제 생성 (fallback)
-        print(f"🔄 로컬 방식으로 fallback...")
-        enhanced_question_service = get_enhanced_local_question_generator_service()
-        
-        # PDF 처리 및 청킹
-        from app.services.local_pdf_service import get_local_pdf_service
-        local_pdf_service = get_local_pdf_service()
-        print(f"📄 local_pdf_service 호출 중...")
-        chunks = local_pdf_service.process_pdf_and_create_chunks(pdf_path, max_pages=20)
+            print(f"📄 PDF 파일 처리 중: {pdf_path}")
+            chunks = pdf_service().process_pdf_and_create_chunks(pdf_path, max_pages=20)
+            print(f"✅ PDF 처리 완료: {len(chunks) if chunks else 0}개 청크")
+        else:
+            print(f"❌ PDF 파일을 찾을 수 없음: {pdf_path}")
+            chunks = None
         
         if chunks:
-            # 문서 설정
-            success = enhanced_question_service.setup_documents(chunks)
+            # 벡터 스토어 설정
+            print(f"🔧 벡터 스토어 설정 중...")
+            success = question_generator_service.setup_vector_store(chunks)
+            print(f"✅ 벡터 스토어 설정: {'성공' if success else '실패'}")
+            
             if success:
                 # 문제 생성
-                result = enhanced_question_service.generate_question_with_rag(
+                print(f"🎯 문제 생성 중...")
+                result = question_generator_service.generate_question_with_rag(
                     query=query,
                     difficulty="보통",
                     question_type="객관식"
                 )
+                print(f"✅ 문제 생성 완료: {result.get('success', False)}")
                 
                 if result.get("success", False):
                     # 문제와 정답 정보를 함께 저장
                     question = result.get("question", "문제가 생성되었습니다.")
-                    answer = result.get("answer", "")
+                    answer = result.get("correct_answer", "")
                     explanation = result.get("explanation", "")
+                    options = result.get("options", [])
+                    
+                    # 디버깅 로그 추가
+                    print(f"🔍 문제: {question}")
+                    print(f"🔍 선택지: {options}")
+                    print(f"🔍 선택지 개수: {len(options) if options else 0}")
                     
                     # 문제 텍스트 생성 (정답 정보는 제외)
-                    content = f"{question}"
+                    if options and len(options) > 0:
+                        # 객관식인 경우 선택지 포함
+                        content = f"{question}\n\n"
+                        for i, option in enumerate(options, 1):
+                            content += f"{i}. {option}\n"
+                        print(f"✅ 선택지 포함된 문제 생성 완료")
+                    else:
+                        # 주관식인 경우 문제만
+                        content = f"{question}"
+                        print(f"⚠️ 선택지가 없어 주관식으로 생성됨")
                     
                     # 정답 정보를 세션에 저장
                     current_question_answer = {
@@ -198,10 +144,13 @@ def _handle_generating_question_with_rag(user: UserMessageRequest) -> AiMessageR
                     }
                 else:
                     content = result.get("message", "문제 생성에 실패했습니다.")
+                    print(f"❌ 문제 생성 실패: {content}")
             else:
                 content = "문서 설정에 실패했습니다."
+                print(f"❌ 벡터 스토어 설정 실패")
         else:
             content = "PDF 처리에 실패했습니다."
+            print(f"❌ PDF 처리 실패")
         
         # 최종 응답에서 정답 정보 제거
         import re
@@ -220,6 +169,7 @@ def _handle_generating_question_with_rag(user: UserMessageRequest) -> AiMessageR
             chatState=user.chatState,
         )
     except Exception as e:
+        print(f"❌ 문제 생성 중 오류: {str(e)}")
         return AiMessageResponse(
             userId=user.userId,
             bookId=user.bookId,
@@ -230,7 +180,7 @@ def _handle_generating_question_with_rag(user: UserMessageRequest) -> AiMessageR
         )
 
 
-def _handle_generating_additional_question_with_rag(user: UserMessageRequest) -> AiMessageResponse:
+def _handle_generating_additional_question(user: UserMessageRequest) -> AiMessageResponse:
     """추가 문제 생성 처리"""
     try:
         # 기존 문제와 유사한 추가 문제 생성

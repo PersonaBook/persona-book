@@ -35,6 +35,13 @@ public class Book {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    // 임베딩 상태 관련 필드 추가
+    @Column(name = "embedding_status")
+    private String embeddingStatus;
+
+    @Column(name = "embedding_completed_at")
+    private LocalDateTime embeddingCompletedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -116,5 +123,22 @@ public class Book {
 
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    // 임베딩 상태 관련 getter/setter 추가
+    public String getEmbeddingStatus() {
+        return embeddingStatus;
+    }
+
+    public void setEmbeddingStatus(String embeddingStatus) {
+        this.embeddingStatus = embeddingStatus;
+    }
+
+    public LocalDateTime getEmbeddingCompletedAt() {
+        return embeddingCompletedAt;
+    }
+
+    public void setEmbeddingCompletedAt(LocalDateTime embeddingCompletedAt) {
+        this.embeddingCompletedAt = embeddingCompletedAt;
     }
 }

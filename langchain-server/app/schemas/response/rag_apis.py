@@ -3,7 +3,8 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
-# 1. GENERATING_QUESTION_WITH_RAG
+# RAG API 응답 스키마
+# 1. GENERATING_QUESTION
 class GeneratingQuestionResponse(BaseModel):
     success: bool = Field(..., description="성공 여부")
     message: str = Field(..., description="응답 메시지")

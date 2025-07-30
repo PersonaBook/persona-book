@@ -112,12 +112,8 @@ public class ChatService {
             // ✅ 1. 문제 생성 흐름
             case WAITING_PROBLEM_CRITERIA_SELECTION -> ChatState.WAITING_PROBLEM_CONTEXT_INPUT; // 챕터/개념 입력 요청
             case WAITING_PROBLEM_CONTEXT_INPUT -> {
-                // 사용자가 실제 입력을 했을 때만 문제 생성 시작
-                if (content != null && !content.trim().isEmpty()) {
-                    yield ChatState.GENERATING_QUESTION_WITH_RAG; // 입력 기반 RAG 생성 요청
-                } else {
-                    yield ChatState.WAITING_PROBLEM_CONTEXT_INPUT; // 입력 대기
-                }
+                // 사용자가 문제 생성 기준을 입력한 경우
+                yield ChatState.GENERATING_QUESTION_WITH_RAG; // 입력 기반 RAG 생성 요청
             }
 
             case GENERATING_QUESTION_WITH_RAG -> ChatState.WAITING_USER_ANSWER; // 문제 제시 완료, 답 대기
@@ -145,11 +141,12 @@ public class ChatService {
 
             // 사용자 선택: 다음 문제 or 기능 선택으로 분기
             case WAITING_NEXT_ACTION_AFTER_LEARNING -> {
-                if (content.equals("1")) yield ChatState.GENERATING_ADDITIONAL_QUESTION_WITH_RAG;
-                else yield ChatState.WAITING_USER_SELECT_FEATURE;
+                // 사용자가 다음 액션을 선택한 경우
+                if (content.equals("1")) yield ChatState.GENERATING_ADDITIONAL_QUESTION;
+                else yield ChatState.WAITING_USER_SELECT_FEATURE; // 메인 메뉴로
             }
 
-            case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> ChatState.EVALUATING_ANSWER_AND_LOGGING;
+            case GENERATING_ADDITIONAL_QUESTION -> ChatState.EVALUATING_ANSWER_AND_LOGGING;
 
 
             // ✅ 2. 페이지 찾기 흐름 → 키워드 입력 받기
@@ -171,7 +168,7 @@ public class ChatService {
     private boolean shouldCallFastApi(ChatState state) {
         boolean shouldCall = switch (state) {
             case GENERATING_QUESTION_WITH_RAG,
-                 GENERATING_ADDITIONAL_QUESTION_WITH_RAG,
+                 GENERATING_ADDITIONAL_QUESTION,
                  EVALUATING_ANSWER_AND_LOGGING,
                  PRESENTING_CONCEPT_EXPLANATION,
                  REEXPLAINING_CONCEPT,
@@ -189,15 +186,16 @@ public class ChatService {
         log.info("📊 요청 데이터: userId={}, bookId={}, content='{}', chatState={}", 
                 dto.getUserId(), dto.getBookId(), dto.getContent(), dto.getChatState());
         
-        // ChatState에 따라 다른 엔드포인트 호출
+        // ChatState에 따라 분리된 전용 엔드포인트 호출
         String endpoint = switch (dto.getChatState()) {
-            case GENERATING_QUESTION_WITH_RAG -> "/chat";
-            case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> "/chat";
-            case EVALUATING_ANSWER_AND_LOGGING -> "/chat";
-            case PRESENTING_CONCEPT_EXPLANATION -> "/chat";
-            case REEXPLAINING_CONCEPT -> "/chat";
-            case PROCESSING_PAGE_SEARCH_RESULT -> "/chat";
-            default -> "/chat";
+            case GENERATING_QUESTION_WITH_RAG -> "/generating-question";
+            case GENERATING_ADDITIONAL_QUESTION -> "/generating-additional-question";
+            case EVALUATING_ANSWER_AND_LOGGING -> "/evaluating-answer";
+            case PRESENTING_CONCEPT_EXPLANATION -> "/presenting-concept-explanation";
+            case REEXPLAINING_CONCEPT -> "/reexplaining-concept";
+            case PROCESSING_PAGE_SEARCH_RESULT -> "/processing-page-search-result";
+            case WAITING_KEYWORD_FOR_PAGE_SEARCH -> "/waiting-keyword-for-page-search";
+            default -> "/chat"; // 기본값은 기존 통합 API
         };
         
         log.info("🎯 호출할 엔드포인트: {}", endpoint);
