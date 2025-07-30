@@ -180,22 +180,11 @@ def get_all_chapters_info() -> Dict:
 def get_chapter_definitions():
     """챕터 정의를 반환합니다."""
     return {
-        "1": {"name": "자바 언어의 이해와 개발환경", "start": 1, "end": 50},
-        "2": {"name": "변수와 데이터 타입", "start": 51, "end": 120},
-        "3": {"name": "연산자", "start": 121, "end": 180},
-        "4": {"name": "조건문과 반복문", "start": 181, "end": 260},
-        "5": {"name": "배열", "start": 261, "end": 320},
-        "6": {"name": "객체지향 프로그래밍 I", "start": 321, "end": 420},
-        "7": {"name": "객체지향 프로그래밍 II", "start": 421, "end": 520},
-        "8": {"name": "인터페이스와 추상클래스", "start": 521, "end": 600},
-        "9": {"name": "예외처리", "start": 601, "end": 680},
-        "10": {"name": "java.lang 패키지", "start": 681, "end": 760},
-        "11": {"name": "날짜와 시간 및 형식화", "start": 761, "end": 840},
-        "12": {"name": "컬렉션 프레임워크", "start": 841, "end": 940},
-        "13": {"name": "지네릭스", "start": 941, "end": 1020},
-        "14": {"name": "람다와 스트림", "start": 1021, "end": 1120},
-        "15": {"name": "입출력", "start": 1121, "end": 1220},
-        "16": {"name": "네트워킹", "start": 1221, "end": 1300}
+        "2": {"name": "변수", "start": 30, "end": 107},
+        "3": {"name": "연산자", "start": 108, "end": 157},
+        "4": {"name": "조건문과 반복문", "start": 158, "end": 205},
+        "5": {"name": "배열", "start": 206, "end": 253},
+        "6": {"name": "객체지향 프로그래밍 I", "start": 254, "end": 339}
     }
 
 def load_keywords_for_chapter(chapter_num):

@@ -173,6 +173,8 @@ def extract_preprocessed_pdf_text(pdf_path: str) -> list[dict]:
 
     with fitz.open(pdf_path) as doc:
         for page_num, page in enumerate(doc, 1):
+            if 1 <= page_num <= 52:
+                continue
             text_blocks = page.get_text("blocks")
             sorted_blocks = sort_blocks_by_reading_order(text_blocks)
             
