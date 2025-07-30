@@ -23,6 +23,10 @@ public class ChatHistory {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    private int ratingScore; // 1~5점
+
+    private String associatedConcept; // 관련 키워드 (question 테이블의 concept 컬럼과 역할이 겹쳐서 다시 생각해 봐야할 듯)
+
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
 
@@ -53,10 +57,9 @@ public class ChatHistory {
         // 1. 예상 문제 생성 흐름
         // ────────────────────────────────
         WAITING_PROBLEM_CRITERIA_SELECTION,  // 문제 기준 선택 (1. 챕터/페이지, 2. 개념)
-        WAITING_PROBLEM_CONTEXT_INPUT,    // 문제 생성 기준 입력 대기
-        GENERATING_QUESTION_WITH_RAG,     // ✅ FastAPI 호출로 문제 생성
-        WAITING_USER_ANSWER,                 // 사용자 답 입력 대기
-        GENERATING_ADDITIONAL_QUESTION,   // ✅ FastAPI 호출로 추가 문제 생성
+        WAITING_PROBLEM_CONTEXT_INPUT,       // 챕터/페이지 번호 또는 개념 키워드 입력
+        GENERATING_QUESTION_WITH_RAG,        // ✅ FastAPI 호출로 문제 생성
+        GENERATING_ADDITIONAL_QUESTION_WITH_RAG, // ✅ FastAPI 호출로 문제 생성
         EVALUATING_ANSWER_AND_LOGGING,       // ✅ FastAPI 호출 → 정오답 판단 및 오답 저장
 
         WAITING_NEXT_ACTION_AFTER_LEARNING,  // 다음 액션: 1. 다음 문제 / 2. 기능 선택

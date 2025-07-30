@@ -10,7 +10,7 @@ public class WebClientConfig {
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl("http://langchain-container:8000/api/v1") // Docker 네트워크에서 접근
+                .baseUrl("http://langchain:8000/api/v1") // Docker 네트워크에서 접근
                 .build();
     }
 }
