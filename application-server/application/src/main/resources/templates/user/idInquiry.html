@@ -5,7 +5,63 @@
 <head>
     <title th:text="'아이디 찾기' ?: 'PDF-Playground'">Layout</title>
     <script th:src="@{/js/effectiven.js}"></script>
+    <script>
+        $(document).ready(function() {
+            console.log("idInquiry.html: Document ready.");
+
+            $("#form_area").on("submit", function(event) {
+                console.log("idInquiry.html: Form submit event fired.");
+                event.preventDefault();
+
+                const name = $("#name").val().trim();
+                const email = $("#email").val().trim();
+
+                // 입력값 검증
+                if (!name) {
+                    alert("이름을 입력해주세요.");
+                    $("#name").focus();
+                    return;
+                }
+
+                if (!email) {
+                    alert("이메일을 입력해주세요.");
+                    $("#email").focus();
+                    return;
+                }
+
+                console.log("idInquiry.html: Name: " + name + ", Email: " + email);
+
+                // 버튼 비활성화 (중복 클릭 방지)
+                $("#formBtn").prop("disabled", true).text("처리중...");
+
+                $.ajax({
+                    url: "/find-id-success",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ name: name, email: email }),
+                    success: function(response) {
+                        console.log("idInquiry.html: AJAX success. Response: ", response);
+                        // 로그인 페이지로 이동
+                        window.location.href = "/login";
+                    },
+                    error: function(jqXHR) {
+                        console.error("아이디 찾기 실패:", jqXHR.responseText);
+                        const errorMessage = jqXHR.responseJSON && jqXHR.responseJSON.message
+                            ? jqXHR.responseJSON.message
+                            : "아이디 찾기 중 오류가 발생했습니다.";
+                        alert(errorMessage);
+                    },
+                    complete: function() {
+                        // 버튼 다시 활성화
+                        $("#formBtn").prop("disabled", false).text("아이디 찾기");
+                    }
+                });
+            });
+        });
+    </script>
 </head>
+
+
 
 <div layout:fragment="content">
     <div class="container d-flex justify-content-center align-items-center flex-direction-column">
@@ -50,5 +106,4 @@
         </div>
     </div>
 </div>
-
 </html>
