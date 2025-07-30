@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 load_dotenv('../.env.prod')  # langchain-server 디렉토리에서 상위로 이동
 load_dotenv('.env.prod')     # 현재 디렉토리도 확인
 
-from app.api.chat import router as chat_router
 from app.api.chat_history import router as chat_history_router
 from app.api.openai_chat import router as openai_chat_router
 from app.api.question_generator import router as question_generator_router
@@ -76,9 +75,6 @@ app.include_router(concept_explanation_router, prefix="/api/v1", tags=["Concept 
 app.include_router(page_search_new_router, prefix="/api/v1", tags=["Page Search"])
 
 # 제거된 라우터들은 등록하지 않음
-
-# chat_router를 마지막에 등록하여 우선순위 높임
-app.include_router(chat_router, prefix="/api/v1")
 
 
 @app.get("/")
