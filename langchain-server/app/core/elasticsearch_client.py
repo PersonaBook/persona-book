@@ -1,10 +1,24 @@
 from app.core.config import settings
-from elasticsearch import Elasticsearch
+from elasticsearch import AsyncElasticsearch
 
 
-def create_elasticsearch_client():
-    hosts = settings.elasticsearch_hosts.split(",")
-    return Elasticsearch(hosts=hosts)
+class ElasticsearchClient:
+    _client: AsyncElasticsearch = None
 
+    @classmethod
+    async def initialize(cls):
+        if cls._client is None:
+            hosts = settings.elasticsearch_hosts.split(",")
+            cls._client = AsyncElasticsearch(hosts=hosts)
 
-es_client = create_elasticsearch_client()
+    @classmethod
+    async def get_client(cls) -> AsyncElasticsearch:
+        if cls._client is None:
+            await cls.initialize()
+        return cls._client
+
+    @classmethod
+    async def close(cls):
+        if cls._client:
+            await cls._client.close()
+            cls._client = None

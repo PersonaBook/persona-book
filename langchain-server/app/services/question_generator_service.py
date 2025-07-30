@@ -28,10 +28,10 @@ class QuestionGeneratorService:
     def setup_vector_store(self, chunks: List[Document], index_name: str = "java_learning_docs"):
         """벡터 스토어를 설정합니다."""
         try:
-                    from langchain_google_genai import GoogleGenerativeAIEmbeddings
-        embeddings = GoogleGenerativeAIEmbeddings(
-            model="text-embedding-004"
-        )
+            from langchain_google_genai import GoogleGenerativeAIEmbeddings
+            embeddings = GoogleGenerativeAIEmbeddings(
+                model="text-embedding-004"
+            )
             
             # Elasticsearch 벡터 스토어 생성
             self.vector_store = ElasticsearchStore.from_documents(

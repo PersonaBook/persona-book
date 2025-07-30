@@ -86,4 +86,4 @@ class PageSearchRequest(BaseModel):
     max_pages: Optional[int] = None
     search_keyword: str
     search_type: SearchType
-    max_results: Optional[int] = 10
+    max_results: Optional[int] = 10 

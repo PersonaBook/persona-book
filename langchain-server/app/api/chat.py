@@ -12,6 +12,9 @@ import os
 
 router = APIRouter()
 
+# 전역 변수로 현재 문제의 정답 정보 저장
+current_question_answer = {}
+
 
 @router.get("/ping")
 def ping():
@@ -77,6 +80,7 @@ def chat(user: UserMessageRequest):
 
 def _handle_generating_question_with_rag(user: UserMessageRequest) -> AiMessageResponse:
     """RAG와 로컬 임베딩을 모두 사용한 문제 생성 처리"""
+    global current_question_answer
     try:
         print(f"🚀 _handle_generating_question_with_rag 시작")
         print(f"🔍 새로운 향상된 RAG 시스템 사용")
@@ -188,7 +192,6 @@ def _handle_generating_question_with_rag(user: UserMessageRequest) -> AiMessageR
                     content = f"{question}"
                     
                     # 정답 정보를 세션에 저장
-                    global current_question_answer
                     current_question_answer = {
                         "answer": answer,
                         "explanation": explanation

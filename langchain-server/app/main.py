@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
 # 환경 변수 로드 (프로젝트 루트의 .env.prod 파일)
@@ -22,11 +23,39 @@ from app.api.enhanced_local_question_generator import router as enhanced_local_q
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.elasticsearch_client import ElasticsearchClient
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """앱 시작/종료 시 초기화/정리 작업"""
+    print("🚀 애플리케이션 시작 중...")
+    
+    # Elasticsearch 클라이언트 초기화
+    try:
+        await ElasticsearchClient.initialize()
+        print("✅ Elasticsearch 클라이언트 초기화 완료")
+    except Exception as e:
+        print(f"❌ Elasticsearch 클라이언트 초기화 실패: {e}")
+    
+    # 기타 초기화 작업들
+    print("✅ 애플리케이션 초기화 완료")
+    
+    yield
+    
+    # 정리 작업
+    print("🔄 애플리케이션 종료 중...")
+    try:
+        await ElasticsearchClient.close()
+        print("✅ Elasticsearch 클라이언트 정리 완료")
+    except Exception as e:
+        print(f"❌ Elasticsearch 클라이언트 정리 실패: {e}")
+    print("✅ 애플리케이션 종료 완료")
 
 app = FastAPI(
     title="LangChain RAG API Server",
     description="RAG 기반 학습 지원 API 서버",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
