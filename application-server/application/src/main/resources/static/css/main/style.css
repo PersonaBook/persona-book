@@ -154,6 +154,21 @@
     z-index: 1;
 }
 
+.pdf_title .main_list_del{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    fill: #fff;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.pdf_title .main_list_del svg{
+    width: 100%;
+    height: 100%;
+}
+
 /* PDF 아이템 내부 li 스타일 수정 */
 .pdf-item li.pdf_li {
     margin-top: 0;
