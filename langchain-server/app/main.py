@@ -8,7 +8,6 @@ load_dotenv('.env.prod')     # 현재 디렉토리도 확인
 
 from app.api.chat_history import router as chat_history_router
 from app.api.openai_chat import router as openai_chat_router
-from app.api.question_generator import router as question_generator_router
 
 # 새로운 분리된 API들
 from app.api.question_generation_api import router as question_generation_router
@@ -66,13 +65,14 @@ app.add_middleware(
 # 기타 API 라우터들 (먼저 등록)
 app.include_router(openai_chat_router, prefix="/api/v1")
 app.include_router(chat_history_router, prefix="/api/v1")
-app.include_router(question_generator_router, prefix="/api/v1")
 
 # ===== 새로운 분리된 API들 =====
 app.include_router(question_generation_router, prefix="/api/v1", tags=["Question Generation"])
 app.include_router(answer_evaluation_router, prefix="/api/v1", tags=["Answer Evaluation"])
 app.include_router(concept_explanation_router, prefix="/api/v1", tags=["Concept Explanation"])
 app.include_router(page_search_new_router, prefix="/api/v1", tags=["Page Search"])
+
+# 제거된 라우터들은 등록하지 않음
 
 # 제거된 라우터들은 등록하지 않음
 
@@ -100,3 +100,9 @@ async def health_check():
         "status": "healthy",
         "timestamp": "2024-01-15T10:30:00Z"
     }
+
+
+@app.get("/api/v1/ping")
+async def ping():
+    """Spring Boot에서 연결 확인용 ping 엔드포인트"""
+    return {"message": "pong"}
