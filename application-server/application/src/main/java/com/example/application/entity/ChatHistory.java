@@ -55,6 +55,7 @@ public class ChatHistory {
         WAITING_PROBLEM_CRITERIA_SELECTION,  // 문제 기준 선택 (1. 챕터/페이지, 2. 개념)
         WAITING_PROBLEM_CONTEXT_INPUT,       // 챕터/페이지 번호 또는 개념 키워드 입력
         GENERATING_QUESTION_WITH_RAG,        // ✅ FastAPI 호출로 문제 생성
+        WAITING_USER_ANSWER,                 // 사용자 답 입력 대기
         GENERATING_ADDITIONAL_QUESTION_WITH_RAG, // ✅ FastAPI 호출로 문제 생성
         EVALUATING_ANSWER_AND_LOGGING,       // ✅ FastAPI 호출 → 정오답 판단 및 오답 저장
 

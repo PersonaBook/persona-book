@@ -1,0 +1,144 @@
+{
+  "examples": [
+    {
+      "topic": "변수",
+      "examples": [
+        {
+          "question": "Java에서 변수의 선언과 초기화에 대한 설명으로 옳은 것은?",
+          "options": [
+            "변수는 선언과 동시에 반드시 초기화해야 한다",
+            "변수는 선언 후 나중에 초기화할 수 있다",
+            "변수는 한 번 초기화하면 값을 변경할 수 없다",
+            "변수는 메서드 내에서만 선언할 수 있다"
+          ],
+          "correct_answer": 1,
+          "explanation": "Java에서는 변수를 선언한 후에 별도로 초기화할 수 있습니다. 이는 메모리 효율성과 코드 가독성을 높이는 방법입니다.",
+          "quality_score": 0.9,
+          "chapter": "Chapter1 - 변수",
+          "concept_keywords": ["변수", "선언", "초기화"]
+        }
+      ]
+    },
+    {
+      "topic": "반복문",
+      "examples": [
+        {
+          "question": "do-while문의 특징으로 옳은 것은?",
+          "options": [
+            "조건을 먼저 검사한 후 반복을 수행한다",
+            "반복을 먼저 수행한 후 조건을 검사한다",
+            "조건이 거짓이면 반복을 수행하지 않는다",
+            "반복 횟수가 정해져 있어야 한다"
+          ],
+          "correct_answer": 1,
+          "explanation": "do-while문은 반복을 먼저 수행한 후 조건을 검사하는 구조입니다. 따라서 최소 한 번은 반복이 실행됩니다.",
+          "quality_score": 0.85,
+          "chapter": "Chapter3 - 조건문과 반복문",
+          "concept_keywords": ["do-while", "반복문", "조건검사"]
+        }
+      ]
+    },
+    {
+      "topic": "배열",
+      "examples": [
+        {
+          "question": "Java에서 배열의 인덱스는 몇부터 시작하는가?",
+          "options": [
+            "0부터 시작한다",
+            "1부터 시작한다",
+            "-1부터 시작한다",
+            "사용자가 지정할 수 있다"
+          ],
+          "correct_answer": 0,
+          "explanation": "Java에서 배열의 인덱스는 0부터 시작합니다. 따라서 n개의 요소를 가진 배열의 인덱스는 0부터 n-1까지입니다.",
+          "quality_score": 0.9,
+          "chapter": "Chapter4 - 배열",
+          "concept_keywords": ["배열", "인덱스", "0부터 시작"]
+        }
+      ]
+    },
+    {
+      "topic": "상속",
+      "examples": [
+        {
+          "question": "Java에서 상속의 장점으로 옳지 않은 것은?",
+          "options": [
+            "코드의 재사용성을 높일 수 있다",
+            "상위 클래스의 private 멤버를 하위 클래스에서 직접 수정할 수 있다",
+            "프로그램 구조를 계층적으로 설계할 수 있다",
+            "유지보수가 용이해진다"
+          ],
+          "correct_answer": 1,
+          "explanation": "상속의 장점은 코드 재사용성, 계층적 설계, 유지보수 용이성입니다. 하지만 상위 클래스의 private 멤버는 하위 클래스에서 직접 접근할 수 없습니다.",
+          "quality_score": 0.88,
+          "chapter": "Chapter5 - 객체지향 프로그래밍 I",
+          "concept_keywords": ["상속", "재사용성", "private", "캡슐화"]
+        }
+      ]
+    },
+    {
+      "topic": "다형성",
+      "examples": [
+        {
+          "question": "다형성(polymorphism)에 대한 설명으로 옳은 것은?",
+          "options": [
+            "하나의 참조변수가 여러 타입의 객체를 참조할 수 있다",
+            "객체는 반드시 하나의 타입만 가질 수 있다",
+            "참조변수의 타입과 실제 객체의 타입이 반드시 일치해야 한다",
+            "다형성은 상속과 관계없이 구현된다"
+          ],
+          "correct_answer": 0,
+          "explanation": "다형성은 하나의 참조변수가 여러 타입의 객체를 참조할 수 있는 성질입니다. 상속을 통해 구현되며, 부모 클래스 타입의 참조변수로 자식 클래스 객체를 참조할 수 있습니다.",
+          "quality_score": 0.92,
+          "chapter": "Chapter5 - 객체지향 프로그래밍 I",
+          "concept_keywords": ["다형성", "참조변수", "상속", "객체"]
+        }
+      ]
+    },
+    {
+      "topic": "리터럴",
+      "examples": [
+        {
+          "question": "다음 중 Java에서 정수형 리터럴에 대한 설명으로 옳지 않은 것은 무엇인가?",
+          "options": [
+            "정수형 리터럴은 기본적으로 int 타입이다.",
+            "long 타입의 리터럴은 접미사 'L' 또는 'l'을 붙인다.",
+            "2진수 리터럴은 접두사 '0b' 또는 '0B'를 사용한다.",
+            "byte와 short 타입의 리터럴은 별도로 존재한다."
+          ],
+          "correct_answer": 3,
+          "explanation": "Java에서 정수형 리터럴은 기본적으로 int 타입이며, long 타입의 리터럴에는 'L' 또는 'l'을 붙입니다. 2진수 리터럴은 접두사 '0b' 또는 '0B'를 사용하여 표현할 수 있습니다. 그러나 byte와 short 타입의 리터럴은 별도로 존재하지 않으며, int 타입의 리터럴을 사용하여 표현합니다.",
+          "quality_score": 0.85,
+          "chapter": "Chapter1 - 변수",
+          "concept_keywords": ["리터럴", "정수형", "int", "long"]
+        }
+      ]
+    },
+    {
+      "topic": "자료형",
+      "examples": [
+        {
+          "question": "Java에서 실수형 데이터 타입인 float와 double의 주요 차이점은 무엇인가요?",
+          "options": [
+            "float는 4바이트를 사용하고 double은 8바이트를 사용한다.",
+            "float는 정밀도가 15자리이고 double은 정밀도가 7자리이다.",
+            "float와 double 모두 정수만 저장할 수 있다.",
+            "float는 정밀도가 더 높아 double보다 큰 값을 저장할 수 있다."
+          ],
+          "correct_answer": 0,
+          "explanation": "Java에서 float는 4바이트를 사용하며 약 7자리의 정밀도를 제공하고, double은 8바이트를 사용하며 약 15자리의 정밀도를 제공합니다. 따라서 double은 float보다 더 높은 정밀도를 제공하여, 정밀한 계산이 필요할 때 double을 사용하는 것이 좋습니다.",
+          "quality_score": 0.88,
+          "chapter": "Chapter1 - 변수",
+          "concept_keywords": ["자료형", "float", "double", "정밀도"]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "description": "사용자가 직접 제공한 Few-shot 학습 예제들",
+    "created_date": "2024-07-28",
+    "version": "1.0",
+    "total_examples": 7,
+    "topics_covered": ["변수", "반복문", "배열", "상속", "다형성", "리터럴", "자료형"]
+  }
+} 

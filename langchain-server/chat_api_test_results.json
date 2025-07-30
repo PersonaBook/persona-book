@@ -1,0 +1,58 @@
+{
+  "GENERATING_QUESTION_WITH_RAG": {
+    "userId": 123,
+    "bookId": 456,
+    "sender": "AI",
+    "content": "(생성한 예상 문제)",
+    "messageType": "TEXT",
+    "chatState": "GENERATING_QUESTION_WITH_RAG"
+  },
+  "GENERATING_ADDITIONAL_QUESTION_WITH_RAG": {
+    "userId": 123,
+    "bookId": 456,
+    "sender": "AI",
+    "content": "(생성한 추가 예상 문제)",
+    "messageType": "TEXT",
+    "chatState": "GENERATING_ADDITIONAL_QUESTION_WITH_RAG"
+  },
+  "EVALUATING_ANSWER_AND_LOGGING": {
+    "userId": 123,
+    "bookId": 456,
+    "sender": "AI",
+    "content": "정답 (정답 여부 판별)",
+    "messageType": "TEXT",
+    "chatState": "EVALUATING_ANSWER_AND_LOGGING"
+  },
+  "PRESENTING_CONCEPT_EXPLANATION": {
+    "userId": 123,
+    "bookId": 456,
+    "sender": "AI",
+    "content": "(개념 설명)",
+    "messageType": "TEXT",
+    "chatState": "PRESENTING_CONCEPT_EXPLANATION"
+  },
+  "REEXPLAINING_CONCEPT": {
+    "userId": 123,
+    "bookId": 456,
+    "sender": "AI",
+    "content": "(재설명)",
+    "messageType": "TEXT",
+    "chatState": "REEXPLAINING_CONCEPT"
+  },
+  "WAITING_KEYWORD_FOR_PAGE_SEARCH": {
+    "userId": 123,
+    "bookId": 456,
+    "sender": "AI",
+    "content": "(페이지 찾기)",
+    "messageType": "TEXT",
+    "chatState": "WAITING_KEYWORD_FOR_PAGE_SEARCH"
+  },
+  "PROCESSING_PAGE_SEARCH_RESULT": {
+    "userId": 123,
+    "bookId": 456,
+    "sender": "AI",
+    "content": "죄송합니다. 아직 처리되지 않은 상태입니다.",
+    "messageType": "TEXT",
+    "chatState": "PROCESSING_PAGE_SEARCH_RESULT"
+  }
+}

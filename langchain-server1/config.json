@@ -1,0 +1,12 @@
+{
+  "pdf_path": "../ai/javajungsuk4_sample.pdf",
+  "default_difficulty": "보통",
+  "questions_per_batch": 20,
+  "vector_store_k": 5,
+  "semantic_chunker_threshold": 95,
+  "openai_api_key": "",
+  "model_name": "gpt-4o",
+  "embedding_model": "text-embedding-3-small",
+  "temperature": 0.5,
+  "max_tokens": 2000
+} 
