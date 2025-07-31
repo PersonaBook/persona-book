@@ -2,7 +2,7 @@
 문제 생성 관련 API
 """
 from app.schemas.request.chat import UserMessageRequest
-from app.schemas.response.chat import AiMessageResponse
+from app.schemas.response.chat import AiMessageResponse, GeneratingQuestionResponse
 from app.schemas.enum import ChatState
 from app.services.question_generator_service import question_generator_service
 from app.services.pdf_service import pdf_service
@@ -15,13 +15,17 @@ router = APIRouter()
 current_question_answer = {}
 
 
-@router.post("/generating-question", response_model=AiMessageResponse)
+@router.post("/generating-question", response_model=GeneratingQuestionResponse)
 def handle_generating_question(user: UserMessageRequest):
     """RAG와 로컬 임베딩을 모두 사용한 문제 생성 처리"""
     global current_question_answer
     try:
-        print(f"🚀 문제 생성 API 호출됨")
-        print(f"📊 요청 데이터: userId={user.userId}, bookId={user.bookId}, content='{user.content}'")
+        print("=" * 80)
+        print(f"🚀🚀🚀 문제 생성 API 호출됨!!! 🚀🚀🚀")
+        print(f"📊 요청 데이터: userId={user.userId}, bookId={user.bookId}")
+        print(f"📊 사용자 입력: '{user.content}'")
+        print(f"📊 ChatState: {user.chatState}")
+        print("=" * 80)
         
         # 사용자 입력을 챕터 내용으로 매핑 - 향상된 시스템 사용
         from app.utils.chapter_mapper import (
@@ -51,11 +55,24 @@ def handle_generating_question(user: UserMessageRequest):
         print(f"📝 매핑된 내용: {mapped_content}")
         print(f"📝 최종 쿼리: {query}")
         
-        # PDF 처리 및 청킹 (pdf_service 사용)
+        # PDF 처리 및 청킹 (pdf_service 사용) - 챕터별 페이지 범위 고려
         pdf_path = "/app/javajungsuk4_sample.pdf"
         if os.path.exists(pdf_path):
             print(f"📄 PDF 파일 처리 중: {pdf_path}")
-            chunks = pdf_service().process_pdf_and_create_chunks(pdf_path, max_pages=20)
+            
+            # 챕터 번호가 있으면 해당 챕터까지의 페이지만 처리 (효율성 개선)
+            max_pages_to_process = 300  # 기본값을 크게 늘림 (챕터5까지 포함)
+            if chapter_num:
+                from app.utils.chapter_mapper import get_chapter_definitions
+                chapter_defs = get_chapter_definitions()
+                if chapter_num in chapter_defs:
+                    chapter_end_page = chapter_defs[chapter_num]["end"]
+                    # 챕터 끝 페이지 + 10페이지까지 처리 (여유분)
+                    max_pages_to_process = min(chapter_end_page + 10, 300)
+                    print(f"🎯 챕터 {chapter_num} 기준 PDF 처리: {max_pages_to_process}페이지까지")
+            
+            chunks = pdf_service().process_pdf_and_create_chunks(pdf_path, max_pages=max_pages_to_process)
+            print(f"📊 실제 처리한 페이지 수: {max_pages_to_process}")
             print(f"✅ PDF 처리 완료: {len(chunks) if chunks else 0}개 청크")
         else:
             print(f"❌ PDF 파일을 찾을 수 없음: {pdf_path}")
@@ -119,20 +136,28 @@ def handle_generating_question(user: UserMessageRequest):
         final_content = re.sub(r'정답.*?$', '', final_content, flags=re.DOTALL).strip()
         print(f"🔍 최종 응답 content: {final_content}")
         
-        return AiMessageResponse(
+        # domain과 concept 추출 (사용자 입력에서)
+        domain = "Java Programming"  # 기본값
+        concept = mapped_content if mapped_content else raw_input
+        
+        return GeneratingQuestionResponse(
             userId=user.userId,
             bookId=user.bookId,
             content=final_content,
             messageType="TEXT",
             sender="AI",
             chatState=ChatState.GENERATING_QUESTION_WITH_RAG,
+            domain=domain,
+            concept=concept,
+            problem_text=question if 'question' in locals() else final_content,
+            correct_answer=current_question_answer.get("answer", "")
         )
     except Exception as e:
         print(f"❌ 문제 생성 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"문제 생성 중 오류가 발생했습니다: {str(e)}")
 
 
-@router.post("/generating-additional-question", response_model=AiMessageResponse)
+@router.post("/generating-additional-question", response_model=GeneratingQuestionResponse)
 def handle_generating_additional_question(user: UserMessageRequest):
     """추가 문제 생성 처리"""
     try:
@@ -141,11 +166,11 @@ def handle_generating_additional_question(user: UserMessageRequest):
         # 기존 문제와 유사한 추가 문제 생성
         query = user.content if user.content else "Java 프로그래밍"
         
-        # 추가 문제 생성 (기존과 다른 유형)
+        # 추가 문제 생성 (객관식으로 통일)
         result = question_generator_service.generate_question_with_rag(
             query=query,
             difficulty="보통",
-            question_type="주관식"  # 다른 유형으로 생성
+            question_type="객관식"  # 객관식으로 통일
         )
         
         # 결과가 딕셔너리인 경우 처리
@@ -158,13 +183,34 @@ def handle_generating_additional_question(user: UserMessageRequest):
             # 문자열인 경우 그대로 사용
             content = str(result)
         
-        return AiMessageResponse(
+        # 추가 문제에서도 필수 필드들 포함
+        domain = "Java Programming"
+        concept = query
+        
+        # 추가 문제의 정답 정보도 저장
+        global current_question_answer
+        if isinstance(result, dict) and result.get("success", False):
+            current_question_answer = {
+                "answer": result.get("correct_answer", ""),
+                "explanation": result.get("explanation", "")
+            }
+            problem_text = result.get("question", content)
+            correct_answer = result.get("correct_answer", "")
+        else:
+            problem_text = content
+            correct_answer = ""
+        
+        return GeneratingQuestionResponse(
             userId=user.userId,
             bookId=user.bookId,
             content=content,
             messageType="TEXT",
             sender="AI",
             chatState=ChatState.GENERATING_ADDITIONAL_QUESTION,
+            domain=domain,
+            concept=concept,
+            problem_text=problem_text,
+            correct_answer=correct_answer
         )
     except Exception as e:
         print(f"❌ 추가 문제 생성 중 오류: {str(e)}")
