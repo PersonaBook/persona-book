@@ -24,8 +24,8 @@ public class Question {
     @Column(name = "book_id", nullable = false)
     private Long bookId;
 
-    @Column(name = "chat_id", nullable = false)
-    private Long chatId;
+//    @Column(name = "chat_id", nullable = false)
+//    private Long chatId;
 
     @Column(name = "start_page")
     private Integer startPage;
@@ -33,15 +33,21 @@ public class Question {
     @Column(name = "end_page")
     private Integer endPage;
 
-    @Column(name = "concept_keyword")
-    private String conceptKeyword;
+    @Column(name = "domain")
+    private String domain;
 
-    @Column(name = "is_concept_explained")
-    private Boolean isConceptExplained;
+    @Column(name = "concept")
+    private String concept;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "problem_text")
+    private String problemText;
+
+    @Column(name = "user_answer")
+    private String userAnswer;
 
     @Column(name = "cor_answer")
     private String correctAnswer;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }

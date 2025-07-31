@@ -42,8 +42,8 @@ public class ChatController {
     }
 
     @GetMapping("/ping")
-    public ResponseEntity<String> pingLangChain() {
-        boolean connected = chatService.checkLangChainConnection();
+    public ResponseEntity<String> pingFastApi() {
+        boolean connected = chatService.checkFastApiConnection();
         return connected ? ResponseEntity.ok("pong") : ResponseEntity.status(503).body("LangChain unavailable");
     }
 }

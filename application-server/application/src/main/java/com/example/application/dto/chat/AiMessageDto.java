@@ -21,9 +21,4 @@ public class AiMessageDto {
     private String messageType = "TEXT"; // TEXT, .. (추후 확장 예정)
 
     private ChatState chatState;
-
-    // 추가 필드 예시
-    // private String source; // langchain, api, vectorDB 등
-    // private List<String> references;
-    // private Boolean requiresFollowup;
 }

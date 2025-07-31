@@ -23,10 +23,6 @@ public class ChatHistory {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    private int ratingScore; // 1~5점
-
-    private String associatedConcept; // 관련 키워드 (question 테이블의 concept 컬럼과 역할이 겹쳐서 다시 생각해 봐야할 듯)
-
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
 

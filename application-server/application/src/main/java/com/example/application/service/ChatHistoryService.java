@@ -22,8 +22,7 @@ public class ChatHistoryService {
 
     private final ChatHistoryRepository chatHistoryRepository;
 
-    public void saveUserMessage(UserMessageDto dto,
-                                ChatState chatState) {
+    public void saveUserMessage(UserMessageDto dto, ChatState chatState) {
         ChatHistory history = ChatHistory.builder()
                 .userId(dto.getUserId())
                 .bookId(dto.getBookId())
@@ -31,21 +30,25 @@ public class ChatHistoryService {
                 .content(dto.getContent())
                 .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
                 .chatState(chatState)
+//                .ratingScore(dto.getRatingScore())
+//                .associatedConcept(dto.getAssociatedConcept())
                 .createdAt(LocalDateTime.now())
                 .build();
+
         chatHistoryRepository.save(history);
     }
 
-    public void saveAiMessage(AiMessageDto dto, Long userId, Long bookId) {
+    public void saveAiMessage(AiMessageDto dto, ChatState chatState) {
         ChatHistory history = ChatHistory.builder()
-                .userId(userId)
-                .bookId(bookId)
+                .userId(dto.getUserId())
+                .bookId(dto.getBookId())
                 .sender(ChatHistory.Sender.AI)
                 .content(dto.getContent())
                 .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
-                .chatState(dto.getChatState())
+                .chatState(chatState)
                 .createdAt(LocalDateTime.now())
                 .build();
+
         chatHistoryRepository.save(history);
     }
 
