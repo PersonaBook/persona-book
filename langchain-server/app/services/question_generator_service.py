@@ -2,36 +2,80 @@
 연습문제 생성 서비스
 """
 import os
+import re
 from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema import Document
 from langchain_community.vectorstores import ElasticsearchStore
 
-# 환경 변수 로드
-load_dotenv('../.env.prod')
-load_dotenv('.env.prod')
-load_dotenv('.env')
+# 환경 변수 로드 - config.py에서 이미 로드되므로 제거
 
 
 class QuestionGeneratorService:
     """연습문제 생성 서비스"""
     
     def __init__(self):
+        from app.core.config import settings
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-1.5-flash",
             temperature=0.7,
-            max_tokens=2000
+            max_tokens=2000,
+            google_api_key=settings.gemini_api_key
         )
         self.vector_store = None
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/embedding-001",
+            google_api_key=settings.gemini_api_key
+        )
+        self.index_name = "java_learning_docs"  # 고정된 인덱스 이름
+    
+    def has_vector_store(self) -> bool:
+        """벡터 스토어가 이미 존재하는지 확인"""
+        if self.vector_store is not None:
+            return True
+            
+        # Elasticsearch 인덱스 존재 여부 확인
+        try:
+            from elasticsearch import Elasticsearch
+            es = Elasticsearch(['http://elasticsearch:9200'])
+            return es.indices.exists(index=self.index_name)
+        except Exception as e:
+            print(f"❌ 인덱스 존재 확인 중 오류: {e}")
+            return False
+    
+    def connect_to_existing_vector_store(self):
+        """기존 벡터 스토어에 연결"""
+        try:
+            from langchain_google_genai import GoogleGenerativeAIEmbeddings
+            from app.core.config import settings
+            
+            embeddings = GoogleGenerativeAIEmbeddings(
+                model="models/embedding-001",
+                google_api_key=settings.gemini_api_key
+            )
+            
+            self.vector_store = ElasticsearchStore(
+                embedding=embeddings,
+                es_url="http://elasticsearch:9200",
+                index_name=self.index_name
+            )
+            print(f"✅ 기존 벡터 스토어 연결 완료: {self.index_name}")
+            return True
+        except Exception as e:
+            print(f"❌ 기존 벡터 스토어 연결 실패: {e}")
+            return False
     
     def setup_vector_store(self, chunks: List[Document], index_name: str = "java_learning_docs"):
         """벡터 스토어를 설정합니다."""
         try:
             from langchain_google_genai import GoogleGenerativeAIEmbeddings
-            embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+            from app.core.config import settings
+            embeddings = GoogleGenerativeAIEmbeddings(
+                model="models/embedding-001",
+                google_api_key=settings.gemini_api_key
+            )
             
             # Elasticsearch 벡터 스토어 생성
             self.vector_store = ElasticsearchStore.from_documents(
@@ -215,12 +259,16 @@ class QuestionGeneratorService:
                     current_section = "choice4"
                     if len(choices) < 4:
                         choices.append(line.replace("보기4:", "").strip())
-                elif line.startswith("정답:"):
+                elif line.startswith("정답:") or "정답:" in line:
                     current_section = "answer"
-                    correct_answer = line.replace("정답:", "").strip()
-                elif line.startswith("해설:"):
+                    # "정답:" 이후의 모든 내용을 추출
+                    if "정답:" in line:
+                        correct_answer = line.split("정답:", 1)[1].strip()
+                elif line.startswith("해설:") or "해설:" in line:
                     current_section = "explanation"
-                    explanation = line.replace("해설:", "").strip()
+                    # "해설:" 이후의 모든 내용을 추출
+                    if "해설:" in line:
+                        explanation = line.split("해설:", 1)[1].strip()
                 else:
                     # 숫자로 시작하는 선택지 (1. 2. 3. 4. 형태) 처리 방지
                     if re.match(r'^\d+\.\s', line) and len(choices) >= 4:
@@ -241,7 +289,6 @@ class QuestionGeneratorService:
                 print(f"⚠️ 선택지가 {len(choices)}개, 추가 파싱 시도")
                 
                 # 1. 2. 3. 4. 형태의 선택지 찾기
-                import re
                 choice_pattern = r'^(\d+)\.\s+(.+)$'
                 found_choices = []
                 

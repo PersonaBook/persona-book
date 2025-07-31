@@ -206,7 +206,11 @@ class PDFProcessingService:
     """PDF 처리 서비스"""
     
     def __init__(self):
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        from app.core.config import settings
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/embedding-001",
+            google_api_key=settings.gemini_api_key
+        )
     
     def process_pdf_and_create_chunks(self, pdf_path: str, max_pages: Optional[int] = None) -> List[Document]:
         """

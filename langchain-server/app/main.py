@@ -2,7 +2,10 @@ from contextlib import asynccontextmanager
 
 from app.api.learning import router as learning_router
 
-from app.api.question_generator import router as question_generator_router
+from app.api.question_generation_api import router as question_generator_router
+from app.api.ping import router as ping_router
+from app.api.answer_evaluation_api import router as answer_evaluation_router
+from app.api.page_search_new_api import router as page_search_router
 from app.core.elasticsearch_client import ElasticsearchClient
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -52,3 +55,6 @@ app.include_router(
     learning_router, prefix="/api/v1/learning", tags=["Learning Materials"]
 )
 app.include_router(question_generator_router, prefix="/api/v1")
+app.include_router(ping_router, prefix="/api/v1", tags=["Health Check"])
+app.include_router(answer_evaluation_router, prefix="/api/v1", tags=["Answer Evaluation"])
+app.include_router(page_search_router, prefix="/api/v1", tags=["Page Search"])

@@ -16,7 +16,7 @@ current_question_answer = {}
 
 
 @router.post("/generating-question", response_model=GeneratingQuestionResponse)
-def handle_generating_question(user: UserMessageRequest):
+async def handle_generating_question(user: UserMessageRequest):
     """RAG와 로컬 임베딩을 모두 사용한 문제 생성 처리"""
     global current_question_answer
     try:
@@ -55,78 +55,85 @@ def handle_generating_question(user: UserMessageRequest):
         print(f"📝 매핑된 내용: {mapped_content}")
         print(f"📝 최종 쿼리: {query}")
         
-        # PDF 처리 및 청킹 (pdf_service 사용) - 챕터별 페이지 범위 고려
-        pdf_path = "/app/javajungsuk4_sample.pdf"
-        if os.path.exists(pdf_path):
-            print(f"📄 PDF 파일 처리 중: {pdf_path}")
-            
-            # 챕터 번호가 있으면 해당 챕터까지의 페이지만 처리 (효율성 개선)
-            max_pages_to_process = 300  # 기본값을 크게 늘림 (챕터5까지 포함)
-            if chapter_num:
-                from app.utils.chapter_mapper import get_chapter_definitions
-                chapter_defs = get_chapter_definitions()
-                if chapter_num in chapter_defs:
-                    chapter_end_page = chapter_defs[chapter_num]["end"]
-                    # 챕터 끝 페이지 + 10페이지까지 처리 (여유분)
-                    max_pages_to_process = min(chapter_end_page + 10, 300)
-                    print(f"🎯 챕터 {chapter_num} 기준 PDF 처리: {max_pages_to_process}페이지까지")
-            
-            chunks = pdf_service().process_pdf_and_create_chunks(pdf_path, max_pages=max_pages_to_process)
-            print(f"📊 실제 처리한 페이지 수: {max_pages_to_process}")
-            print(f"✅ PDF 처리 완료: {len(chunks) if chunks else 0}개 청크")
-        else:
-            print(f"❌ PDF 파일을 찾을 수 없음: {pdf_path}")
-            chunks = None
-        
-        if chunks:
-            # 벡터 스토어 설정
-            print(f"🔧 벡터 스토어 설정 중...")
-            success = question_generator_service.setup_vector_store(chunks)
-            print(f"✅ 벡터 스토어 설정: {'성공' if success else '실패'}")
-            
-            if success:
-                # 문제 생성
-                print(f"🎯 문제 생성 중...")
-                result = question_generator_service.generate_question_with_rag(
-                    query=query,
-                    difficulty="보통",
-                    question_type="객관식"
-                )
-                print(f"✅ 문제 생성 완료: {result.get('success', False)}")
+        # 기존 벡터 스토어가 있는지 확인 (성능 최적화)
+        print(f"🔍 기존 벡터 스토어 확인 중...")
+        if not question_generator_service.has_vector_store():
+            print(f"📄 PDF 처리 필요 - 첫 번째 실행")
+            # PDF 처리 및 청킹 (한 번만)
+            pdf_path = "/app/javajungsuk4_sample.pdf"
+            if os.path.exists(pdf_path):
+                print(f"📄 PDF 파일 처리 중: {pdf_path}")
                 
-                if result.get("success", False):
-                    # 문제와 정답 정보를 함께 저장
-                    question = result.get("question", "문제가 생성되었습니다.")
-                    answer = result.get("correct_answer", "")
-                    explanation = result.get("explanation", "")
-                    options = result.get("options", [])
-                    
-                    # 문제 텍스트 생성 (정답 정보는 제외)
-                    if options and len(options) > 0:
-                        # 객관식인 경우 선택지 포함
-                        content = f"{question}\n\n"
-                        for i, option in enumerate(options, 1):
-                            content += f"{i}. {option}\n"
-                        print(f"✅ 선택지 포함된 문제 생성 완료")
-                    else:
-                        # 주관식인 경우 문제만
-                        content = f"{question}"
-                        print(f"⚠️ 선택지가 없어 주관식으로 생성됨")
-                    
-                    # 정답 정보를 세션에 저장
-                    current_question_answer = {
-                        "answer": answer,
-                        "explanation": explanation
-                    }
+                # 성능 최적화: 페이지 수를 대폭 줄임
+                max_pages_to_process = 50  # 기본값을 줄임 (빠른 처리를 위해)
+                if chapter_num:
+                    from app.utils.chapter_mapper import get_chapter_definitions
+                    chapter_defs = get_chapter_definitions()
+                    if chapter_num in chapter_defs:
+                        chapter_start_page = chapter_defs[chapter_num].get("start", 50)
+                        chapter_end_page = chapter_defs[chapter_num]["end"]
+                        # 해당 챕터만 처리 (시작-끝 페이지)
+                        max_pages_to_process = min(chapter_end_page - chapter_start_page + 20, 50)
+                        print(f"🎯 챕터 {chapter_num} 기준 PDF 처리: {max_pages_to_process}페이지까지")
+                
+                chunks = pdf_service().process_pdf_and_create_chunks(pdf_path, max_pages=max_pages_to_process)
+                print(f"📊 실제 처리한 페이지 수: {max_pages_to_process}")
+                print(f"✅ PDF 처리 완료: {len(chunks) if chunks else 0}개 청크")
+                
+                if chunks:
+                    # 벡터 스토어 설정 (한 번만)
+                    print(f"🔧 벡터 스토어 설정 중...")
+                    success = question_generator_service.setup_vector_store(chunks)
+                    print(f"✅ 벡터 스토어 설정: {'성공' if success else '실패'}")
                 else:
-                    content = result.get("message", "문제 생성에 실패했습니다.")
-                    print(f"❌ 문제 생성 실패: {content}")
+                    success = False
             else:
-                content = "문서 설정에 실패했습니다."
-                print(f"❌ 벡터 스토어 설정 실패")
+                print(f"❌ PDF 파일을 찾을 수 없음: {pdf_path}")
+                success = False
         else:
-            content = "PDF 처리에 실패했습니다."
-            print(f"❌ PDF 처리 실패")
+            print(f"🚀 기존 벡터 스토어 사용 - PDF 처리 생략")
+            success = question_generator_service.connect_to_existing_vector_store()
+            
+        if success:
+            # 문제 생성
+            print(f"🎯 문제 생성 중...")
+            result = question_generator_service.generate_question_with_rag(
+                query=query,
+                difficulty="보통",
+                question_type="객관식"
+            )
+            print(f"✅ 문제 생성 완료: {result.get('success', False)}")
+            
+            if result.get("success", False):
+                # 문제와 정답 정보를 함께 저장
+                question = result.get("question", "문제가 생성되었습니다.")
+                answer = result.get("correct_answer", "")
+                explanation = result.get("explanation", "")
+                options = result.get("options", [])
+                
+                # 문제 텍스트 생성 (정답 정보는 제외)
+                if options and len(options) > 0:
+                    # 객관식인 경우 선택지 포함
+                    content = f"{question}\n\n"
+                    for i, option in enumerate(options, 1):
+                        content += f"{i}. {option}\n"
+                    print(f"✅ 선택지 포함된 문제 생성 완료")
+                else:
+                    # 주관식인 경우 문제만
+                    content = f"{question}"
+                    print(f"⚠️ 선택지가 없어 주관식으로 생성됨")
+                
+                # 정답 정보를 세션에 저장
+                current_question_answer = {
+                    "answer": answer,
+                    "explanation": explanation
+                }
+            else:
+                content = result.get("message", "문제 생성에 실패했습니다.")
+                print(f"❌ 문제 생성 실패: {content}")
+        else:
+            content = "문서 설정에 실패했습니다."
+            print(f"❌ 벡터 스토어 설정 실패")
         
         # 최종 응답에서 정답 정보 제거
         import re
@@ -149,8 +156,8 @@ def handle_generating_question(user: UserMessageRequest):
             chatState=ChatState.GENERATING_QUESTION_WITH_RAG,
             domain=domain,
             concept=concept,
-            problem_text=question if 'question' in locals() else final_content,
-            correct_answer=current_question_answer.get("answer", "")
+            problemText=question if 'question' in locals() else final_content,
+            correctAnswer=answer if 'answer' in locals() else current_question_answer.get("answer", "")
         )
     except Exception as e:
         print(f"❌ 문제 생성 중 오류: {str(e)}")
@@ -158,7 +165,7 @@ def handle_generating_question(user: UserMessageRequest):
 
 
 @router.post("/generating-additional-question", response_model=GeneratingQuestionResponse)
-def handle_generating_additional_question(user: UserMessageRequest):
+async def handle_generating_additional_question(user: UserMessageRequest):
     """추가 문제 생성 처리"""
     try:
         print(f"🚀 추가 문제 생성 API 호출됨")
@@ -209,8 +216,8 @@ def handle_generating_additional_question(user: UserMessageRequest):
             chatState=ChatState.GENERATING_ADDITIONAL_QUESTION,
             domain=domain,
             concept=concept,
-            problem_text=problem_text,
-            correct_answer=correct_answer
+            problemText=problem_text,
+            correctAnswer=correct_answer
         )
     except Exception as e:
         print(f"❌ 추가 문제 생성 중 오류: {str(e)}")

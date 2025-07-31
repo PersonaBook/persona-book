@@ -78,7 +78,7 @@ def compare_answers(user_answer: str, correct_answer: str) -> bool:
     
     return False
 
-@router.post("/evaluating-answer", response_model=AiMessageResponse)
+@router.post("/evaluating/answer", response_model=AiMessageResponse)
 def handle_evaluating_answer_and_logging(user: UserMessageRequest):
     """답안 평가 및 로깅 처리"""
     try:

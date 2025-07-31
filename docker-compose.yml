@@ -47,6 +47,8 @@ services: # 여러 개의 컨테이너를 정의할 수 있는 블록
     env_file:
       - .env.dev
       - .env.prod
+    depends_on:
+      - elasticsearch
     networks:
       - backend
 

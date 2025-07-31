@@ -22,5 +22,5 @@ class GeneratingQuestionResponse(BaseModel):
     chatState: ChatState
     domain: str
     concept: str
-    problem_text: str
-    correct_answer: str
+    problemText: str
+    correctAnswer: str

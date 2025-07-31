@@ -174,7 +174,7 @@ public class ChatService {
                 case GENERATING_QUESTION_WITH_RAG -> "/generating-question";
                 case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> "/generating-additional-question";
                 case EVALUATING_ANSWER_AND_LOGGING -> "/evaluating/answer";
-                case PRESENTING_CONCEPT_EXPLANATION, REEXPLAINING_CONCEPT -> "/explanation";
+                case PRESENTING_CONCEPT_EXPLANATION, REEXPLAINING_CONCEPT -> "/learning/explanation";
                 case PROCESSING_PAGE_SEARCH_RESULT -> "/processing-page-search-result";
                 default -> throw new IllegalArgumentException("정의되지 않은 상태: " + state);
             };
