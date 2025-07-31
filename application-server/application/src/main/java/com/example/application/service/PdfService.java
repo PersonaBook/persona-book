@@ -50,7 +50,7 @@ public class PdfService {
             
             // langchain-server의 RAG 엔드포인트 호출 (비동기)
             webClient.post()
-                .uri("/generate-question")
+                .uri("/generating-question")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestData)
                 .retrieve()
@@ -116,7 +116,7 @@ public class PdfService {
             formData.add("count", 1);
 
             webClient.post()
-                .uri("/generate-question")
+                .uri("/generating-question")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(formData))
                 .retrieve()

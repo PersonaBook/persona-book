@@ -27,7 +27,7 @@
     },
     "6": {
       "title": "객체지향 프로그래밍 I",
-      "keywords": ["객체지향", "OOP", "클래스", "class", "메서드", "method", "변수", "생성자", "constructor", "오버로딩", "overloading", "인스턴스", "instance"],
+      "keywords": ["객체지향", "OOP", "클래스", "class", "메서드", "method", "생성자", "constructor", "오버로딩", "overloading", "인스턴스", "instance"],
       "page_range": [321, 420]
     },
     "7": {

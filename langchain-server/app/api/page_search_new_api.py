@@ -67,7 +67,7 @@ def handle_processing_page_search_result(user: UserMessageRequest):
         # 키워드 기반 페이지 검색 (향상된 키워드 시스템 활용)
         try:
             from app.utils.chapter_mapper import load_keywords_data
-            from app.data.keywords_detailed import keywords_data  # 실제 키워드 데이터
+            from app.data.keywords_detailed import keywords_data as detailed_keywords_data
             
             keywords_data = load_keywords_data()
             search_results = []
@@ -86,14 +86,8 @@ def handle_processing_page_search_result(user: UserMessageRequest):
             
             # 상세 키워드 데이터에서도 찾기
             try:
-                import json
-                import os
-                detailed_keywords_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'keywords_detailed.json')
-                with open(detailed_keywords_path, 'r', encoding='utf-8') as f:
-                    detailed_keywords = json.load(f)
-                
                 exact_matches = []
-                for item in detailed_keywords:
+                for item in detailed_keywords_data:
                     if search_query.lower() in item['word'].lower():
                         pages = item['pages']
                         exact_matches.append({

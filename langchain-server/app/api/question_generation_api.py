@@ -1,3 +1,4 @@
+
 """
 문제 생성 관련 API
 """
@@ -144,6 +145,10 @@ async def handle_generating_question(user: UserMessageRequest):
         final_content = re.sub(r'정답 정보:.*?$', '', final_content, flags=re.DOTALL).strip()
         final_content = re.sub(r'\[정답.*?\]', '', final_content, flags=re.DOTALL).strip()
         final_content = re.sub(r'정답.*?$', '', final_content, flags=re.DOTALL).strip()
+
+        # 마크다운 코드 블록 제거
+        final_content = final_content.replace('```', '')
+
         print(f"🔍 최종 응답 content: {final_content}")
         
         # domain과 concept 추출 (사용자 입력에서)

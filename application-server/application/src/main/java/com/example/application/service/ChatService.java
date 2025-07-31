@@ -236,13 +236,36 @@ public class ChatService {
         ChatState state = userMessageDto.getChatState();
 
         return switch (state) {
-            case GENERATING_QUESTION_WITH_RAG, GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> UserMessageDto.builder()
+            case GENERATING_QUESTION_WITH_RAG -> UserMessageDto.builder()
                     .userId(userMessageDto.getUserId())
                     .bookId(userMessageDto.getBookId())
                     .content(userMessageDto.getContent())
                     .messageType(userMessageDto.getMessageType())
                     .chatState(state)
                     .build();
+
+            case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> {
+                Question lastQuestion = questionRepository.findTopByUserIdAndBookIdOrderByCreatedAtDesc(
+                        userMessageDto.getUserId(), userMessageDto.getBookId()
+                ).orElse(null);
+
+                String content = "Java"; // 기본값 설정
+                if (lastQuestion != null) {
+                    if (lastQuestion.getConcept() != null && !lastQuestion.getConcept().isBlank()) {
+                        content = lastQuestion.getConcept();
+                    } else if (lastQuestion.getProblemText() != null && !lastQuestion.getProblemText().isBlank()) {
+                        content = lastQuestion.getProblemText(); // concept이 없으면 problemText를 사용
+                    }
+                }
+
+                yield UserMessageDto.builder()
+                        .userId(userMessageDto.getUserId())
+                        .bookId(userMessageDto.getBookId())
+                        .content(content) // 안전하게 확보된 content 사용
+                        .messageType(userMessageDto.getMessageType())
+                        .chatState(state)
+                        .build();
+            }
 
             case EVALUATING_ANSWER_AND_LOGGING -> UserMessageDto.builder()
                     .userId(userMessageDto.getUserId())
@@ -354,8 +377,8 @@ public class ChatService {
                     ✏️ 문제 생성을 위한 범위나 개념을 입력해주세요.
                     
                     예시  
-                    - '2장 3절'  
-                    - '운영체제의 스케줄링 알고리즘'
+                    - '3장 전체'  
+                    - '10 ~ 15페이지'
                     """;
 
             case WAITING_KEYWORD_FOR_PAGE_SEARCH -> """
