@@ -311,7 +311,6 @@ function initializeLoginValidation() {
     const $nameInput = $('#name');
     const $userPhoneNumberInput = $('#userPhoneNumber');
     const form = $('form');
-    form.attr('id', 'form_area');
 
     const $sendVerificationCodeBtn = $('#sendVerificationCodeBtn');
     const $verificationCodeSection = $('#verificationCodeSection');
