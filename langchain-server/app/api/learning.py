@@ -1,5 +1,6 @@
 from app.repository.learning_material_repository import LearningMaterialRepository
 from app.schemas.request.learning import ExplanationRequest
+from app.schemas.response.learning import ExplanationApiResponse
 from app.services.learning_service import LearningService
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.dependencies import get_learning_material_repository
@@ -23,7 +24,11 @@ async def get_learning_agent(
     return agent
 
 
-@router.post("/explanation", status_code=status.HTTP_200_OK)
+@router.post(
+    "/explanation",
+    response_model=ExplanationApiResponse,
+    status_code=status.HTTP_200_OK,
+)
 async def get_explanation(
     request: ExplanationRequest,
     learning_service: LearningService = Depends(get_learning_service),

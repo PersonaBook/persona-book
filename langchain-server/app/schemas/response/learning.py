@@ -39,3 +39,12 @@ class LearningSearchResponse(BaseModel):
     results: List[LearningMaterialSearchResult] = []
     total_hits: int
     query_vector_dimension: Optional[int] = None
+
+
+class ExplanationResult(BaseModel):
+    explanation: str
+
+
+class ExplanationApiResponse(BaseModel):
+    message: str
+    result: ExplanationResult
