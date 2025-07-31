@@ -36,6 +36,7 @@ public class ConceptExplanationRequestDto {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class UserInfo {
         private Long userId;
         private Integer age;
@@ -62,6 +63,7 @@ public class ConceptExplanationRequestDto {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class ProblemInfo {
         private String domain;
         private String concept;
@@ -87,6 +89,7 @@ public class ConceptExplanationRequestDto {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class LowUnderstandingAttempt {
         private String explanationText;
         private String feedbackText;
@@ -142,6 +145,7 @@ public class ConceptExplanationRequestDto {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class BestAttempt {
         private String explanationText;
         private Integer understandingScore;

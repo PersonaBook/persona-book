@@ -4,6 +4,7 @@ from app.services.learning_service import LearningService
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.dependencies import get_learning_material_repository
 from app.agents.learning_agent import LearningAgent
+import traceback
 
 router = APIRouter()
 
@@ -29,6 +30,7 @@ async def get_explanation(
     learning_agent: LearningAgent = Depends(get_learning_agent),
 ):
     try:
+        print("🟢 요청 받음:", request.dict())
         preprocessed_data = await learning_service.preprocess_learning_request(request)
         agent_result = await learning_agent.run(preprocessed_data)
 
@@ -37,6 +39,8 @@ async def get_explanation(
             "result": agent_result,
         }
     except Exception as e:
+        print("🔥 예외 발생:", repr(e))
+        traceback.print_exc()  # 전체 traceback 출력
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred during explanation generation: {e}",

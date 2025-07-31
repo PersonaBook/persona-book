@@ -30,7 +30,7 @@ class LearningService:
         self.gemini_summary_service = GeminiSummaryService()
 
     async def preprocess_learning_request(
-        self, request: ExplanationRequest
+            self, request: ExplanationRequest
     ) -> PreprocessedLearningResponse:
         summaries = await asyncio.gather(
             *[
@@ -41,13 +41,16 @@ class LearningService:
                 )
                 for attempt in request.low_understanding_attempts
             ]
-        )
+        ) if request.low_understanding_attempts else []
+
         result = PreprocessedLearningResponse(
             user_info=UserInfoTool(**request.user_info.dict()),
             low_understanding_attempts_summary=[
                 LowUnderstandingAttemptSummary(**s) for s in summaries
             ],
-            best_attempt_text=request.best_attempt.explanation_text,
+            best_attempt_text=(
+                request.best_attempt.explanation_text if request.best_attempt and request.best_attempt.explanation_text else None
+            ),
             problem_info=ProblemInfoTool(**request.problem_info.dict()),
         )
         print("[LearningService] Preprocessed learning request result:")
@@ -55,7 +58,7 @@ class LearningService:
         return result
 
     async def process_external_search_and_index(
-        self, request: ExternalSearchRequest
+            self, request: ExternalSearchRequest
     ) -> List[LearningMaterialSearchResult]:
         print(
             f"Processing external search and indexing for query: '{request.query}' with site_restrict: {request.site_restrict if hasattr(request, 'site_restrict') else 'None'}"
@@ -163,7 +166,7 @@ class LearningService:
         return "UNKNOWN"
 
     async def search_learning_materials(
-        self, request: LearningSearchRequest
+            self, request: LearningSearchRequest
     ) -> LearningSearchResponse:
         print(
             f"Searching learning materials for query: '{request.query}' with search_type: '{request.search_type}'"
@@ -246,7 +249,7 @@ class LearningService:
         )
 
     async def search_learning_materials_for_tool(
-        self, concept: str, learning_experience: str, problem_text: str, top_k: int = 5
+            self, concept: str, learning_experience: str, problem_text: str, top_k: int = 5
     ) -> List[LearningMaterialSearchResult]:
         # 난이도 우선순위 매핑
         difficulty_priority = {

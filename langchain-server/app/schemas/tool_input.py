@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 class UserInfoTool(BaseModel):
@@ -25,7 +25,7 @@ class ProblemInfoTool(BaseModel):
 class LearningMaterialSearchToolInput(BaseModel):
     user_info: UserInfoTool
     low_understanding_attempts_summary: List[LowUnderstandingAttemptSummaryTool]
-    best_attempt_text: str
+    best_attempt_text: Optional[str] = None
     problem_info: ProblemInfoTool
 
 
@@ -41,9 +41,9 @@ class ExplanationGeneratorToolInput(BaseModel):
     )
     user_info: UserInfoTool = Field(..., description="User's information.")
     problem_info: ProblemInfoTool = Field(..., description="Problem information.")
-    low_understanding_attempts_summary: List[LowUnderstandingAttemptSummaryTool] = (
-        Field(..., description="Summary of previous low understanding attempts.")
+    low_understanding_attempts_summary: List[LowUnderstandingAttemptSummaryTool] = Field(
+        ..., description="Summary of previous low understanding attempts."
     )
-    best_attempt_text: str = Field(
-        ..., description="Text of the best previous explanation."
+    best_attempt_text: Optional[str] = Field(
+        None, description="Text of the best previous explanation."
     )

@@ -12,7 +12,7 @@ class LowUnderstandingAttemptSummary(BaseModel):
 class PreprocessedLearningResponse(BaseModel):
     user_info: UserInfoTool
     low_understanding_attempts_summary: List[LowUnderstandingAttemptSummary]
-    best_attempt_text: str
+    best_attempt_text: Optional[str] = None
     problem_info: ProblemInfoTool
 
 

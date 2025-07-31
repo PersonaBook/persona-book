@@ -4,33 +4,33 @@ from typing import Optional, List
 
 class UserInfo(BaseModel):
     user_id: int
-    age: int
-    learning_experience: str
+    age: Optional[int] = None
+    learning_experience: Optional[str] = None
 
 
 class LowUnderstandingAttempt(BaseModel):
-    explanation_text: str
-    feedback_text: str
-    understanding_score: int
+    explanation_text: Optional[str] = None
+    feedback_text: Optional[str] = None
+    understanding_score: Optional[int] = None
 
 
 class BestAttempt(BaseModel):
-    explanation_text: str
-    understanding_score: int
+    explanation_text: Optional[str] = None
+    understanding_score: Optional[int] = None
 
 
 class ProblemInfo(BaseModel):
     concept: str
     problem_text: str
-    user_answer: str
+    user_answer: Optional[str] = None
     correct_answer: str
     domain: str
 
 
 class ExplanationRequest(BaseModel):
     user_info: UserInfo
-    low_understanding_attempts: List[LowUnderstandingAttempt]
-    best_attempt: BestAttempt
+    low_understanding_attempts: List[LowUnderstandingAttempt] = []
+    best_attempt: Optional[BestAttempt] = None
     problem_info: ProblemInfo
 
 
