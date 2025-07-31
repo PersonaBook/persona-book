@@ -1,7 +1,7 @@
 // 공통 에러 처리 함수
 function handleApiError(xhr, defaultMessage = '오류가 발생했습니다.') {
     let errorMessage = defaultMessage;
-    
+
     if (xhr.responseJSON && xhr.responseJSON.message) {
         errorMessage = xhr.responseJSON.message;
     } else if (xhr.responseText) {
@@ -14,20 +14,20 @@ function handleApiError(xhr, defaultMessage = '오류가 발생했습니다.') {
             // JSON 파싱 실패시 기본 메시지 사용
         }
     }
-    
+
     // 인증 관련 에러 처리
     if (xhr.status === 401) {
         alert('로그인이 필요합니다.');
         window.location.href = '/user/login';
         return;
     }
-    
+
     // 권한 관련 에러 처리
     if (xhr.status === 403) {
         alert('접근 권한이 없습니다.');
         return;
     }
-    
+
     // 기타 에러 처리
     alert(errorMessage);
 }
@@ -68,12 +68,12 @@ function logout() {
             // 클라이언트 토큰 정리
             localStorage.clear();
             sessionStorage.clear();
-            
+
             // 쿠키도 삭제
-            document.cookie.split(";").forEach(function(c) { 
-                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
             });
-            
+
             window.location.href = '/';
         },
         error: function() {
@@ -88,7 +88,7 @@ function logout() {
 // 토큰 만료 확인 함수
 function isTokenExpired(token) {
     if (!token) return true;
-    
+
     try {
         // JWT 토큰을 디코딩하여 만료시간 확인
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -104,7 +104,7 @@ function autoLogout() {
     // 토큰 정리
     localStorage.removeItem('accessToken');
     sessionStorage.removeItem('accessToken');
-    
+
     alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
     window.location.href = '/user/login';
 }
@@ -118,7 +118,7 @@ const HeaderAuthManager = {
         logoutNav: null,
         logoutMenu: null,
     },
-    
+
     // 초기화
     init() {
         this.cacheElements();
@@ -126,7 +126,7 @@ const HeaderAuthManager = {
         this.bindEvents();
         this.startTokenExpiryCheck();
     },
-    
+
     // DOM 요소 캐싱
     cacheElements() {
         this.elements.loginNav = document.getElementById('login-nav');
@@ -134,23 +134,23 @@ const HeaderAuthManager = {
         this.elements.logoutNav = document.getElementById('logout-nav');
         this.elements.logoutMenu = document.getElementById('logout-menu');
     },
-    
+
     // 토큰 상태 확인 (만료 체크 포함)
     hasValidToken() {
         const token = getAuthToken();
         if (!token || token.trim() === '') {
             return false;
         }
-        
+
         // 토큰 만료 확인
         if (isTokenExpired(token)) {
             autoLogout();
             return false;
         }
-        
+
         return true;
     },
-    
+
     // UI 업데이트
     updateUI() {
         const isLoggedIn = this.hasValidToken();
@@ -159,14 +159,14 @@ const HeaderAuthManager = {
         this.toggleElement(this.elements.logoutNav, isLoggedIn);
         this.toggleElement(this.elements.logoutMenu, isLoggedIn);
     },
-    
+
     // 요소 표시/숨김 토글
     toggleElement(element, show) {
         if (element) {
             element.style.display = show ? 'block' : 'none';
         }
     },
-    
+
     // 토큰 만료 주기적 확인 시작
     startTokenExpiryCheck() {
         // 1분마다 토큰 만료 확인
@@ -177,19 +177,19 @@ const HeaderAuthManager = {
             }
         }, 60000); // 1분 = 60000ms
     },
-    
+
     // 이벤트 바인딩
     bindEvents() {
         // 페이지 포커스 이벤트
         $(window).on('focus', () => this.updateUI());
-        
+
         // 탭 전환 이벤트
         $(document).on('visibilitychange', () => {
             if (!document.hidden) {
                 this.updateUI();
             }
         });
-        
+
         // localStorage/sessionStorage 변경 이벤트 (다른 탭에서의 변경 감지)
         $(window).on('storage', (e) => {
             if (e.originalEvent.key === 'accessToken') {
@@ -197,7 +197,7 @@ const HeaderAuthManager = {
             }
         });
     },
-    
+
     // 강제 UI 업데이트 (외부에서 호출 가능)
     refresh() {
         this.updateUI();
@@ -270,56 +270,57 @@ $(document).ready(function(){
         $('section > div > div.container').css('min-height', vh - headerH);
         $('#bookData').css('min-height', vh - headerH);
     }
-  
+
     adjustSectionHeight();
     $(window).on('resize', adjustSectionHeight);
-    
+
     // 헤더 인증 관리자 초기화
     HeaderAuthManager.init();
-    
+
+
     // 비밀번호 리셋 폼 이벤트 처리
     const resetPasswordForm = document.getElementById('resetPasswordForm');
     if (resetPasswordForm) {
         resetPasswordForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const userName = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const verificationCode = document.getElementById('verificationCode').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-            
+
             // 비밀번호 확인 검증
             if (newPassword !== confirmNewPassword) {
                 alert('새로운 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
                 return;
             }
-            
+
             // 비밀번호 리셋 함수 호출
             resetPassword(userName, email, newPassword);
         });
     }
-    
+
     // ID 찾기 폼 이벤트 처리
     const idInquiryForm = document.getElementById('form_area');
     if (idInquiryForm) {
         idInquiryForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const userName = document.getElementById('name').value;
             const email = document.getElementById('email').value;
-            
+
             // ID 찾기 함수 호출
             findUserId(userName, email);
         });
     }
-    
+
     // URL에서 토큰 파라미터 처리
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const rememberMe = urlParams.get('rememberMe') === 'true';
     const shouldRefresh = urlParams.get('refresh') === 'true';
-    
+
     // 토큰이 있으면 rememberMe에 따라 저장
     if (token) {
         setAuthToken(token, rememberMe);
@@ -331,7 +332,7 @@ $(document).ready(function(){
             .replace(/^\?$/, '');
         history.replaceState(null, '', cleanUrl);
     }
-    
+
     // 로그인 후 리다이렉트 시 새로고침
     if (shouldRefresh) {
         setTimeout(() => {
