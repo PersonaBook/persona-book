@@ -1,4 +1,4 @@
-version: '3.8' # 사용할 Docker Compose 파일의 버전 (3.8은 대부분 기능 지원)
+# version: '3.8' # Docker Compose v2에서는 version 필드가 불필요함
 
 services: # 여러 개의 컨테이너를 정의할 수 있는 블록
   mysql: # 내부 네트워크에서 mysql로 접근 가능
@@ -60,6 +60,9 @@ services: # 여러 개의 컨테이너를 정의할 수 있는 블록
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
       - "9200:9200"
