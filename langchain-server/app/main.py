@@ -14,6 +14,7 @@ from app.api.question_generation_api import router as question_generation_router
 from app.api.answer_evaluation_api import router as answer_evaluation_router
 from app.api.concept_explanation_api import router as concept_explanation_router
 from app.api.page_search_new_api import router as page_search_new_router
+from app.api.pdf_upload_api import router as pdf_upload_router
 
 # 제거된 파일들의 import는 삭제됨
 
@@ -71,6 +72,7 @@ app.include_router(question_generation_router, prefix="/api/v1", tags=["Question
 app.include_router(answer_evaluation_router, prefix="/api/v1", tags=["Answer Evaluation"])
 app.include_router(concept_explanation_router, prefix="/api/v1", tags=["Concept Explanation"])
 app.include_router(page_search_new_router, prefix="/api/v1", tags=["Page Search"])
+app.include_router(pdf_upload_router, prefix="/api/v1", tags=["PDF Upload"])
 
 # 제거된 라우터들은 등록하지 않음
 
