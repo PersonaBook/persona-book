@@ -3,6 +3,7 @@ package com.example.application.service;
 import com.example.application.dto.chat.AiMessageDto;
 import com.example.application.dto.chat.UserMessageDto;
 import com.example.application.dto.chat.request.ConceptExplanationRequestDto;
+import com.example.application.dto.chat.response.ConceptExplanationResponseDto;
 import com.example.application.dto.chat.response.GeneratingQuestionResponseDto;
 import com.example.application.entity.ChatHistory;
 import com.example.application.entity.ChatHistory.ChatState;
@@ -181,11 +182,11 @@ public class ChatService {
 
             return switch (state) {
                 case PRESENTING_CONCEPT_EXPLANATION, REEXPLAINING_CONCEPT -> {
-                    String response = webClient.post()
+                    ConceptExplanationResponseDto response = webClient.post()
                             .uri(uri)
                             .bodyValue(requestDto)
                             .retrieve()
-                            .bodyToMono(String.class)
+                            .bodyToMono(ConceptExplanationResponseDto.class)
                             .block();
 
                     yield AiMessageDto.builder()
@@ -193,7 +194,7 @@ public class ChatService {
                             .bookId(userMessageDto.getBookId())
                             .chatState(state)
                             .messageType("TEXT")
-                            .content(response) // 설명 텍스트만 추출
+                            .content(response.getResult().getExplanation()) // 설명 텍스트만 추출
                             .build();
                 }
 
