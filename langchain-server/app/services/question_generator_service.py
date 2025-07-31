@@ -31,6 +31,7 @@ class QuestionGeneratorService:
         )
         self.index_name = "java_learning_docs"  # 고정된 인덱스 이름
     
+    
     def has_vector_store(self) -> bool:
         """벡터 스토어가 이미 존재하는지 확인"""
         if self.vector_store is not None:
@@ -325,7 +326,6 @@ class QuestionGeneratorService:
         except Exception as e:
             print(f"❌ 응답 파싱 오류: {e}")
             return content[:500], "정답을 확인해주세요.", "해설을 확인해주세요.", ["선택지1", "선택지2", "선택지3", "선택지4"]
-
 
 # 싱글톤 인스턴스
 question_generator_service = QuestionGeneratorService() 

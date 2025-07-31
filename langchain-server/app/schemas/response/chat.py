@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 from app.schemas.enum import Sender, MessageType, ChatState
 
 
@@ -20,7 +21,7 @@ class GeneratingQuestionResponse(BaseModel):
     content: str
     messageType: MessageType = MessageType.TEXT
     chatState: ChatState
-    domain: str
-    concept: str
-    problemText: str
-    correctAnswer: str
+    domain: Optional[str] = None
+    concept: Optional[str] = None
+    problemText: Optional[str] = None
+    correctAnswer: Optional[str] = None

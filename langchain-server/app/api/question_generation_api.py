@@ -109,6 +109,7 @@ async def handle_generating_question(user: UserMessageRequest):
             print(f"✅ 문제 생성 완료: {result.get('success', False)}")
             
             if result.get("success", False):
+                
                 # 문제와 정답 정보를 함께 저장
                 question = result.get("question", "문제가 생성되었습니다.")
                 answer = result.get("correct_answer", "")
@@ -150,7 +151,7 @@ async def handle_generating_question(user: UserMessageRequest):
         final_content = final_content.replace('```', '')
 
         print(f"🔍 최종 응답 content: {final_content}")
-        
+
         # domain과 concept 추출 (사용자 입력에서)
         domain = "Java Programming"  # 기본값
         concept = (mapped_content if mapped_content else raw_input)[:200]  # 200자로 제한
@@ -195,12 +196,35 @@ async def handle_generating_additional_question(user: UserMessageRequest):
         # 결과가 딕셔너리인 경우 처리
         if isinstance(result, dict):
             if result.get("success", False):
-                content = result.get("question", "추가 문제가 생성되었습니다.")
+                question = result.get("question", "추가 문제가 생성되었습니다.")
+                options = result.get("options", [])
+                
+                # 객관식만 허용 - 선택지가 없으면 오류
+                if options and len(options) > 0:
+                    content = f"{question}\n\n"
+                    for i, option in enumerate(options, 1):
+                        content += f"{i}. {option}\n"
+                    print(f"✅ 추가 문제 - 선택지 포함된 문제 생성 완료")
+                else:
+                    print(f"❌ 추가 문제 - 선택지가 없어 객관식 생성 실패")
+                    content = "죄송합니다. 객관식 문제 생성에 실패했습니다. 다시 시도해주세요."
             else:
                 content = result.get("message", "추가 문제 생성에 실패했습니다.")
         else:
             # 문자열인 경우 그대로 사용
             content = str(result)
+        
+        # 최종 응답에서 정답 정보 제거
+        import re
+        final_content = re.sub(r'\[정답 정보:.*?\]', '', content, flags=re.DOTALL).strip()
+        final_content = re.sub(r'정답 정보:.*?$', '', final_content, flags=re.DOTALL).strip()
+        final_content = re.sub(r'\[정답.*?\]', '', final_content, flags=re.DOTALL).strip()
+        final_content = re.sub(r'정답.*?$', '', final_content, flags=re.DOTALL).strip()
+
+        # 마크다운 코드 블록 제거
+        final_content = final_content.replace('```', '')
+
+        print(f"🔍 최종 응답 content: {final_content}")
         
         # 추가 문제에서도 필수 필드들 포함
         domain = "Java Programming"
@@ -221,10 +245,10 @@ async def handle_generating_additional_question(user: UserMessageRequest):
         return GeneratingQuestionResponse(
             userId=user.userId,
             bookId=user.bookId,
-            content=content,
+            content=final_content,
             messageType="TEXT",
             sender="AI",
-            chatState=ChatState.GENERATING_ADDITIONAL_QUESTION,
+            chatState=user.chatState,
             domain=domain,
             concept=concept,
             problemText=problem_text,

@@ -29,6 +29,7 @@ public class ChatHistory {
     @Enumerated(EnumType.STRING)
     private Sender sender; // "AI" or "USER"
 
+    @Column(length = 50)
     @Enumerated(EnumType.STRING)
     private ChatState chatState; // ✅ 단일 상태 (기존 feature/stage 통합)
 
@@ -53,11 +54,11 @@ public class ChatHistory {
         // 1. 예상 문제 생성 흐름
         // ────────────────────────────────
         WAITING_PROBLEM_CRITERIA_SELECTION,  // 문제 기준 선택 (1. 챕터/페이지, 2. 개념)
-        WAITING_PROBLEM_CONTEXT_INPUT,       // 챕터/페이지 번호 또는 개념 키워드 입력
+
         GENERATING_QUESTION_WITH_RAG,        // ✅ FastAPI 호출로 문제 생성
         GENERATING_ADDITIONAL_QUESTION_WITH_RAG, // ✅ FastAPI 호출로 문제 생성
         EVALUATING_ANSWER_AND_LOGGING,       // ✅ FastAPI 호출 → 정오답 판단 및 오답 저장
-
+        WAITING_PROBLEM_CONTEXT_INPUT,       // 챕터/페이지 번호 또는 개념 키워드 입력
         WAITING_NEXT_ACTION_AFTER_LEARNING,  // 다음 액션: 1. 다음 문제 / 2. 기능 선택
         PRESENTING_CONCEPT_EXPLANATION,      // ✅ 오답 개념 설명 (FastAPI 호출)
         WAITING_CONCEPT_RATING,              // 사용자 설명 평가 점수 입력

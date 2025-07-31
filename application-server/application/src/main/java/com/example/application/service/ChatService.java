@@ -105,7 +105,6 @@ public class ChatService {
             // ✅ 1. 문제 생성 흐름
             case WAITING_PROBLEM_CRITERIA_SELECTION -> ChatState.WAITING_PROBLEM_CONTEXT_INPUT; // 챕터/개념 입력 요청
             case WAITING_PROBLEM_CONTEXT_INPUT -> ChatState.GENERATING_QUESTION_WITH_RAG; // 입력 기반 RAG 생성 요청
-
             case GENERATING_QUESTION_WITH_RAG -> ChatState.EVALUATING_ANSWER_AND_LOGGING; // 문제 제시 완료
 
             // FastAPI가 해설을 포함한 피드백 응답 → 사용자에게 바로 평가 요청
@@ -374,11 +373,19 @@ public class ChatService {
                     """;
 
             case WAITING_PROBLEM_CONTEXT_INPUT -> """
-                    ✏️ 문제 생성을 위한 범위나 개념을 입력해주세요.
+                    ✏️ 문제 생성을 위한 챕터나 페이지 범위를 입력해주세요.
                     
                     예시  
                     - '3장 전체'  
                     - '10 ~ 15페이지'
+                    """;
+
+            case WAITING_CONCEPT_INPUT -> """
+                    📘 어떤 개념을 설명해드릴까요?
+                    
+                    예시  
+                    - '데드락'  
+                    - 'DFS와 BFS의 차이점'
                     """;
 
             case WAITING_KEYWORD_FOR_PAGE_SEARCH -> """
@@ -406,14 +413,6 @@ public class ChatService {
                     🤔 이해가 어려웠던 점을 알려주세요!
                     
                     어떤 부분이 헷갈렸는지 알려주시면 더 쉽게 다시 설명드릴게요.
-                    """;
-
-            case WAITING_CONCEPT_INPUT -> """
-                    📘 어떤 개념을 설명해드릴까요?
-                    
-                    예시  
-                    - '데드락'  
-                    - 'DFS와 BFS의 차이점'
                     """;
 
             default -> """
