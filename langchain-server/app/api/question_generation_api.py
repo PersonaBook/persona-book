@@ -19,6 +19,9 @@ current_question_answer = {}
 async def handle_generating_question(user: UserMessageRequest):
     """RAG와 로컬 임베딩을 모두 사용한 문제 생성 처리"""
     global current_question_answer
+    # 새로운 문제 생성 시 이전 정답 정보 초기화
+    current_question_answer = {}
+    
     try:
         print("=" * 80)
         print(f"🚀🚀🚀 문제 생성 API 호출됨!!! 🚀🚀🚀")
@@ -145,7 +148,7 @@ async def handle_generating_question(user: UserMessageRequest):
         
         # domain과 concept 추출 (사용자 입력에서)
         domain = "Java Programming"  # 기본값
-        concept = mapped_content if mapped_content else raw_input
+        concept = (mapped_content if mapped_content else raw_input)[:200]  # 200자로 제한
         
         return GeneratingQuestionResponse(
             userId=user.userId,
@@ -167,6 +170,10 @@ async def handle_generating_question(user: UserMessageRequest):
 @router.post("/generating-additional-question", response_model=GeneratingQuestionResponse)
 async def handle_generating_additional_question(user: UserMessageRequest):
     """추가 문제 생성 처리"""
+    global current_question_answer
+    # 새로운 문제 생성 시 이전 정답 정보 초기화
+    current_question_answer = {}
+    
     try:
         print(f"🚀 추가 문제 생성 API 호출됨")
         
@@ -192,10 +199,9 @@ async def handle_generating_additional_question(user: UserMessageRequest):
         
         # 추가 문제에서도 필수 필드들 포함
         domain = "Java Programming"
-        concept = query
+        concept = query[:200]  # 200자로 제한
         
         # 추가 문제의 정답 정보도 저장
-        global current_question_answer
         if isinstance(result, dict) and result.get("success", False):
             current_question_answer = {
                 "answer": result.get("correct_answer", ""),
