@@ -16,6 +16,16 @@
 
 ---
 
+## 🖼️ 데이터 파이프라인
+https://www.figma.com/board/Xw0B6VFKSx0Uj0tRNO2FgA/Untitled?node-id=0-1&p=f&t=8jBj2pGFQPkSKXHv-0
+
+---
+
+## 🖼️ 화면 정의서
+https://www.figma.com/design/XE0okH23BBH3Sgld85ljAA/4-1%EC%A1%B0-Chatbot-Project?node-id=0-1&p=f&t=QVZlIA1iFr26CEnJ-0
+
+---
+
 ## 🧱 시스템 개요
 
 본 시스템은 Docker Compose 네트워크 기반의 멀티 컨테이너 아키텍처로, Spring Boot, FastAPI, MySQL, Elasticsearch 등 주요 컴포넌트를 통합하여 다음과 같은 기능을 제공합니다:
