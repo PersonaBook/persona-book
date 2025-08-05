@@ -79,7 +79,7 @@ public class ChatService {
         responses.add(aiMessageDto);
 
         // 추가 메시지가 필요한 경우
-        if (nextState == ChatState.EVALUATING_ANSWER_AND_LOGGING || nextState == ChatState.REEXPLAINING_CONCEPT) {
+        if (nextState == ChatState.EVALUATING_ANSWER_AND_LOGGING || nextState == ChatState.REEXPLAINING_CONCEPT || nextState == ChatState.PRESENTING_CONCEPT_EXPLANATION || nextState == ChatState.PROCESSING_PAGE_SEARCH_RESULT) {
             ChatState afterNextState = determineNextState(nextState, userMessageDto.getContent());
             AiMessageDto followUpMessage = buildLocalAiMessage(afterNextState, userId, bookId);
 
@@ -105,6 +105,7 @@ public class ChatService {
             // ✅ 1. 문제 생성 흐름
             case WAITING_PROBLEM_CRITERIA_SELECTION -> ChatState.WAITING_PROBLEM_CONTEXT_INPUT; // 챕터/개념 입력 요청
             case WAITING_PROBLEM_CONTEXT_INPUT -> ChatState.GENERATING_QUESTION_WITH_RAG; // 입력 기반 RAG 생성 요청
+
             case GENERATING_QUESTION_WITH_RAG -> ChatState.EVALUATING_ANSWER_AND_LOGGING; // 문제 제시 완료
 
             // FastAPI가 해설을 포함한 피드백 응답 → 사용자에게 바로 평가 요청
