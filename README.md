@@ -191,6 +191,10 @@ https://www.figma.com/design/XE0okH23BBH3Sgld85ljAA/4-1%EC%A1%B0-Chatbot-Project
 ```bash
 OPENAI_API_KEY=sk-xxxxxxxxxxxx
 OPENAI_MODEL_NAME=gpt-4
+
+GEMINI_API_KEY=xxxxxxxxxxxx
+GOOGLE_SEARCH_API_KEY=xxxxxxxxxxxx
+GOOGLE_CSE_ID=xxxxxxxxxxxx
 ```
 
 ---
