@@ -1,12 +1,12 @@
-# 📚 AI 기반 학습 도우미 시스템
+# 📚 AI 기반 학습 도우미 서비스
 
-> Spring Boot + Thymleaf + FastAPI + LangChain + MySQL + Elasticsearch 기반의 실시간 개인화 학습 지원 플랫폼
+> Spring Boot + Thymleaf + FastAPI + LangChain + MySQL + Elasticsearch 기반의 실시간 개인화 학습 지원 서비스
 
 ---
 
 ## 🧠 주요 서비스 개요
 
-> 사용자가 직접 업로드한 교재(PDF)를 기반으로, 개인의 학습 상황에 맞춘 문제 생성, 개념 설명, 페이지 추천 등을 제공하는 상태 기반 학습 도우미 챗봇 서비스입니다. LangChain과 GPT-4를 활용해, 단순한 챗봇이 아닌 대화 흐름에 따라 반복 학습과 오답 피드백 루프를 구성할 수 있으며, 이를 위해 Spring Boot ↔ FastAPI(LangChain) ↔ Elasticsearch가 유기적으로 연결됩니다.
+> 사용자가 직접 업로드한 교재(PDF)를 기반으로, 개인의 학습 상황에 맞춘 문제 생성, 개념 설명, 페이지 추천 등을 제공하는 챗봇 기반 개인화 학습 지원 서비스입니다. LangChain과 GPT-4를 활용해, 단순한 챗봇이 아닌 대화 흐름에 따라 반복 학습과 오답 피드백 루프를 구성할 수 있으며, 이를 위해 Spring Boot ↔ FastAPI(LangChain) ↔ Elasticsearch가 유기적으로 연결됩니다.
 
 ---
 
