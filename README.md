@@ -1,6 +1,6 @@
 # 📚 AI 기반 학습 도우미 서비스
 
-> Spring Boot + Thymleaf + FastAPI + LangChain + MySQL + Elasticsearch 기반의 실시간 개인화 학습 지원 서비스
+> Spring Boot + Thymleaf + FastAPI + LangChain + MySQL + Elasticsearch를 활용한 챗봇 기반 개인화 학습 지원 서비스
 
 ---
 
