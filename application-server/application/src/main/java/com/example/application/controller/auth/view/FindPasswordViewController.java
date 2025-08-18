@@ -8,11 +8,11 @@ public class FindPasswordViewController {
 
     @GetMapping("/pwInquiry")
     public String findPasswordView() {
-        return "user/pwInquiry";
+        return "pw-inquiry";
     }
 
     @GetMapping("/findPasswordSuccess")
     public String findPasswordSuccess() {
-        return "page/findPasswordSuccess";
+        return "find-password-success";
     }
 }

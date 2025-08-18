@@ -11,7 +11,7 @@ public class NoteController {
     @GetMapping("/note-main")
     public String noteMain(Model model) {
         model.addAttribute("title", "내 노트");
-        return "page/noteMain";
+        return "not-main";
     }
 
     @GetMapping("/noteDetail/{id}")

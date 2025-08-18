@@ -26,10 +26,10 @@ public class MyPageViewController {
         User user = jwtAuthUtil.getUserFromRequest(request);
         if (user == null) {
             model.addAttribute("errorMessage", "정보를 불러올 수 없습니다. 다시 로그인 해주세요.");
-            return "page/myPage";
+            return "my-page";
         }
         model.addAttribute("user", user);
-        return "page/myPage";
+        return "my-page";
     }
 
     @PostMapping("/myPage/update")

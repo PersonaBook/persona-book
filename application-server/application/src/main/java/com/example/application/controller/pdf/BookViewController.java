@@ -3,7 +3,7 @@ package com.example.application.controller.pdf;
 import com.example.application.entity.Book;
 import com.example.application.entity.User;
 import com.example.application.repository.BookRepository;
-import com.example.application.service.PdfService;
+import com.example.application.service.BookService;
 import com.example.application.util.JwtAuthUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.Optional;
 
 @Controller
-public class PdfViewController {
+public class BookViewController {
 
 
     private final BookRepository bookRepository;
@@ -24,13 +24,13 @@ public class PdfViewController {
 
     private final ObjectMapper objectMapper;
 
-    private final com.example.application.service.PdfService pdfService;
+    private final BookService bookService;
 
-    public PdfViewController(BookRepository bookRepository, JwtAuthUtil jwtAuthUtil, ObjectMapper objectMapper, PdfService pdfService) {
+    public BookViewController(BookRepository bookRepository, JwtAuthUtil jwtAuthUtil, ObjectMapper objectMapper, BookService bookService) {
         this.bookRepository = bookRepository;
         this.jwtAuthUtil = jwtAuthUtil;
         this.objectMapper = objectMapper;
-        this.pdfService = pdfService;
+        this.bookService = bookService;
     }
 
     @GetMapping("/pdf/detail/{bookId}")
@@ -54,7 +54,7 @@ public class PdfViewController {
             prepareModelAttributes(book, model);
             
             System.out.println("템플릿 반환: page/pdfDetail");
-            return "page/pdfDetail";
+            return "pdf-detail";
         } catch (Exception e) {
             System.out.println("오류 발생: " + e.getMessage());
             e.printStackTrace();
@@ -100,7 +100,7 @@ public class PdfViewController {
     private void processPdfForFastApi(Book book) {
         // FastAPI 전송 메서드 호출 (비동기)
         if (book.getFileBase64() != null) {
-            pdfService.sendPdfToFastApi(book.getFileBase64());
+            bookService.sendPdfToFastApi(book.getFileBase64());
         }
     }
     

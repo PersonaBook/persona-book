@@ -9,12 +9,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import com.example.application.repository.BookRepository;
-import com.example.application.entity.Book;
 
 import java.util.Base64;
 import java.util.Map;
@@ -24,7 +19,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PdfService {
+public class BookService {
 
     private final WebClient webClient;
     private final BookRepository bookRepository;

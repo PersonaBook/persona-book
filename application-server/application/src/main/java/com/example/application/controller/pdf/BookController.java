@@ -2,7 +2,7 @@ package com.example.application.controller.pdf;
 
 import com.example.application.entity.Book;
 import com.example.application.repository.BookRepository;
-import com.example.application.service.PdfService;
+import com.example.application.service.BookService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,16 +15,16 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-public class PdfController {
+public class BookController {
 
     private final JwtAuthUtil jwtAuthUtil;
     private final BookRepository bookRepository;
-    private final PdfService pdfService;
+    private final BookService bookService;
 
-    public PdfController(JwtAuthUtil jwtAuthUtil, BookRepository bookRepository, PdfService pdfService) {
+    public BookController(JwtAuthUtil jwtAuthUtil, BookRepository bookRepository, BookService bookService) {
         this.jwtAuthUtil = jwtAuthUtil;
         this.bookRepository = bookRepository;
-        this.pdfService = pdfService;
+        this.bookService = bookService;
     }
 
     @PostMapping("/api/pdf/upload")
@@ -40,7 +40,7 @@ public class PdfController {
             Book savedBook = createAndSaveBook(requestData, user);
             
             // PDF를 langchain-server로 전송하여 임베딩 처리 (비동기)
-            pdfService.sendPdfToLangchainServerAsync(
+            bookService.sendPdfToLangchainServerAsync(
                 savedBook.getFileBase64(),
                 savedBook.getBookId(),
                 savedBook.getUserId()
