@@ -2,8 +2,18 @@ package com.example.application.dto.book;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
-public record BookUploadRequestDto(
-        @NotBlank String title,
-        @JsonProperty("file_base64") @NotBlank String fileBase64
-) { }
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class BookUploadRequestDto {
+    @NotBlank
+    private String title;
+
+    @NotBlank
+    @JsonProperty("file_base64")
+    private String fileBase64;
+}

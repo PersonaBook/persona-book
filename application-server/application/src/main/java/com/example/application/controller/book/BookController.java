@@ -34,8 +34,8 @@ public class BookController {
 
         Book book = new Book();
         book.setUser(user);              // 연관관계 세팅
-        book.setTitle(req.title());
-        book.setFileBase64(req.fileBase64());
+        book.setTitle(req.getTitle());
+        book.setFileBase64(req.getFileBase64());
 
         Book saved = bookRepository.save(book);
 
