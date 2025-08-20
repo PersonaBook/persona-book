@@ -2,6 +2,7 @@ package com.example.application.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -15,34 +16,39 @@ public class ChatHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "chat_id")
     private Long chatId;
 
-    private Long userId;
-    private Long bookId;
+    // ✅ 기존 Long userId/bookId → 연관관계로 교체
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
 
     @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "message_type", length = 30)
     private MessageType messageType;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "sender", length = 10)
     private Sender sender; // "AI" or "USER"
 
-    @Column(length = 50)
     @Enumerated(EnumType.STRING)
-    private ChatState chatState; // ✅ 단일 상태 (기존 feature/stage 통합)
+    @Column(name = "chat_state", length = 50)
+    private ChatState chatState;
 
+    @CreationTimestamp
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public enum Sender {
-        AI, USER;
-    }
-
-    public enum MessageType {
-        TEXT, SELECTION, RATING
-    }
-
+    public enum Sender { AI, USER }
+    public enum MessageType { TEXT, SELECTION, RATING }
     public enum ChatState {
 
         // ────────────────────────────────
