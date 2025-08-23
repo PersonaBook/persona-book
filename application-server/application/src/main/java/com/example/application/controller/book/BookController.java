@@ -1,4 +1,3 @@
-// BookController.java
 package com.example.application.controller.book;
 
 import com.example.application.dto.book.BookSummaryResponseDto;
@@ -57,7 +56,7 @@ public class BookController {
         User user = jwtAuthUtil.getUserFromRequest(request);
         if (user == null) return ResponseEntity.status(401).body("인증 필요");
 
-        List<Book> books = bookRepository.findByUser_UserIdAndDeletedAtIsNull(user.getUserId());
+        List<Book> books = bookRepository.findByUserAndDeletedAtIsNull(user);
         List<BookSummaryResponseDto> result = books.stream().map(BookSummaryResponseDto::from).toList();
         return ResponseEntity.ok(result);
     }

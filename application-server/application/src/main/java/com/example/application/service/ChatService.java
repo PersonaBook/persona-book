@@ -5,10 +5,12 @@ import com.example.application.dto.chat.UserMessageDto;
 import com.example.application.dto.chat.request.ConceptExplanationRequestDto;
 import com.example.application.dto.chat.response.ConceptExplanationResponseDto;
 import com.example.application.dto.chat.response.GeneratingQuestionResponseDto;
+import com.example.application.entity.Book;
 import com.example.application.entity.ChatHistory;
 import com.example.application.entity.ChatHistory.ChatState;
 import com.example.application.entity.Question;
 import com.example.application.entity.User;
+import com.example.application.repository.BookRepository;
 import com.example.application.repository.ChatHistoryRepository;
 import com.example.application.repository.QuestionRepository;
 import com.example.application.repository.UserRepository;
@@ -20,6 +22,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class ChatService {
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final ChatHistoryRepository chatHistoryRepository;
+    private final BookRepository bookRepository;
 
     public List<AiMessageDto> handleChatFlow(UserMessageDto userMessageDto) {
         List<AiMessageDto> responses = new ArrayList<>();
@@ -39,7 +44,7 @@ public class ChatService {
         Long userId = userMessageDto.getUserId();
         Long bookId = userMessageDto.getBookId();
 
-        // userMessageDto에서 state가 넘어오면 그걸 우선 사용 (프론트에서 새로운 대화를 위해 WAITING_USER_SELECT_FEATURE를 보내는 경우가 있음)
+        // userMessageDto에서 state가 넘어오면 그걸 우선 사용
         ChatState currentState = userMessageDto.getChatState();
 
         if (currentState == null) {
@@ -52,7 +57,7 @@ public class ChatService {
         // 빈 메시지인 경우: 초기 진입 상태만 유도, 유저 메시지는 저장 X
         if (userMessageDto.getContent() == null || userMessageDto.getContent().trim().isEmpty()) {
             ChatState initState = ChatState.WAITING_USER_SELECT_FEATURE;
-            AiMessageDto initMessage = buildLocalAiMessage(initState, userId, bookId);
+            AiMessageDto initMessage = buildLocalAiMessage(userId, bookId, initState);
             initMessage.setChatState(initState);
             chatHistoryService.saveAiMessage(initMessage, initState);
             responses.add(initMessage);
@@ -70,7 +75,7 @@ public class ChatService {
         // FastAPI 호출 여부 판단
         AiMessageDto aiMessageDto = shouldCallFastApi(nextState)
                 ? callFastApiByState(userMessageDto)
-                : buildLocalAiMessage(nextState, userId, bookId);
+                : buildLocalAiMessage(userId, bookId, nextState);
 
         // 다음 상태 설정 및 저장
         chatHistoryService.saveUserMessage(userMessageDto, currentState);
@@ -81,7 +86,7 @@ public class ChatService {
         // 추가 메시지가 필요한 경우
         if (nextState == ChatState.EVALUATING_ANSWER_AND_LOGGING || nextState == ChatState.REEXPLAINING_CONCEPT || nextState == ChatState.PRESENTING_CONCEPT_EXPLANATION || nextState == ChatState.PROCESSING_PAGE_SEARCH_RESULT) {
             ChatState afterNextState = determineNextState(nextState, userMessageDto.getContent());
-            AiMessageDto followUpMessage = buildLocalAiMessage(afterNextState, userId, bookId);
+            AiMessageDto followUpMessage = buildLocalAiMessage(userId, bookId, afterNextState);
 
             chatHistoryService.saveAiMessage(followUpMessage, afterNextState);
 
@@ -245,16 +250,20 @@ public class ChatService {
                     .build();
 
             case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> {
-                Question lastQuestion = questionRepository.findTopByUserIdAndBookIdOrderByCreatedAtDesc(
-                        userMessageDto.getUserId(), userMessageDto.getBookId()
-                ).orElse(null);
+                User user = userRepository.getReferenceById(userMessageDto.getUserId());
+                Book book = bookRepository.getReferenceById(userMessageDto.getBookId());
+
+                Optional<Question> lastQuestionOptional = questionRepository.findTopByUserAndBookOrderByCreatedAtDesc(
+                        user, book
+                );
 
                 String content = "Java"; // 기본값 설정
-                if (lastQuestion != null) {
+                if (lastQuestionOptional.isPresent()) {
+                    Question lastQuestion = lastQuestionOptional.get();
                     if (lastQuestion.getConcept() != null && !lastQuestion.getConcept().isBlank()) {
                         content = lastQuestion.getConcept();
-                    } else if (lastQuestion.getProblemText() != null && !lastQuestion.getProblemText().isBlank()) {
-                        content = lastQuestion.getProblemText(); // concept이 없으면 problemText를 사용
+                    } else if (lastQuestion.getQuestionText() != null && !lastQuestion.getQuestionText().isBlank()) {
+                        content = lastQuestion.getQuestionText(); // concept이 없으면 problemText를 사용
                     }
                 }
 
@@ -294,33 +303,63 @@ public class ChatService {
         Long userId = userMessageDto.getUserId();
         Long bookId = userMessageDto.getBookId();
 
+        // user와 book 프록시 객체 생성
+        User user = userRepository.getReferenceById(userId);
+        Book book = bookRepository.getReferenceById(bookId);
+
         // 1. UserInfo
-        User user = userRepository.findById(userId)
+        User userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
-        ConceptExplanationRequestDto.UserInfo userInfo = ConceptExplanationRequestDto.UserInfo.from(user);
+        ConceptExplanationRequestDto.UserInfo userInfo = ConceptExplanationRequestDto.UserInfo.from(userEntity);
 
         // 2. ProblemInfo
-        Question question = questionRepository.findTopByUserIdAndBookIdOrderByCreatedAtDesc(userId, bookId)
+        Question question = questionRepository.findTopByUserAndBookOrderByCreatedAtDesc(user, book)
                 .orElseThrow(() -> new IllegalStateException("최근 Question을 찾을 수 없습니다."));
 
-        ChatHistory userAnswer = chatHistoryRepository.findTopByUserIdAndBookIdAndSenderOrderByCreatedAtDesc(
-                userId, bookId, ChatHistory.Sender.USER).orElse(null);
+        ChatHistory userAnswer = chatHistoryRepository.findTopByUserAndBookAndSenderOrderByCreatedAtDesc(
+                user, book, ChatHistory.Sender.USER).orElse(null);
 
         ConceptExplanationRequestDto.ProblemInfo problemInfo =
                 ConceptExplanationRequestDto.ProblemInfo.from(question, userAnswer);
 
         // 3. LowUnderstandingAttempts (이해도 낮은 시도 목록)
-        List<ChatHistory> aiExplanations = chatHistoryRepository.findByUserIdAndBookIdAndSenderAndChatState(
-                userId, bookId, ChatHistory.Sender.AI, ChatHistory.ChatState.PRESENTING_CONCEPT_EXPLANATION);
+        // ✅ 수정: N+1 문제 해결을 위해 커스텀 쿼리 사용
+        List<ChatHistory> allChatHistories = chatHistoryRepository.findAiExplanationsWithRatingsByUserAndBookAndStates(
+                user,
+                book,
+                ChatHistory.Sender.AI,
+                List.of(ChatState.PRESENTING_CONCEPT_EXPLANATION, ChatState.WAITING_CONCEPT_RATING)
+        );
 
-        List<ConceptExplanationRequestDto.LowUnderstandingAttempt> lowAttempts =
-                ConceptExplanationRequestDto.LowUnderstandingAttempt.fromAll(userId, bookId, aiExplanations, chatHistoryRepository);
+        List<ConceptExplanationRequestDto.LowUnderstandingAttempt> lowAttempts = new ArrayList<>();
+        ConceptExplanationRequestDto.BestAttempt bestAttempt = null;
 
-        // 4. BestAttempt (가장 높은 이해도 시도)
-        ConceptExplanationRequestDto.BestAttempt bestAttempt =
-                ConceptExplanationRequestDto.BestAttempt.from(userId, bookId, aiExplanations, chatHistoryRepository);
+        // ✅ 수정: 단일 쿼리로 가져온 데이터를 메모리에서 처리
+        // 설명 메시지를 기준으로 맵을 만들어 평가 메시지를 찾기 쉽게 함
+        var explanationMap = allChatHistories.stream()
+                .filter(ch -> ch.getChatState() == ChatState.PRESENTING_CONCEPT_EXPLANATION)
+                .collect(Collectors.toMap(ChatHistory::getCreatedAt, ch -> ch));
 
-        // 5. 최종 객체 조립
+        for (ChatHistory ratingMsg : allChatHistories) {
+            if (ratingMsg.getChatState() == ChatState.WAITING_CONCEPT_RATING) {
+                Integer score = parseIntOrNull(ratingMsg.getContent());
+                if (score != null) {
+                    // 직전 AI 메시지(설명) 찾기
+                    ChatHistory prevAiMsg = explanationMap.get(ratingMsg.getCreatedAt().minusSeconds(1)); // 근사치로 탐색
+
+                    if (score >= 4 && bestAttempt == null) {
+                        bestAttempt = ConceptExplanationRequestDto.BestAttempt.from(prevAiMsg, ratingMsg);
+                    } else if (score <= 3) {
+                        ChatHistory feedback = chatHistoryRepository.findTopByUserAndBookAndSenderAndCreatedAtAfterAndChatState(
+                                user, book, ChatHistory.Sender.USER, ratingMsg.getCreatedAt(), ChatState.WAITING_REASON_FOR_LOW_RATING
+                        ).orElse(null);
+                        lowAttempts.add(ConceptExplanationRequestDto.LowUnderstandingAttempt.from(prevAiMsg, ratingMsg, feedback));
+                    }
+                }
+            }
+        }
+
+        // 4. 최종 객체 조립
         return ConceptExplanationRequestDto.builder()
                 .userInfo(userInfo)
                 .problemInfo(problemInfo)
@@ -329,16 +368,22 @@ public class ChatService {
                 .build();
     }
 
+    private static Integer parseIntOrNull(String s) {
+        try { return s == null ? null : Integer.parseInt(s.trim()); }
+        catch (NumberFormatException e) { return null; }
+    }
+
+
     private void saveQuestionFromResponse(GeneratingQuestionResponseDto response) {
+        User user = userRepository.getReferenceById(response.getUserId());
+        Book book = bookRepository.getReferenceById(response.getBookId());
+
         Question question = Question.builder()
-                .userId(response.getUserId())
-                .bookId(response.getBookId())
-//                .chatId(chatId)
-                .startPage(null) // 필요 시 FastAPI 응답에 추가
-                .endPage(null)   // 필요 시 FastAPI 응답에 추가
+                .user(user)
+                .book(book)
                 .domain(response.getDomain())
                 .concept(response.getConcept())
-                .problemText(response.getProblemText())
+                .questionText(response.getQuestionText())
                 .userAnswer(null) // 사용자가 답변하면 이후 업데이트 가능
                 .correctAnswer(response.getCorrectAnswer())
                 .createdAt(LocalDateTime.now())
@@ -348,7 +393,10 @@ public class ChatService {
     }
 
     private void updateUserAnswerToLatestQuestion(Long userId, Long bookId, String userAnswer) {
-        questionRepository.findTopByUserIdAndBookIdOrderByCreatedAtDesc(userId, bookId)
+        User user = userRepository.getReferenceById(userId);
+        Book book = bookRepository.getReferenceById(bookId);
+
+        questionRepository.findTopByUserAndBookOrderByCreatedAtDesc(user, book)
                 .ifPresent(question -> {
                     question.setUserAnswer(userAnswer);
                     questionRepository.save(question);
@@ -356,7 +404,7 @@ public class ChatService {
     }
 
 
-    private AiMessageDto buildLocalAiMessage(ChatState state, Long userId, Long bookId) {
+    private AiMessageDto buildLocalAiMessage(Long userId, Long bookId, ChatState state) {
         String message = switch (state) {
             case WAITING_USER_SELECT_FEATURE -> """
                     👋 안녕하세요! 어떤 걸 도와드릴까요?

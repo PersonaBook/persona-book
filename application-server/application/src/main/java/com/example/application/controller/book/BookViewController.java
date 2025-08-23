@@ -1,4 +1,3 @@
-// BookViewController.java
 package com.example.application.controller.book;
 
 import com.example.application.dto.book.BookDetailResponseDto;
@@ -43,7 +42,7 @@ public class BookViewController {
         try {
             // ✅ 레포 메서드 최신 시그니처로 교체
             Optional<Book> bookOpt =
-                    bookRepository.findByBookIdAndUser_UserIdAndDeletedAtIsNull(bookId, user.getUserId());
+                    bookRepository.findByBookIdAndUserAndDeletedAtIsNull(bookId, user);
 
             if (bookOpt.isEmpty()) {
                 log.warn("도서 없음/권한 없음: bookId={}, userId={}", bookId, user.getUserId());
