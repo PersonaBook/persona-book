@@ -19,14 +19,14 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/books")
+@RequestMapping("/api")
 public class BookController {
 
     private final JwtAuthUtil jwtAuthUtil;
     private final BookRepository bookRepository;
     private final BookService bookService;
 
-    @PostMapping
+    @PostMapping("/pdf/upload")
     public ResponseEntity<?> upload(@Valid @RequestBody BookUploadRequestDto req, HttpServletRequest request) {
         User user = jwtAuthUtil.getUserFromRequest(request);
         if (user == null) return ResponseEntity.status(401).body("인증 필요");
@@ -51,7 +51,7 @@ public class BookController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("/pdf/list")
     public ResponseEntity<?> list(HttpServletRequest request) {
         User user = jwtAuthUtil.getUserFromRequest(request);
         if (user == null) return ResponseEntity.status(401).body("인증 필요");
