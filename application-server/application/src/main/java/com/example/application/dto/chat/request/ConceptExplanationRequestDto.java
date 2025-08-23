@@ -3,24 +3,17 @@ package com.example.application.dto.chat.request;
 import com.example.application.entity.ChatHistory;
 import com.example.application.entity.Question;
 import com.example.application.entity.User;
-import com.example.application.repository.ChatHistoryRepository;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
-@Data
-@Builder
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ConceptExplanationRequestDto {
 
@@ -29,13 +22,7 @@ public class ConceptExplanationRequestDto {
     private BestAttempt bestAttempt;
     private ProblemInfo problemInfo;
 
-    // ────────────────────────────────
-    // 1. 사용자 정보
-    // ────────────────────────────────
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class UserInfo {
         private Long userId;
@@ -45,24 +32,14 @@ public class ConceptExplanationRequestDto {
         public static UserInfo from(User user) {
             return UserInfo.builder()
                     .userId(user.getUserId())
-                    .age(calculateAge(user.getUserBirthDate()))
-                    .learningExperience(user.getUserJob()) // 직업 → 학습 경험으로 사용
+                    .age(user.getUserBirthDate() == null ? null
+                            : LocalDate.now().getYear() - user.getUserBirthDate().getYear())
+                    .learningExperience(user.getUserJob())
                     .build();
-        }
-
-        private static Integer calculateAge(LocalDate birthDate) {
-            if (birthDate == null) return null;
-            return LocalDate.now().getYear() - birthDate.getYear();
         }
     }
 
-    // ────────────────────────────────
-    // 2. 문제 정보
-    // ────────────────────────────────
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class ProblemInfo {
         private String domain;
@@ -71,122 +48,50 @@ public class ConceptExplanationRequestDto {
         private String userAnswer;
         private String correctAnswer;
 
-        public static ProblemInfo from(Question question, ChatHistory userAnswerMessage) {
+        public static ProblemInfo from(Question q, ChatHistory userAnswerMsg) {
             return ProblemInfo.builder()
-                    .domain(question.getDomain())
-                    .concept(question.getConcept())
-                    .problemText(question.getProblemText())
-                    .userAnswer(userAnswerMessage != null ? userAnswerMessage.getContent() : null)
-                    .correctAnswer(question.getCorrectAnswer())
+                    .domain(q.getDomain())
+                    .concept(q.getConcept())
+                    .problemText(q.getQuestionText())
+                    .userAnswer(userAnswerMsg != null ? userAnswerMsg.getContent() : null)
+                    .correctAnswer(q.getCorrectAnswer())
                     .build();
         }
     }
 
-    // ────────────────────────────────
-    // 3. 낮은 이해도 시도들
-    // ────────────────────────────────
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class LowUnderstandingAttempt {
         private String explanationText;
         private String feedbackText;
         private Integer understandingScore;
 
-        public static LowUnderstandingAttempt from(ChatHistory aiMessage, ChatHistory userRating, ChatHistory userFeedback) {
+        public static LowUnderstandingAttempt from(ChatHistory aiMsg, ChatHistory rating, ChatHistory feedback) {
             return LowUnderstandingAttempt.builder()
-                    .explanationText(aiMessage.getContent())
-                    .feedbackText(userFeedback != null ? userFeedback.getContent() : null)
-                    .understandingScore(userRating != null ? parseInteger(userRating.getContent()) : null)
+                    .explanationText(aiMsg.getContent())
+                    .feedbackText(feedback != null ? feedback.getContent() : null)
+                    .understandingScore(parseIntOrNull(rating != null ? rating.getContent() : null))
                     .build();
-        }
-
-        public static List<LowUnderstandingAttempt> fromAll(
-                Long userId,
-                Long bookId,
-                List<ChatHistory> aiMessages,
-                ChatHistoryRepository repo
-        ) {
-            List<LowUnderstandingAttempt> result = new ArrayList<>();
-
-            for (ChatHistory aiMsg : aiMessages) {
-                ChatHistory rating = repo.findTopByUserIdAndBookIdAndSenderAndCreatedAtAfterAndChatState(
-                        userId, bookId, ChatHistory.Sender.USER, aiMsg.getCreatedAt(), ChatHistory.ChatState.WAITING_CONCEPT_RATING
-                ).orElse(null);
-
-                Integer score = rating != null ? parseInteger(rating.getContent()) : null;
-                if (score != null && score <= 3) {
-                    ChatHistory feedback = repo.findTopByUserIdAndBookIdAndSenderAndCreatedAtAfterAndChatState(
-                            userId, bookId, ChatHistory.Sender.USER, rating.getCreatedAt(), ChatHistory.ChatState.WAITING_REASON_FOR_LOW_RATING
-                    ).orElse(null);
-
-                    result.add(from(aiMsg, rating, feedback));
-                }
-            }
-
-            return result;
-        }
-
-        private static Integer parseInteger(String content) {
-            try {
-                return Integer.parseInt(content.trim());
-            } catch (NumberFormatException e) {
-                return null;
-            }
         }
     }
 
-    // ────────────────────────────────
-    // 4. 가장 높은 이해도 시도
-    // ────────────────────────────────
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class BestAttempt {
         private String explanationText;
         private Integer understandingScore;
 
-        public static BestAttempt from(ChatHistory aiMessage, ChatHistory userRating) {
+        public static BestAttempt from(ChatHistory aiMsg, ChatHistory rating) {
             return BestAttempt.builder()
-                    .explanationText(aiMessage.getContent())
-                    .understandingScore(userRating != null ? parseInteger(userRating.getContent()) : null)
+                    .explanationText(aiMsg.getContent())
+                    .understandingScore(parseIntOrNull(rating != null ? rating.getContent() : null))
                     .build();
         }
+    }
 
-        public static BestAttempt from(
-                Long userId,
-                Long bookId,
-                List<ChatHistory> aiMessages,
-                ChatHistoryRepository repo
-        ) {
-            return aiMessages.stream()
-                    .sorted(Comparator.comparing(ChatHistory::getCreatedAt).reversed())
-                    .map(aiMsg -> {
-                        ChatHistory rating = repo.findTopByUserIdAndBookIdAndSenderAndCreatedAtAfterAndChatState(
-                                userId, bookId, ChatHistory.Sender.USER, aiMsg.getCreatedAt(), ChatHistory.ChatState.WAITING_CONCEPT_RATING
-                        ).orElse(null);
-
-                        Integer score = rating != null ? parseInteger(rating.getContent()) : null;
-                        if (score != null && score >= 4) {
-                            return from(aiMsg, rating);
-                        }
-                        return null;
-                    })
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        private static Integer parseInteger(String content) {
-            try {
-                return Integer.parseInt(content.trim());
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
+    private static Integer parseIntOrNull(String s) {
+        try { return s == null ? null : Integer.parseInt(s.trim()); }
+        catch (NumberFormatException e) { return null; }
     }
 }
+
