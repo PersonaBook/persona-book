@@ -11,18 +11,18 @@ public class FindIdViewController {
 
     @GetMapping("/idInquiry")
     public String findIdView() {
-        return "user/idInquiry";
+        return "id-inquiry";
     }
 
     @GetMapping("/findIdSuccess")
     public String findIdSuccess(@RequestParam(value = "userId", required = false) String userId, Model model) {
         model.addAttribute("userId", userId);
-        return "user/findIdSuccess";
+        return "find-id-success";
     }
 
     @PostMapping("/find-id-success")
     public String findIdSuccess(Model model) {
         model.addAttribute("title", "아이디 찾기 완료");
-        return "user/findIdSuccess";
+        return "find-id-success";
     }
 }

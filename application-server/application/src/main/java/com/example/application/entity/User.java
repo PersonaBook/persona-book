@@ -10,16 +10,16 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "user")
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id") // PK 컬럼명 명시
     private Long userId;
 
     @Column(nullable = false, unique = true, length = 50)
@@ -40,14 +40,24 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(columnDefinition = "TEXT")
-    private String userSetting;
-
     @CreationTimestamp
+    @Column(name = "create_at")
     private LocalDateTime createAt;
 
     @UpdateTimestamp
+    @Column(name = "update_at")
     private LocalDateTime updateAt;
 
-    
+    // ─────────────── 연관관계 (역방향) ───────────────
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<Book> books = new HashSet<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<Question> questions = new HashSet<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<ChatHistory> chatHistories = new HashSet<>();
 }

@@ -2,36 +2,30 @@ package com.example.application.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "question")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "answer_id")
-    private Long id;
+    @Column(name = "question_id")
+    private Long questionId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    // ✅ 기존 Long userId/bookId → 연관관계로 교체
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(name = "book_id", nullable = false)
-    private Long bookId;
-
-//    @Column(name = "chat_id", nullable = false)
-//    private Long chatId;
-
-    @Column(name = "start_page")
-    private Integer startPage;
-
-    @Column(name = "end_page")
-    private Integer endPage;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
 
     @Column(name = "domain")
     private String domain;
@@ -39,15 +33,17 @@ public class Question {
     @Column(name = "concept")
     private String concept;
 
-    @Column(name = "problem_text")
-    private String problemText;
+    // 현재 엔티티에 맞춰 "question_text" 사용 (이전 "problemText" 쓰던 곳은 수정 필요)
+    @Column(name = "question_text")
+    private String questionText;
 
     @Column(name = "user_answer")
     private String userAnswer;
 
-    @Column(name = "cor_answer")
+    @Column(name = "correct_answer")
     private String correctAnswer;
 
+    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 }

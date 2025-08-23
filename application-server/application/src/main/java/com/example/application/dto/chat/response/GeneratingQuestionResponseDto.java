@@ -24,6 +24,6 @@ public class GeneratingQuestionResponseDto {
     // 🔽 추가 필드
     private String domain;         // 문제 도메인
     private String concept;        // 문제 개념
-    private String problemText;    // 실제 문제 문장
+    private String questionText;    // 실제 문제 문장
     private String correctAnswer;  // 정답
 }
