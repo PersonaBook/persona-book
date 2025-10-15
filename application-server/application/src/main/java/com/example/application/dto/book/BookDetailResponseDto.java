@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class BookDetailResponseDto {
     private Long bookId;
+    private Long userId;
     private String title;
     private String fileBase64;
     private LocalDateTime createdAt;
@@ -20,6 +21,7 @@ public class BookDetailResponseDto {
     public static BookDetailResponseDto from(Book b) {
         return BookDetailResponseDto.builder()
                 .bookId(b.getBookId())
+                .userId(b.getUser() != null ? b.getUser().getUserId() : null)
                 .title(b.getTitle())
                 .fileBase64(b.getFileBase64())
                 .createdAt(b.getCreatedAt())

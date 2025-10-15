@@ -1,5 +1,10 @@
 FROM python:3.12-slim
 
+# UTF-8 환경 설정
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV PYTHONIOENCODING=utf-8
+
 WORKDIR /app
 
 RUN pip install poetry && poetry config virtualenvs.create false
