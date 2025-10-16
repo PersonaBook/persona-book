@@ -24,10 +24,10 @@ class QuestionGeneratorService:
             google_api_key=settings.gemini_api_key
         )
         self.vector_store = None
-        from langchain_google_genai import GoogleGenerativeAIEmbeddings
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/embedding-001",
-            google_api_key=settings.gemini_api_key
+        from langchain_openai import OpenAIEmbeddings
+        self.embeddings = OpenAIEmbeddings(
+            model="text-embedding-3-small",
+            openai_api_key=settings.openai_api_key
         )
         self.index_name = "java_learning_docs"  # 고정된 인덱스 이름
     
@@ -49,12 +49,12 @@ class QuestionGeneratorService:
     def connect_to_existing_vector_store(self):
         """기존 벡터 스토어에 연결"""
         try:
-            from langchain_google_genai import GoogleGenerativeAIEmbeddings
+            from langchain_openai import OpenAIEmbeddings
             from app.core.config import settings
-            
-            embeddings = GoogleGenerativeAIEmbeddings(
-                model="models/embedding-001",
-                google_api_key=settings.gemini_api_key
+
+            embeddings = OpenAIEmbeddings(
+                model="text-embedding-3-small",
+                openai_api_key=settings.openai_api_key
             )
             
             self.vector_store = ElasticsearchStore(
@@ -71,11 +71,11 @@ class QuestionGeneratorService:
     def setup_vector_store(self, chunks: List[Document], index_name: str = "java_learning_docs"):
         """벡터 스토어를 설정합니다."""
         try:
-            from langchain_google_genai import GoogleGenerativeAIEmbeddings
+            from langchain_openai import OpenAIEmbeddings
             from app.core.config import settings
-            embeddings = GoogleGenerativeAIEmbeddings(
-                model="models/embedding-001",
-                google_api_key=settings.gemini_api_key
+            embeddings = OpenAIEmbeddings(
+                model="text-embedding-3-small",
+                openai_api_key=settings.openai_api_key
             )
             
             # Elasticsearch 벡터 스토어 생성

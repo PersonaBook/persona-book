@@ -163,7 +163,10 @@ function displayPdfList(pdfList) {
         const $pdfItem = $('<li class="pdf_li"></li>');
         $pdfItem.html(`
                 <div class="file_area" style="cursor: pointer;">
-                    <canvas style="max-width: 100%; height: 100%; display: block; margin: auto;"></canvas>
+                    <img src="http://localhost:8000/api/v1/pdf-first-page/${pdf.bookId}"
+                         alt="${pdf.title}"
+                         style="max-width: 100%; height: 100%; display: block; margin: auto; object-fit: contain;"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect width=%22200%22 height=%22200%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3EPDF%3C/text%3E%3C/svg%3E';">
                 </div>
                 <div class="pdf_title" onclick="goToPdfDetail(${pdf.bookId});">
 <!--                    <button type="button" class="main_list_del">-->
@@ -172,10 +175,6 @@ function displayPdfList(pdfList) {
                     ${pdf.title}
                 </div>
         `);
-
-        if (pdf.fileBase64) {
-            renderPdfPreview(pdf.fileBase64, $pdfItem.find('canvas')[0]);
-        }
 
         $originalPlusArea.before($pdfItem);
     });
