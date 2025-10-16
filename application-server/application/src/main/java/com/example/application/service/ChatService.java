@@ -179,7 +179,8 @@ public class ChatService {
                 case GENERATING_QUESTION_WITH_RAG -> "/generating-question";
                 case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> "/generating-additional-question";
                 case EVALUATING_ANSWER_AND_LOGGING -> "/evaluating/answer";
-                case PRESENTING_CONCEPT_EXPLANATION, REEXPLAINING_CONCEPT -> "/learning/explanation";
+                case PRESENTING_CONCEPT_EXPLANATION -> "/learning/concept-explanation";
+                case REEXPLAINING_CONCEPT -> "/learning/explanation";
                 case PROCESSING_PAGE_SEARCH_RESULT -> "/processing-page-search-result";
                 default -> throw new IllegalArgumentException("정의되지 않은 상태: " + state);
             };
@@ -284,7 +285,15 @@ public class ChatService {
                     .chatState(state)
                     .build();
 
-            case PRESENTING_CONCEPT_EXPLANATION, REEXPLAINING_CONCEPT -> buildConceptExplanationRequest(userMessageDto);
+            case PRESENTING_CONCEPT_EXPLANATION -> UserMessageDto.builder()
+                    .userId(userMessageDto.getUserId())
+                    .bookId(userMessageDto.getBookId())
+                    .content(userMessageDto.getContent())
+                    .messageType(userMessageDto.getMessageType())
+                    .chatState(state)
+                    .build();
+
+            case REEXPLAINING_CONCEPT -> buildConceptExplanationRequest(userMessageDto);
 
             case PROCESSING_PAGE_SEARCH_RESULT -> UserMessageDto.builder()
                     .userId(userMessageDto.getUserId())
