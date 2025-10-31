@@ -199,7 +199,8 @@ public class ChatService {
                 case GENERATING_QUESTION_WITH_RAG -> "/generating-question";
                 case GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> "/generating-additional-question";
                 case EVALUATING_ANSWER_AND_LOGGING -> "/evaluating/answer";
-                case PRESENTING_CONCEPT_EXPLANATION, CONCEPT_REEXPLANATION -> "/learning/explanation";
+                case PRESENTING_CONCEPT_EXPLANATION -> "/learning/concept-explanation";
+                case CONCEPT_REEXPLANATION -> "/learning/explanation";
                 case PROCESSING_PAGE_SEARCH_RESULT -> "/processing-page-search-result";
                 default -> throw new IllegalArgumentException("정의되지 않은 상태: " + state);
             };
@@ -268,7 +269,7 @@ public class ChatService {
 
         return switch (state) {
             // 단순 메시지 전달
-            case GENERATING_QUESTION_WITH_RAG, EVALUATING_ANSWER_AND_LOGGING, PROCESSING_PAGE_SEARCH_RESULT ->
+            case PRESENTING_CONCEPT_EXPLANATION, GENERATING_QUESTION_WITH_RAG, EVALUATING_ANSWER_AND_LOGGING, PROCESSING_PAGE_SEARCH_RESULT ->
                     UserMessageDto.builder()
                             .userId(userMessageDto.getUserId())
                             .bookId(userMessageDto.getBookId())
@@ -306,7 +307,7 @@ public class ChatService {
             }
 
             // (재)설명에 필요한 특정 컨텍스트(사용자, 문제, 평가 이력)를 조립
-            case PRESENTING_CONCEPT_EXPLANATION, CONCEPT_REEXPLANATION ->
+            case CONCEPT_REEXPLANATION ->
                     buildConceptExplanationRequest(userMessageDto);
 
             default -> userMessageDto;
