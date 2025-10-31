@@ -296,3 +296,79 @@ class LearningService:
             for mat in results
         ]
         return formatted_results
+
+    async def generate_concept_explanation(
+        self, concept: str, user_experience_level: str = None
+    ) -> str:
+        """
+        RAG 기반 개념 설명 생성 (초기 설명용)
+
+        Args:
+            concept: 설명할 개념 (예: "데드락", "DFS")
+            user_experience_level: 사용자 경험 수준
+
+        Returns:
+            생성된 개념 설명
+        """
+        print(f"[LearningService] 개념 설명 생성 시작: {concept}")
+
+        # 1. PDF 벡터 스토어에서 직접 검색
+        from langchain_community.vectorstores import ElasticsearchStore
+        from langchain_openai import OpenAIEmbeddings
+        from app.core.config import settings
+
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-3-small",
+            openai_api_key=settings.openai_api_key
+        )
+
+        vector_store = ElasticsearchStore(
+            embedding=embeddings,
+            es_url="http://elasticsearch:9200",
+            index_name="java_learning_docs"  # PDF 인덱스
+        )
+
+        print(f"[LearningService] PDF 벡터 스토어에서 '{concept}' 검색 중...")
+        relevant_docs = vector_store.similarity_search(concept, k=5)
+        print(f"[LearningService] 검색 결과: {len(relevant_docs)}개")
+
+        # 2. 검색된 자료를 컨텍스트로 사용
+        context_parts = []
+        for doc in relevant_docs:
+            context_parts.append(doc.page_content)
+
+        context = "\n\n---\n\n".join(context_parts) if context_parts else "관련 자료가 없습니다."
+        print(f"[LearningService] 컨텍스트 길이: {len(context)}자")
+
+        # 3. Gemini로 설명 생성
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        from app.core.config import settings
+
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash-exp",
+            temperature=0.3,
+            google_api_key=settings.gemini_api_key
+        )
+
+        prompt = f"""다음 개념에 대해 명확하고 이해하기 쉽게 설명해주세요.
+
+개념: {concept}
+사용자 수준: {user_experience_level or "일반"}
+
+참고 자료:
+{context}
+
+요구사항:
+1. 개념의 정의를 명확히 설명
+2. 실생활 또는 프로그래밍 예시 포함
+3. 핵심 포인트 강조
+4. {user_experience_level or "일반"} 수준에 맞는 용어 사용
+5. 간결하고 이해하기 쉬운 설명 (500자 이내)
+
+설명:"""
+
+        print(f"[LearningService] LLM 호출 중...")
+        response = llm.invoke(prompt)
+        print(f"[LearningService] 설명 생성 완료: {len(response.content)}자")
+
+        return response.content

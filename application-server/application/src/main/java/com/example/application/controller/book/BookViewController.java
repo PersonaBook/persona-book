@@ -68,8 +68,8 @@ public class BookViewController {
             model.addAttribute("book", viewDto);
             model.addAttribute("bookJson", bookJson);
 
-            // ✅ 템플릿 명: book-detail
-            return "book-detail";
+            // ✅ 템플릿 명: page/book-detail
+            return "page/book-detail";
 
         } catch (Exception e) {
             log.error("상세 조회 오류", e);

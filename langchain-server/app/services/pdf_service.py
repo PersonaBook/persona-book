@@ -7,7 +7,7 @@ import fitz  # PyMuPDF
 from typing import List, Dict, Any, Optional
 from langchain.schema import Document
 from langchain_experimental.text_splitter import SemanticChunker
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 
 def clean_java_text(text: str) -> str:
@@ -207,9 +207,9 @@ class PDFProcessingService:
     
     def __init__(self):
         from app.core.config import settings
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/embedding-001",
-            google_api_key=settings.gemini_api_key
+        self.embeddings = OpenAIEmbeddings(
+            model="text-embedding-3-small",
+            openai_api_key=settings.openai_api_key
         )
     
     def process_pdf_and_create_chunks(self, pdf_path: str, max_pages: Optional[int] = None) -> List[Document]:

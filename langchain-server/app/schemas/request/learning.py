@@ -47,3 +47,14 @@ class LearningSearchRequest(BaseModel):
     user_experience_level: Optional[str] = Field(None)
     search_type: str = Field("hybrid")
     top_k: int = Field(5)
+
+
+class ConceptExplanationRequest(BaseModel):
+    """개념 설명 요청 (초기 설명용 - 간단한 구조)"""
+    user_id: int = Field(alias="userId")
+    book_id: int = Field(alias="bookId")
+    content: str  # 사용자가 입력한 개념 (예: "데드락", "DFS")
+    user_experience_level: Optional[str] = Field(None, alias="userExperienceLevel")
+
+    class Config:
+        populate_by_name = True  # alias와 원래 이름 모두 허용

@@ -24,6 +24,7 @@ google-api-python-client = "^2.177.0"
 PyMuPDF = "^1.23.0"
 langchain-google-genai = "^2.1.8"
 langchain-openai = "^0.3.28"
+python-multipart = "^0.0.20"
 
 
 

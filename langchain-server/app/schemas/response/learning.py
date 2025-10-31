@@ -48,3 +48,15 @@ class ExplanationResult(BaseModel):
 class ExplanationApiResponse(BaseModel):
     message: str
     result: ExplanationResult
+
+
+class ConceptExplanationResult(BaseModel):
+    """개념 설명 결과"""
+    explanation: str
+    concept: str
+
+
+class ConceptExplanationApiResponse(BaseModel):
+    """개념 설명 API 응답"""
+    message: str
+    result: ConceptExplanationResult
