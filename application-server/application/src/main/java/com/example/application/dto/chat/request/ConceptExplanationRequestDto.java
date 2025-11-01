@@ -5,24 +5,28 @@ import com.example.application.entity.Question;
 import com.example.application.entity.User;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
 @Builder
+@AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ConceptExplanationRequestDto {
 
     private UserInfo userInfo;
+    private ProblemInfo problemInfo;
     private List<LowUnderstandingAttempt> lowUnderstandingAttempts;
     private BestAttempt bestAttempt;
-    private ProblemInfo problemInfo;
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Builder
+    @AllArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class UserInfo {
         private Long userId;
@@ -39,7 +43,9 @@ public class ConceptExplanationRequestDto {
         }
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Builder
+    @AllArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class ProblemInfo {
         private String domain;
@@ -59,7 +65,9 @@ public class ConceptExplanationRequestDto {
         }
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Builder
+    @AllArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class LowUnderstandingAttempt {
         private String explanationText;
@@ -67,31 +75,46 @@ public class ConceptExplanationRequestDto {
         private Integer understandingScore;
 
         public static LowUnderstandingAttempt from(ChatHistory aiMsg, ChatHistory rating, ChatHistory feedback) {
+            Integer score = null;
+            if (rating != null && rating.getContent() != null) {
+                try {
+                    score = Integer.parseInt(rating.getContent().trim());
+                } catch (NumberFormatException e) {
+                    // 숫자로 변환 실패 시 score는 null 유지
+                }
+            }
+
             return LowUnderstandingAttempt.builder()
                     .explanationText(aiMsg.getContent())
                     .feedbackText(feedback != null ? feedback.getContent() : null)
-                    .understandingScore(parseIntOrNull(rating != null ? rating.getContent() : null))
+                    .understandingScore(score)
                     .build();
         }
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Builder
+    @AllArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class BestAttempt {
         private String explanationText;
         private Integer understandingScore;
 
         public static BestAttempt from(ChatHistory aiMsg, ChatHistory rating) {
+            Integer score = null;
+            if (rating != null && rating.getContent() != null) {
+                try {
+                    score = Integer.parseInt(rating.getContent().trim());
+                } catch (NumberFormatException e) {
+                    // 숫자로 변환 실패 시 score는 null 유지
+                }
+            }
+
             return BestAttempt.builder()
                     .explanationText(aiMsg.getContent())
-                    .understandingScore(parseIntOrNull(rating != null ? rating.getContent() : null))
+                    .understandingScore(score)
                     .build();
         }
-    }
-
-    private static Integer parseIntOrNull(String s) {
-        try { return s == null ? null : Integer.parseInt(s.trim()); }
-        catch (NumberFormatException e) { return null; }
     }
 }
 

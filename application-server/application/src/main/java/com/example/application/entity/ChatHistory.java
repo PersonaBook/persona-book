@@ -69,7 +69,7 @@ public class ChatHistory {
         PRESENTING_CONCEPT_EXPLANATION,      // ✅ 오답 개념 설명 (FastAPI 호출)
         WAITING_CONCEPT_RATING,              // 사용자 설명 평가 점수 입력
         WAITING_REASON_FOR_LOW_RATING,       // 낮은 점수(1~3점) 입력 시 사유 요청
-        REEXPLAINING_CONCEPT,                // ✅ 보충 설명 요청 (FastAPI 호출 후 반복 평가)
+        CONCEPT_REEXPLANATION,                // ✅ 보충 설명 요청 (FastAPI 호출 후 반복 평가)
 
         // ────────────────────────────────
         // 2. 개념 설명 흐름
