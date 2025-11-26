@@ -3,9 +3,13 @@ PDF 처리 서비스
 """
 import os
 import re
-import fitz  # PyMuPDF
-from typing import List, Dict, Any, Optional
+import fitz
+from typing import List, Dict, Tuple, Optional
 from langchain.schema import Document
+from app.services.cache_service import cache_service
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_openai import OpenAIEmbeddings
 
@@ -233,10 +237,10 @@ class PDFProcessingService:
             print(f"🧪 테스트 모드: {max_pages}개 페이지만 처리")
         
         if not pages_content:
-            print("❌ PDF에서 유효한 텍스트를 추출하지 못했습니다.")
+            logger.warning("PDF에서 유효한 텍스트를 추출하지 못했습니다.")
             return []
         
-        print(f"✅ 전처리 완료! {len(pages_content)}개 페이지")
+        logger.info(f"전처리 완료! {len(pages_content)}개 페이지")
         
         # LangChain Document 형식으로 변환
         documents = []
@@ -260,7 +264,7 @@ class PDFProcessingService:
         )
         chunks = text_splitter.split_documents(documents)
         
-        print(f"✅ 청킹 완료: {len(chunks)}개 청크")
+        logger.info(f"청킹 완료: {len(chunks)}개 청크")
         return chunks
 
 

@@ -22,6 +22,9 @@ from app.agents.learning_agent import LearningAgent
 from app.repository.learning_material_repository import LearningMaterialRepository
 from app.services.learning_service import LearningService
 from app.services.embedding_service import EmbeddingService
+from app.core.logging_config import setup_logging, get_logger
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -44,6 +47,9 @@ async def lifespan(app: FastAPI):
 
     yield
     await ElasticsearchClient.close()
+
+
+setup_logging()
 
 
 # UTF-8 안전 처리 미들웨어
@@ -78,13 +84,13 @@ class UTF8SafeMiddleware(BaseHTTPMiddleware):
                             request = StarletteRequest(scope, new_receive)
 
                 except (json.JSONDecodeError, UnicodeDecodeError) as e:
-                    print(f"🚨 JSON/UTF-8 처리 오류: {e}")
+                    logger.warning(f"JSON/UTF-8 처리 오류: {e}")
                     pass  # 원본 요청 그대로 진행
 
             response = await call_next(request)
             return response
         except Exception as e:
-            print(f"🚨 미들웨어 오류: {e}")
+            logger.error(f"미들웨어 오류: {e}")
             return JSONResponse(
                 status_code=400,
                 content={"detail": "요청 처리 중 인코딩 오류가 발생했습니다."}
@@ -106,14 +112,14 @@ app.add_middleware(
 # RequestValidationError 핸들러 - UTF-8 디코딩 에러를 직접 처리
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    print(f"🚨 커스텀 Validation 핸들러 호출됨: {exc}")
-    print(f"🚨 Exception 타입: {type(exc)}")
-    print(f"🚨 Exception 에러들: {exc.errors()}")
+    logger.error(f"커스텀 Validation 핸들러 호출됨: {exc}")
+    logger.error(f"Exception 타입: {type(exc)}")
+    logger.error(f"Exception 에러들: {exc.errors()}")
 
     # FastAPI 내부에서 발생한 UnicodeDecodeError 처리
     error_messages = [str(error) for error in exc.errors()]
     if any("UnicodeDecodeError" in msg or "codec can't decode" in msg for msg in error_messages):
-        print("🚨 UTF-8 관련 에러 감지됨 - 안전한 응답 반환")
+        logger.warning("UTF-8 관련 에러 감지됨 - 안전한 응답 반환")
         return JSONResponse(
             status_code=400,
             content={"detail": "PDF 파일 업로드 중 인코딩 오류가 발생했습니다. 파일을 다시 선택해주세요."}
@@ -121,7 +127,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     # multipart form-data 관련 오류 처리
     if any("model_attributes_type" in str(error) for error in exc.errors()):
-        print("🚨 multipart 데이터 검증 오류 - PDF 업로드 관련으로 추정")
+        logger.warning("multipart 데이터 검증 오류 - PDF 업로드 관련으로 추정")
         return JSONResponse(
             status_code=400,
             content={"detail": "PDF 파일 형식에 문제가 있습니다. 올바른 PDF 파일을 업로드해주세요."}
@@ -135,7 +141,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # UTF-8 디코딩 에러 핸들러
 @app.exception_handler(UnicodeDecodeError)
 async def unicode_decode_error_handler(request: Request, exc: UnicodeDecodeError):
-    print(f"🚨 UTF-8 디코딩 오류 발생: {exc}")
+    logger.error(f"UTF-8 디코딩 오류 발생: {exc}")
     return JSONResponse(
         status_code=400,
         content={"detail": "텍스트 인코딩 오류가 발생했습니다. 입력 데이터를 확인해주세요."}
@@ -144,7 +150,7 @@ async def unicode_decode_error_handler(request: Request, exc: UnicodeDecodeError
 # 일반적인 예외 핸들러
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    print(f"🚨 일반 오류 발생: {type(exc).__name__}: {exc}")
+    logger.error(f"일반 오류 발생: {type(exc).__name__}: {exc}")
     if "UnicodeDecodeError" in str(exc) or "codec can't decode" in str(exc):
         return JSONResponse(
             status_code=400,

@@ -1,35 +1,34 @@
 """
 연습문제 생성 서비스
 """
-import os
 import re
-from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema import Document
 from langchain_community.vectorstores import ElasticsearchStore
+from app.core.config import settings
+from app.core.logging_config import get_logger
 
-# 환경 변수 로드 - config.py에서 이미 로드되므로 제거
+logger = get_logger(__name__)
 
 
 class QuestionGeneratorService:
     """연습문제 생성 서비스"""
     
     def __init__(self):
-        from app.core.config import settings
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            temperature=0.7,
-            max_tokens=2000,
+            model=settings.gemini_model_name,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
             google_api_key=settings.gemini_api_key
         )
         self.vector_store = None
         from langchain_openai import OpenAIEmbeddings
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-small",
+            model=settings.openai_embedding_model,
             openai_api_key=settings.openai_api_key
         )
-        self.index_name = "java_learning_docs"  # 고정된 인덱스 이름
+        self.index_name = settings.elasticsearch_index_pdf_docs
     
     
     def has_vector_store(self) -> bool:
@@ -40,41 +39,39 @@ class QuestionGeneratorService:
         # Elasticsearch 인덱스 존재 여부 확인
         try:
             from elasticsearch import Elasticsearch
-            es = Elasticsearch(['http://elasticsearch:9200'])
+            es = Elasticsearch([settings.elasticsearch_url])
             return es.indices.exists(index=self.index_name)
         except Exception as e:
-            print(f"❌ 인덱스 존재 확인 중 오류: {e}")
+            logger.error(f"인덱스 존재 확인 중 오류: {e}")
             return False
     
     def connect_to_existing_vector_store(self):
         """기존 벡터 스토어에 연결"""
         try:
             from langchain_openai import OpenAIEmbeddings
-            from app.core.config import settings
 
             embeddings = OpenAIEmbeddings(
-                model="text-embedding-3-small",
+                model=settings.openai_embedding_model,
                 openai_api_key=settings.openai_api_key
             )
             
             self.vector_store = ElasticsearchStore(
                 embedding=embeddings,
-                es_url="http://elasticsearch:9200",
+                es_url=settings.elasticsearch_url,
                 index_name=self.index_name
             )
-            print(f"✅ 기존 벡터 스토어 연결 완료: {self.index_name}")
+            logger.info(f"기존 벡터 스토어 연결 완료: {self.index_name}")
             return True
         except Exception as e:
-            print(f"❌ 기존 벡터 스토어 연결 실패: {e}")
+            logger.error(f"기존 벡터 스토어 연결 실패: {e}")
             return False
     
     def setup_vector_store(self, chunks: List[Document], index_name: str = "java_learning_docs"):
         """벡터 스토어를 설정합니다."""
         try:
             from langchain_openai import OpenAIEmbeddings
-            from app.core.config import settings
             embeddings = OpenAIEmbeddings(
-                model="text-embedding-3-small",
+                model=settings.openai_embedding_model,
                 openai_api_key=settings.openai_api_key
             )
             
@@ -82,15 +79,15 @@ class QuestionGeneratorService:
             self.vector_store = ElasticsearchStore.from_documents(
                 documents=chunks,
                 embedding=embeddings,
-                es_url="http://elasticsearch:9200",
+                es_url=settings.elasticsearch_url,
                 index_name=index_name
             )
             
-            print(f"✅ Elasticsearch 벡터 스토어 설정 완료: {index_name}")
+            logger.info(f"Elasticsearch 벡터 스토어 설정 완료: {index_name}")
             return True
             
         except Exception as e:
-            print(f"❌ Elasticsearch 벡터 스토어 설정 실패: {e}")
+            logger.error(f"Elasticsearch 벡터 스토어 설정 실패: {e}")
             return False
     
     def generate_question_with_rag(self, query: str, difficulty: str = "보통", question_type: str = "객관식") -> Dict[str, Any]:
@@ -190,12 +187,12 @@ class QuestionGeneratorService:
             
             # 응답 파싱
             content = response.content
-            print(f"🔍 LLM 응답 원본: {content}")
+            logger.debug(f"LLM 응답 원본: {content}")
             question, correct_answer, explanation, options = self._parse_generated_content(content)
-            print(f"🔍 파싱된 문제: {question}")
-            print(f"🔍 파싱된 선택지: {options}")
-            print(f"🔍 파싱된 정답: {correct_answer}")
-            print(f"🔍 파싱된 해설: {explanation}")
+            logger.debug(f"파싱된 문제: {question}")
+            logger.debug(f"파싱된 선택지: {options}")
+            logger.debug(f"파싱된 정답: {correct_answer}")
+            logger.debug(f"파싱된 해설: {explanation}")
             
             return {
                 "success": True,
@@ -226,7 +223,7 @@ class QuestionGeneratorService:
             (문제, 정답, 해설, 선택지)
         """
         try:
-            print(f"🔍 파싱할 원본 내용: {content}")
+            logger.debug(f"파싱할 원본 내용: {content}")
             
             lines = content.split('\n')
             question = ""
@@ -287,7 +284,7 @@ class QuestionGeneratorService:
             
             # 선택지가 4개가 아니면 추가로 파싱 시도 (숫자 형태)
             if len(choices) != 4:
-                print(f"⚠️ 선택지가 {len(choices)}개, 추가 파싱 시도")
+                logger.warning(f"선택지가 {len(choices)}개, 추가 파싱 시도")
                 
                 # 1. 2. 3. 4. 형태의 선택지 찾기
                 choice_pattern = r'^(\d+)\.\s+(.+)$'
@@ -304,7 +301,7 @@ class QuestionGeneratorService:
                 
                 if len(found_choices) == 4:
                     choices = found_choices
-                    print(f"✅ 숫자 형태 선택지 4개 파싱 성공")
+                    logger.info("숫자 형태 선택지 4개 파싱 성공")
             
             # 선택지를 정확히 4개로 제한
             choices = choices[:4]  # 4개 초과시 잘라내기
@@ -319,12 +316,12 @@ class QuestionGeneratorService:
             if len(choices) != 4:
                 choices = ["선택지1", "선택지2", "선택지3", "선택지4"]
             
-            print(f"🔍 최종 파싱 결과: 문제={len(question)}글자, 선택지={len(choices)}개, 정답={correct_answer}, 해설={len(explanation)}글자")
+            logger.debug(f"최종 파싱 결과: 문제={len(question)}글자, 선택지={len(choices)}개, 정답={correct_answer}, 해설={len(explanation)}글자")
                 
             return question.strip(), correct_answer.strip(), explanation.strip(), choices
             
         except Exception as e:
-            print(f"❌ 응답 파싱 오류: {e}")
+            logger.error(f"응답 파싱 오류: {e}")
             return content[:500], "정답을 확인해주세요.", "해설을 확인해주세요.", ["선택지1", "선택지2", "선택지3", "선택지4"]
 
 # 싱글톤 인스턴스

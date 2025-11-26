@@ -9,6 +9,9 @@ import re
 import os
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 # 전역 키워드 데이터 캐시
 _keywords_cache = None
@@ -23,13 +26,13 @@ def load_keywords_data() -> Dict:
     try:
         with open(keywords_path, 'r', encoding='utf-8') as f:
             _keywords_cache = json.load(f)
-            print(f"✅ 키워드 데이터 로드 완료: {len(_keywords_cache['chapters'])}개 챕터")
+            logger.info(f"키워드 데이터 로드 완료: {len(_keywords_cache['chapters'])}개 챕터")
             return _keywords_cache
     except FileNotFoundError:
-        print(f"❌ 키워드 파일을 찾을 수 없음: {keywords_path}")
+        logger.warning(f"키워드 파일을 찾을 수 없음: {keywords_path}")
         return {"chapters": {}}
     except json.JSONDecodeError as e:
-        print(f"❌ 키워드 파일 파싱 오류: {e}")
+        logger.error(f"키워드 파일 파싱 오류: {e}")
         return {"chapters": {}}
 
 def extract_chapter_info(user_input: str) -> Tuple[Optional[str], List[str]]:
@@ -91,7 +94,7 @@ def find_best_chapter_match(keywords: List[str]) -> Optional[str]:
     
     if chapter_scores:
         best_chapter = max(chapter_scores, key=chapter_scores.get)
-        print(f"🎯 키워드 매칭으로 챕터 {best_chapter} 선택됨 (점수: {chapter_scores[best_chapter]})")
+        logger.debug(f"키워드 매칭으로 챕터 {best_chapter} 선택됨 (점수: {chapter_scores[best_chapter]})")
         return best_chapter
     
     return None
@@ -128,7 +131,7 @@ def map_chapter_to_content(user_input: str) -> str:
     # 챕터 정보와 키워드 추출
     chapter_num, additional_keywords = extract_chapter_info(user_input)
     
-    print(f"🔍 입력 분석: 챕터={chapter_num}, 키워드={additional_keywords}")
+    logger.debug(f"입력 분석: 챕터={chapter_num}, 키워드={additional_keywords}")
     
     target_chapter = None
     
@@ -137,7 +140,7 @@ def map_chapter_to_content(user_input: str) -> str:
         keywords_data = load_keywords_data()
         if chapter_num in keywords_data.get('chapters', {}):
             target_chapter = chapter_num
-            print(f"✅ 명시적 챕터 {chapter_num} 매핑됨")
+            logger.info(f"명시적 챕터 {chapter_num} 매핑됨")
     
     # 2. 키워드 기반 매칭
     if not target_chapter and additional_keywords:
@@ -154,11 +157,11 @@ def map_chapter_to_content(user_input: str) -> str:
         # 추가 키워드가 있으면 포함
         if additional_keywords:
             content += " " + " ".join(additional_keywords)
-        print(f"🎯 최종 매핑: 챕터 {target_chapter} -> {content[:100]}...")
+        logger.info(f"최종 매핑: 챕터 {target_chapter} -> {content[:100]}...")
         return content
     else:
         # 매핑 실패 시 원본 반환
-        print(f"⚠️ 매핑 실패, 원본 사용: {user_input}")
+        logger.warning(f"매핑 실패, 원본 사용: {user_input}")
         return user_input
 
 def get_chapter_page_range(chapter_id: str) -> Optional[Tuple[int, int]]:
@@ -192,7 +195,7 @@ def load_keywords_for_chapter(chapter_num):
     try:
         keywords_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'keywords_detailed.json')
         if not Path(keywords_path).exists():
-            print(f"⚠️ 키워드 파일을 찾을 수 없습니다: {keywords_path}")
+            logger.warning(f"키워드 파일을 찾을 수 없습니다: {keywords_path}")
             return []
         
         with open(keywords_path, 'r', encoding='utf-8') as f:
@@ -201,7 +204,7 @@ def load_keywords_for_chapter(chapter_num):
         # 챕터 정의 가져오기
         chapters = get_chapter_definitions()
         if chapter_num not in chapters:
-            print(f"⚠️ 챕터 {chapter_num}는 정의되지 않았습니다.")
+            logger.warning(f"챕터 {chapter_num}는 정의되지 않았습니다.")
             return []
         
         chapter_info = chapters[chapter_num]
@@ -220,11 +223,11 @@ def load_keywords_for_chapter(chapter_num):
                     chapter_keywords.append(keyword)
                     break
         
-        print(f"📚 챕터 {chapter_num} ({chapter_info['name']}) 키워드 {len(chapter_keywords)}개 로드됨")
+        logger.debug(f"챕터 {chapter_num} ({chapter_info['name']}) 키워드 {len(chapter_keywords)}개 로드됨")
         return chapter_keywords
         
     except Exception as e:
-        print(f"❌ 키워드 로딩 중 오류 발생: {e}")
+        logger.error(f"키워드 로딩 중 오류 발생: {e}")
         return []
 
 def get_enhanced_chapter_content(chapter_num: str) -> str:
@@ -243,11 +246,11 @@ def get_enhanced_chapter_content(chapter_num: str) -> str:
         keywords_text = ' '.join(chapter_keywords)
         content = f"{chapter_title} {keywords_text}"
         
-        print(f"🎯 향상된 챕터 {chapter_num} 컨텐츠 생성: {len(chapter_keywords)}개 키워드 사용")
+        logger.debug(f"향상된 챕터 {chapter_num} 컨텐츠 생성: {len(chapter_keywords)}개 키워드 사용")
         return content
         
     except Exception as e:
-        print(f"❌ 향상된 컨텐츠 생성 실패: {e}")
+        logger.error(f"향상된 컨텐츠 생성 실패: {e}")
         return get_chapter_content(chapter_num)  # fallback
 
 
@@ -263,5 +266,5 @@ def enhance_query_for_search(query: str) -> str:
     """
     # 매핑된 쿼리에 Java 관련 키워드 추가
     enhanced_query = f"Java {query} 프로그래밍 예제 문제"
-    print(f"🔍 향상된 쿼리: {enhanced_query}")
+    logger.debug(f"향상된 쿼리: {enhanced_query}")
     return enhanced_query

@@ -2,35 +2,33 @@
 RAG (Retrieval-Augmented Generation) 공통 서비스
 """
 
-import os
-from dotenv import load_dotenv
 import base64
 import tempfile
 import os
-import time
 from typing import List, Dict, Any, Optional, Tuple
 from langchain.schema import Document
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import ElasticsearchStore
 from app.services.pdf_service import pdf_service
 from app.services.cache_service import cache_service
+from app.core.config import settings
+from app.core.logging_config import get_logger
 
-# 환경 변수 로드
-load_dotenv('../.env.prod')
-load_dotenv('.env.prod')
-load_dotenv('.env')
+logger = get_logger(__name__)
 
 class RAGService:
     """RAG 공통 서비스"""
     
     def __init__(self):
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            temperature=0.7,
-            max_tokens=2000
+            model=settings.gemini_model_name,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
+            google_api_key=settings.gemini_api_key
         )
         self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/embedding-001"
+            model=f"models/{settings.embedding_model_name}",
+            google_api_key=settings.gemini_api_key
         )
         self.vector_store = None
         self.current_chunks = []
@@ -111,22 +109,25 @@ class RAGService:
         except Exception as e:
             return False, f"PDF 처리 중 오류 발생: {str(e)}"
     
-    def _setup_vector_store(self, chunks: List[Document], index_name: str = "java_learning_docs") -> bool:
+    def _setup_vector_store(self, chunks: List[Document], index_name: Optional[str] = None) -> bool:
         """벡터 스토어를 설정합니다."""
+        if index_name is None:
+            index_name = settings.elasticsearch_index_pdf_docs
+            
         try:
             self.vector_store = ElasticsearchStore.from_documents(
                 documents=chunks,
                 embedding=self.embeddings,
-                es_url="http://elasticsearch:9200",
+                es_url=settings.elasticsearch_url,
                 index_name=index_name
             )
-            print(f"✅ Elasticsearch 벡터 스토어 설정 완료: {index_name}")
+            logger.info(f"Elasticsearch 벡터 스토어 설정 완료: {index_name}")
             return True
         except Exception as e:
-            print(f"❌ Elasticsearch 벡터 스토어 설정 실패: {e}")
+            logger.error(f"Elasticsearch 벡터 스토어 설정 실패: {e}")
             return False
     
-    def search_relevant_chunks(self, query: str, k: int = 5) -> List[Document]:
+    def search_relevant_chunks(self, query: str, k: Optional[int] = None) -> List[Document]:
         """
         쿼리와 관련된 청크를 검색합니다.
         
@@ -137,6 +138,9 @@ class RAGService:
         Returns:
             관련 문서 리스트
         """
+        if k is None:
+            k = settings.rag_search_k
+            
         if not self.vector_store:
             return []
         
@@ -144,7 +148,7 @@ class RAGService:
             docs = self.vector_store.similarity_search(query, k=k)
             return docs
         except Exception as e:
-            print(f"❌ 청크 검색 실패: {e}")
+            logger.error(f"청크 검색 실패: {e}")
             return []
     
     def generate_rag_response(self, query: str, context: str, prompt_template: str) -> str:
@@ -169,7 +173,7 @@ class RAGService:
             return response.content
             
         except Exception as e:
-            print(f"❌ RAG 응답 생성 실패: {e}")
+            logger.error(f"RAG 응답 생성 실패: {e}")
             return f"응답 생성 중 오류가 발생했습니다: {str(e)}"
     
     def get_processing_stats(self) -> Dict[str, Any]:

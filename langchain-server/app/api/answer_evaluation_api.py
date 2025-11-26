@@ -1,12 +1,13 @@
-
 """
 답안 평가 관련 API
 """
-from app.schemas.request.chat import UserMessageRequest
-from app.schemas.response.chat import AiMessageResponse
-from app.schemas.enum import ChatState
 from fastapi import APIRouter, HTTPException
+from app.schemas.request.rag_apis import AnswerEvaluationRequest
+from app.schemas.response.rag_apis import AnswerEvaluationResponse
+from app.core.logging_config import get_logger
 import re
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -30,7 +31,7 @@ def compare_answers(user_answer: str, correct_answer: str) -> bool:
     user_normalized = normalize_answer(user_answer)
     correct_normalized = normalize_answer(correct_answer)
     
-    print(f"🔍 답안 비교: 사용자='{user_normalized}' vs 정답='{correct_normalized}'")
+    logger.debug(f"답안 비교: 사용자='{user_normalized}' vs 정답='{correct_normalized}'")
     
     # 정확한 일치
     if user_normalized == correct_normalized:
@@ -79,54 +80,52 @@ def compare_answers(user_answer: str, correct_answer: str) -> bool:
     
     return False
 
-@router.post("/evaluating/answer", response_model=AiMessageResponse)
-def handle_evaluating_answer_and_logging(user: UserMessageRequest):
+@router.post("/evaluating/answer", response_model=AnswerEvaluationResponse)
+def handle_evaluating_answer_and_logging(request: AnswerEvaluationRequest):
     """답안 평가 및 로깅 처리"""
     try:
-        print(f"🚀 답안 평가 API 호출됨")
-        print(f"📊 사용자 답안: '{user.content}'")
+        logger.info("답안 평가 API 호출됨")
+        logger.debug(f"사용자 답안: '{request.user_answer}'")
         
         # 저장된 정답 정보 가져오기
         question_data = get_current_question_answer()
-        print(f"🔍 저장된 정답 정보: {question_data}")
+        logger.debug(f"저장된 정답 정보: {question_data}")
         
         if not question_data or "answer" not in question_data:
-            print("⚠️ 정답 정보가 없습니다.")
+            logger.warning("정답 정보가 없습니다.")
             response_content = "죄송합니다. 문제의 정답 정보를 찾을 수 없습니다. 다시 문제를 생성해주세요."
+            is_correct = False
         else:
             correct_answer = question_data.get("answer", "")
             explanation = question_data.get("explanation", "")
-            user_answer = user.content.strip()
+            user_answer = request.user_answer.strip()
             
-            print(f"📝 정답: '{correct_answer}'")
-            print(f"📝 사용자 답안: '{user_answer}'")
+            logger.debug(f"정답: '{correct_answer}'")
+            logger.debug(f"사용자 답안: '{user_answer}'")
             
             # 답안 비교
             is_correct = compare_answers(user_answer, correct_answer)
             
             if is_correct:
-                response_content = f"✅ **정답입니다!** 잘 하셨네요!\n\n"
+                response_content = f"정답입니다! 잘 하셨네요!\n\n"
                 if explanation:
                     response_content += f"**해설:**\n{explanation}"
                 else:
                     response_content += "이 개념을 잘 이해하고 계시는군요."
-                print("✅ 정답 처리 완료")
+                logger.info("정답 처리 완료")
             else:
-                response_content = f"❌ **오답입니다.**\n\n"
+                response_content = f"오답입니다.\n\n"
                 response_content += f"**정답:** {correct_answer}\n\n"
                 if explanation:
                     response_content += f"**해설:**\n{explanation}\n\n"
                 response_content += "다시 한번 개념을 복습해보세요."
-                print("❌ 오답 처리 완료")
+                logger.info("오답 처리 완료")
         
-        return AiMessageResponse(
-            userId=user.userId,
-            bookId=user.bookId,
-            content=response_content,
-            messageType="TEXT",
-            sender="AI",
-            chatState=ChatState.EVALUATING_ANSWER_AND_LOGGING,
+        return AnswerEvaluationResponse(
+            is_correct=is_correct,
+            feedback=response_content,
+            correct_answer=question_data.get("answer", "") if question_data else ""
         )
     except Exception as e:
-        print(f"❌ 답안 평가 중 오류: {str(e)}")
+        logger.error(f"답안 평가 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"답안 평가 중 오류가 발생했습니다: {str(e)}")

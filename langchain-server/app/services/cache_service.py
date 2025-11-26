@@ -5,6 +5,9 @@ import os
 import pickle
 from typing import List, Optional
 from langchain.schema import Document
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class CacheService:
@@ -38,10 +41,10 @@ class CacheService:
             try:
                 with open(cache_path, 'rb') as f:
                     chunks = pickle.load(f)
-                print(f"✅ 캐시에서 청크 로드: {len(chunks)}개")
+                logger.info(f"캐시에서 청크 로드: {len(chunks)}개")
                 return chunks
             except Exception as e:
-                print(f"❌ 캐시 로드 실패: {e}")
+                logger.error(f"캐시 로드 실패: {e}")
         
         return None
     
@@ -53,9 +56,9 @@ class CacheService:
         try:
             with open(cache_path, 'wb') as f:
                 pickle.dump(chunks, f)
-            print(f"✅ 청크 캐시 저장: {len(chunks)}개")
+            logger.info(f"청크 캐시 저장: {len(chunks)}개")
         except Exception as e:
-            print(f"❌ 캐시 저장 실패: {e}")
+            logger.error(f"캐시 저장 실패: {e}")
 
 
 # 싱글톤 인스턴스
