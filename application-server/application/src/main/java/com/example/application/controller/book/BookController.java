@@ -26,7 +26,7 @@ public class BookController {
     private final BookRepository bookRepository;
     private final BookService bookService;
 
-    @PostMapping("/pdf/upload")
+    @PostMapping("/book/upload")
     public ResponseEntity<?> upload(@Valid @RequestBody BookUploadRequestDto req, HttpServletRequest request) {
         User user = jwtAuthUtil.getUserFromRequest(request);
         if (user == null) return ResponseEntity.status(401).body("인증 필요");
@@ -51,7 +51,7 @@ public class BookController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/pdf/list")
+    @GetMapping("/book/list")
     public ResponseEntity<?> list(HttpServletRequest request) {
         User user = jwtAuthUtil.getUserFromRequest(request);
         if (user == null) return ResponseEntity.status(401).body("인증 필요");

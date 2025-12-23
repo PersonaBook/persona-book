@@ -16,7 +16,7 @@ public class HomeViewController {
     }
 
     @GetMapping({"/"})
-    public String pdfMain(HttpServletRequest request, Model model) {
+    public String getHomePage(HttpServletRequest request, Model model) {
         System.out.println("=== 메인 페이지 요청 ===");
         
         // 토큰 유효성 검증 및 세션 정리
@@ -28,6 +28,6 @@ public class HomeViewController {
             System.out.println("토큰을 모델에 추가");
             model.addAttribute("loginToken", loginToken);
         }
-        return "index";
+        return "home";
     }
 }

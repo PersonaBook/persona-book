@@ -28,9 +28,8 @@ public class BookViewController {
     private final ObjectMapper objectMapper;
     private final BookService bookService;
 
-    // 레거시 경로 유지 + 신규 경로 병행(원하면 하나만 남겨도 OK)
-    @GetMapping({"/book/detail/{bookId}", "/pdf/detail/{bookId}"})
-    public String detail(@PathVariable Long bookId, HttpServletRequest request, Model model) {
+    @GetMapping("/book/{bookId}")
+    public String getBookPage(@PathVariable Long bookId, HttpServletRequest request, Model model) {
         log.info("=== Book Detail 요청: bookId={} ===", bookId);
 
         User user = jwtAuthUtil.getUserFromRequest(request);
@@ -40,14 +39,13 @@ public class BookViewController {
         }
 
         try {
-            // ✅ 레포 메서드 최신 시그니처로 교체
             Optional<Book> bookOpt =
                     bookRepository.findByBookIdAndUserAndDeletedAtIsNull(bookId, user);
 
             if (bookOpt.isEmpty()) {
                 log.warn("도서 없음/권한 없음: bookId={}, userId={}", bookId, user.getUserId());
                 model.addAttribute("errorMessage", "도서를 찾을 수 없습니다.");
-                return "index";
+                return "home";
             }
 
             Book book = bookOpt.get();
@@ -68,8 +66,7 @@ public class BookViewController {
             model.addAttribute("book", viewDto);
             model.addAttribute("bookJson", bookJson);
 
-            // ✅ 템플릿 명: page/book-detail
-            return "page/book-detail";
+            return "page/book";
 
         } catch (Exception e) {
             log.error("상세 조회 오류", e);
