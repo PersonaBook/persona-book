@@ -36,9 +36,9 @@ public class ConceptExplanationRequestDto {
         public static UserInfo from(User user) {
             return UserInfo.builder()
                     .userId(user.getUserId())
-                    .age(user.getUserBirthDate() == null ? null
-                            : LocalDate.now().getYear() - user.getUserBirthDate().getYear())
-                    .learningExperience(user.getUserJob())
+                    .age(user.getBirthDate() == null ? null
+                            : LocalDate.now().getYear() - user.getBirthDate().getYear())
+                    .learningExperience(user.getJob())
                     .build();
         }
     }
@@ -58,7 +58,7 @@ public class ConceptExplanationRequestDto {
             return ProblemInfo.builder()
                     .domain(q.getDomain())
                     .concept(q.getConcept())
-                    .problemText(q.getQuestionText())
+                    .problemText(q.getText())
                     .userAnswer(userAnswerMsg != null ? userAnswerMsg.getContent() : null)
                     .correctAnswer(q.getCorrectAnswer())
                     .build();
