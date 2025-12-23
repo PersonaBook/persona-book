@@ -1,6 +1,6 @@
 package com.example.application.exception;
 
-import com.example.application.dto.auth.response.MessageResponse;
+import com.example.application.dto.auth.response.MessageResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
         });
         
         if (isApiRequest(request)) {
-            return new ResponseEntity<>(new MessageResponse(HttpStatus.BAD_REQUEST, errors.toString()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new MessageResponseDto(HttpStatus.BAD_REQUEST, errors.toString()), HttpStatus.BAD_REQUEST);
         } else {
             ModelAndView mav = new ModelAndView("error/400");
             mav.addObject("message", "입력 데이터가 올바르지 않습니다.");
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Object globalExceptionHandler(Exception ex, HttpServletRequest request) {
         if (isApiRequest(request)) {
-            MessageResponse message = new MessageResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+            MessageResponseDto message = new MessageResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
             return new ResponseEntity<>(message, HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
             ModelAndView mav = new ModelAndView("error/500");
