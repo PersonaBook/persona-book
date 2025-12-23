@@ -23,19 +23,19 @@ public class User {
     private Long userId;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String userName;
+    private String name;
 
     @Column(nullable = false, unique = true, length = 100)
-    private String userEmail;
+    private String email;
 
     @Column(nullable = false, length = 15)
-    private String userPhoneNumber;
+    private String phoneNumber;
 
-    @Column(name = "user_birth_date")
-    private LocalDate userBirthDate;
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
-    @Column(name = "user_job")
-    private String userJob;
+    @Column(name = "job")
+    private String job;
 
     @Column(nullable = false)
     private String password;

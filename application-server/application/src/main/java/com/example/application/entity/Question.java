@@ -33,9 +33,8 @@ public class Question {
     @Column(name = "concept")
     private String concept;
 
-    // 현재 엔티티에 맞춰 "question_text" 사용 (이전 "problemText" 쓰던 곳은 수정 필요)
-    @Column(name = "question_text")
-    private String questionText;
+    @Column(name = "text")
+    private String text;
 
     @Column(name = "user_answer")
     private String userAnswer;
