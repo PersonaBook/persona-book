@@ -99,16 +99,35 @@ public class AuthController {
     public ResponseEntity<?> findId(@RequestBody Map<String, String> request) {
         String userName = request.get("userName");
         String email = request.get("email");
-        
+
         if (userName == null || userName.isEmpty() || email == null || email.isEmpty()) {
             return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "이름과 이메일이 모두 필요합니다."));
         }
-        
+
         String username = authService.findUsernameByNameAndEmail(userName, email);
         if (username != null) {
-            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "귀하의 아이디는: " + email));
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "귀하의 아이디는: " + username));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(HttpStatus.NOT_FOUND, "이름과 이메일이 일치하지 않습니다."));
+        }
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String userName = request.get("userName");
+        String email = request.get("email");
+        String newPassword = request.get("newPassword");
+
+        if (userName == null || userName.isEmpty() || email == null || email.isEmpty() ||
+            newPassword == null || newPassword.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, "이름, 이메일, 비밀번호가 모두 필요합니다."));
+        }
+
+        try {
+            authService.resetPassword(userName, email, newPassword);
+            return ResponseEntity.ok(new MessageResponse(HttpStatus.OK, "비밀번호가 성공적으로 변경되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(HttpStatus.BAD_REQUEST, e.getMessage()));
         }
     }
 
