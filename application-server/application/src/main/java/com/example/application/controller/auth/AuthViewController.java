@@ -49,7 +49,7 @@ public class AuthViewController {
     @GetMapping("/register")
     public String getRegisterPage(Model model) {
         model.addAttribute("title", "회원가입");
-        return "page/auth/join";
+        return "page/auth/register";
     }
 
     @PostMapping("/register")
@@ -59,13 +59,13 @@ public class AuthViewController {
             return "redirect:/";
         } else {
             model.addAttribute("errorMessage", "회원가입에 실패했습니다. 사용자 이름 또는 이메일이 이미 존재합니다.");
-            return "page/auth/join";
+            return "page/auth/register";
         }
     }
 
     @GetMapping("/find-id")
     public String getFindIdPage() {
-        return "page/auth/id-inquiry";
+        return "page/auth/find-id";
     }
 
     @GetMapping("/find-id/success")
@@ -76,7 +76,7 @@ public class AuthViewController {
 
     @GetMapping("/find-password")
     public String getFindPasswordPage() {
-        return "page/auth/pw-inquiry";
+        return "page/auth/find-password";
     }
 
     @GetMapping("/find-password/success")

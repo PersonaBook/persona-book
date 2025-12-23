@@ -20,7 +20,7 @@
                             <p class="mb-0" th:text="${loginError}"></p>
                         </div>
 
-                        <form id="loginForm" method="post" th:action="@{/user/login}">
+                        <form id="loginForm" method="post" th:action="@{/templates/auth/login}">
                             <div class="mb-3">
                                 <label for="email" class="form-label">이메일 <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required>
@@ -38,8 +38,8 @@
                             <div class="row">
                                 <div class="col d-flex justify-content-center">
                                     <div class="form-check">
-                                        <input class="form-check-input" id="rememberMe" name="rememberMe" type="checkbox" value="true">
-                                        <label class="form-check-label" for="rememberMe">로그인 정보 저장</label>
+                                        <input class="form-check-input" id="autoLogin" name="autoLogin" type="checkbox" value="true">
+                                        <label class="form-check-label" for="autoLogin">로그인 정보 저장</label>
                                     </div>
                                 </div>
                             </div>
@@ -48,11 +48,11 @@
                         </form>
 
                         <div class="text-center mt-3">
-                            <a class="text-decoration-none text-secondary link-dark" href="/idInquiry">아이디 찾기</a>
+                            <a class="text-decoration-none text-secondary link-dark" href="/auth/find-id">아이디 찾기</a>
                             <span class="mx-2">|</span>
-                            <a class="text-decoration-none text-secondary link-dark" href="/pwInquiry">비밀번호 찾기</a>
+                            <a class="text-decoration-none text-secondary link-dark" href="/auth/find-password">비밀번호 찾기</a>
                             <span class="mx-2">|</span>
-                            <a class="text-decoration-none text-secondary link-dark" href="/join">회원가입</a>
+                            <a class="text-decoration-none text-secondary link-dark" href="/auth/register">회원가입</a>
                         </div>
                     </div>
                 </div>
