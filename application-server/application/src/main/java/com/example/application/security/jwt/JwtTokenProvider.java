@@ -27,8 +27,8 @@ public class JwtTokenProvider {
     @Value("${app.jwtRefreshExpirationMs}")
     private int jwtRefreshExpirationMs;
 
-    public String generateJwtToken(String username, boolean rememberMe) {
-        int expirationTime = rememberMe ? jwtRefreshExpirationMs : jwtShortExpirationMs;
+    public String generateJwtToken(String username, boolean autoLogin) {
+        int expirationTime = autoLogin ? jwtRefreshExpirationMs : jwtShortExpirationMs;
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
