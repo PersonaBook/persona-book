@@ -44,8 +44,8 @@ function getAuthToken() {
 }
 
 // 토큰 저장 함수
-function setAuthToken(token, rememberMe) {
-    if (rememberMe) {
+function setAuthToken(token, autoLogin) {
+    if (autoLogin) {
         // 로그인 유지 체크 시 localStorage에 저장 (24시간)
         localStorage.setItem('accessToken', token);
         sessionStorage.removeItem('accessToken'); // 중복 방지
@@ -210,13 +210,13 @@ function checkTokenAndUpdateUI() {
 }
 
 // ID 찾기 함수
-function findUserId(userName, email) {
+function findId(name, email) {
     return $.ajax({
         url: '/api/auth/findId',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
-            userName: userName,
+            name: name,
             email: email
         }),
         success: function(response) {
@@ -235,13 +235,13 @@ function findUserId(userName, email) {
 }
 
 // 비밀번호 리셋 함수
-function resetPassword(userName, email, newPassword) {
+function resetPassword(name, email, newPassword) {
     return $.ajax({
         url: '/api/findPassword/reset',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
-            userName: userName,
+            name: name,
             email: email,
             newPassword: newPassword
         }),
@@ -283,7 +283,7 @@ $(document).ready(function(){
         resetPasswordForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const userName = document.getElementById('name').value;
+            const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const verificationCode = document.getElementById('verificationCode').value;
             const newPassword = document.getElementById('newPassword').value;
@@ -296,7 +296,7 @@ $(document).ready(function(){
             }
             
             // 비밀번호 리셋 함수 호출
-            resetPassword(userName, email, newPassword);
+            resetPassword(name, email, newPassword);
         });
     }
     
@@ -306,27 +306,27 @@ $(document).ready(function(){
         idInquiryForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const userName = document.getElementById('name').value;
+            const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             
             // ID 찾기 함수 호출
-            findUserId(userName, email);
+            findId(name, email);
         });
     }
     
     // URL에서 토큰 파라미터 처리
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
-    const rememberMe = urlParams.get('rememberMe') === 'true';
+    const autoLogin = urlParams.get('autoLogin') === 'true';
     const shouldRefresh = urlParams.get('refresh') === 'true';
     
     // 토큰이 있으면 rememberMe에 따라 저장
     if (token) {
-        setAuthToken(token, rememberMe);
+        setAuthToken(token, autoLogin);
         // URL에서 파라미터들 제거
         const cleanUrl = window.location.pathname + window.location.search
             .replace(/[?&]token=[^&]*/, '')
-            .replace(/[?&]rememberMe=[^&]*/, '')
+            .replace(/[?&]autoLogin=[^&]*/, '')
             .replace(/[?&]refresh=true/, '')
             .replace(/^\?$/, '');
         history.replaceState(null, '', cleanUrl);
