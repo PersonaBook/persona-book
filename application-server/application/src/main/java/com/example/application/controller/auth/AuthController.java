@@ -1,0 +1,132 @@
+package com.example.application.controller.auth;
+
+import com.example.application.dto.auth.request.LoginRequestDto;
+import com.example.application.dto.auth.request.RegisterRequestDto;
+import com.example.application.dto.auth.request.RefreshTokenRequestDto;
+import com.example.application.dto.auth.response.LoginResponseDto;
+import com.example.application.dto.auth.response.MessageResponseDto;
+import com.example.application.service.AuthService;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final AuthService authService;
+    
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    // 로그인
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequestDto loginRequestDto, HttpSession session) {
+        LoginResponseDto loginResponse = authService.authenticateUser(loginRequestDto, session);
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    // 회원가입
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDto registerRequest) {
+        if (authService.registerUser(registerRequest)) {
+            return ResponseEntity.ok(new MessageResponseDto(HttpStatus.OK, "User registered successfully! Please check your email to verify your account."));
+        } else {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, "Error: Username or Email is already in use!"));
+        }
+    }
+    
+    // 로그인 토큰 만료시 계속 유지시키기 위한 리프레쉬 토큰
+    @PostMapping("/token/refresh")
+    public ResponseEntity<?> refreshtoken(@Valid @RequestBody RefreshTokenRequestDto request, HttpSession session) {
+        String refreshToken = request.getRefreshToken();
+        LoginResponseDto loginResponse = authService.refreshToken(refreshToken, session);
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(HttpSession session) {
+        authService.logout(session);
+        return ResponseEntity.ok(new MessageResponseDto(HttpStatus.OK, "Log out successful!"));
+    }
+
+    // 이메일 인증
+    @PostMapping("/email-verification/verify")
+    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String code = request.get("code");
+        if (email == null || email.isEmpty() || code == null || code.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, "이메일과 인증코드가 필요합니다."));
+        }
+        if (authService.verifyEmailCode(email, code)) {
+            return ResponseEntity.ok(new MessageResponseDto(HttpStatus.OK, "이메일 인증에 성공했습니다."));
+        } else {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, "만료된 인증 코드입니다."));
+        }
+    }
+
+    // 이메일 인증번호 보내기
+    @PostMapping("/email-verification/send")
+    public ResponseEntity<?> sendVerificationEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String type = request.get("type"); // "signup", "findId", "findPassword"
+        
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, "이메일이 필요합니다."));
+        }
+
+        // type에 따라 mustExist 파라미터 결정 (type이 없으면 기본값 signup 처리)
+        boolean mustExist = "findId".equals(type) || "findPassword".equals(type);
+
+        String result = authService.sendEmailVerificationCode(email, mustExist);
+        if ("인증번호를 발송했습니다.".equals(result)) {
+            return ResponseEntity.ok(new MessageResponseDto(HttpStatus.OK, result));
+        } else {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, result));
+        }
+    }
+
+    // ID 찾기
+    @PostMapping("/findId")
+    public ResponseEntity<?> findId(@RequestBody Map<String, String> request) {
+        String userName = request.get("userName");
+        String email = request.get("email");
+
+        if (userName == null || userName.isEmpty() || email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, "이름과 이메일이 모두 필요합니다."));
+        }
+
+        String username = authService.findUsernameByNameAndEmail(userName, email);
+        if (username != null) {
+            return ResponseEntity.ok(new MessageResponseDto(HttpStatus.OK, "귀하의 아이디는: " + username));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponseDto(HttpStatus.NOT_FOUND, "이름과 이메일이 일치하지 않습니다."));
+        }
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String userName = request.get("userName");
+        String email = request.get("email");
+        String newPassword = request.get("newPassword");
+
+        if (userName == null || userName.isEmpty() || email == null || email.isEmpty() ||
+            newPassword == null || newPassword.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, "이름, 이메일, 비밀번호가 모두 필요합니다."));
+        }
+
+        try {
+            authService.resetPassword(userName, email, newPassword);
+            return ResponseEntity.ok(new MessageResponseDto(HttpStatus.OK, "비밀번호가 성공적으로 변경되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponseDto(HttpStatus.BAD_REQUEST, e.getMessage()));
+        }
+    }
+}
