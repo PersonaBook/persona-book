@@ -5,19 +5,19 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class JwtResponse {
+public class LoginResponseDto {
     private String token;
     private String refreshToken;
     private String type = "Bearer";
     private Long userId;
-    private String userName;
-    private String userEmail;
+    private String name;
+    private String email;
 
-    public JwtResponse(String accessToken, String refreshToken, Long userId, String userName, String userEmail) {
+    public LoginResponseDto(String accessToken, String refreshToken, Long userId, String name, String email) {
         this.token = accessToken;
         this.refreshToken = refreshToken;
         this.userId = userId;
-        this.userName = userName;
-        this.userEmail = userEmail;
+        this.name = name;
+        this.email = email;
     }
 }

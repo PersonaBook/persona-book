@@ -6,12 +6,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginRequest {
+public class LoginRequestDto {
     @NotBlank
-    private String userEmail;
+    private String email;
 
     @NotBlank
     private String password;
     
-    private boolean rememberMe = false;
+    private boolean autoLogin = false;
 }

@@ -7,11 +7,11 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @Setter
-public class MessageResponse {
+public class MessageResponseDto {
     private int status;
     private String message;
 
-    public MessageResponse(HttpStatus status, String message) {
+    public MessageResponseDto(HttpStatus status, String message) {
         this.status = status.value();
         this.message = message;
     }
