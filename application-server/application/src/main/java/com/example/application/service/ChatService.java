@@ -292,8 +292,8 @@ public class ChatService {
                     Question lastQuestion = lastQuestionOptional.get();
                     if (lastQuestion.getConcept() != null && !lastQuestion.getConcept().isBlank()) {
                         content = lastQuestion.getConcept();
-                    } else if (lastQuestion.getQuestionText() != null && !lastQuestion.getQuestionText().isBlank()) {
-                        content = lastQuestion.getQuestionText(); // concept이 없으면 problemText를 사용
+                    } else if (lastQuestion.getText() != null && !lastQuestion.getText().isBlank()) {
+                        content = lastQuestion.getText(); // concept이 없으면 problemText를 사용
                     }
                 }
 
@@ -430,7 +430,7 @@ public class ChatService {
                 .book(book)
                 .domain(response.getDomain())
                 .concept(response.getConcept())
-                .questionText(response.getQuestionText())
+                .text(response.getQuestionText())
                 .userAnswer(null) // 사용자가 답변하면 이후 업데이트 가능
                 .correctAnswer(response.getCorrectAnswer())
                 .createdAt(LocalDateTime.now())

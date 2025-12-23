@@ -3,10 +3,10 @@ package com.example.application.service;
 import com.example.application.entity.User;
 import com.example.application.entity.VerificationToken;
 
-import com.example.application.dto.auth.request.LoginRequest;
-import com.example.application.dto.auth.request.SignupRequest;
-import com.example.application.dto.auth.response.JwtResponse;
-import com.example.application.dto.auth.response.UserProfileResponse;
+import com.example.application.dto.auth.request.LoginRequestDto;
+import com.example.application.dto.auth.request.RegisterRequestDto;
+import com.example.application.dto.auth.response.LoginResponseDto;
+import com.example.application.dto.auth.response.UserProfileResponseDto;
 import com.example.application.repository.UserRepository;
 import com.example.application.repository.VerificationTokenRepository;
 
@@ -52,27 +52,27 @@ public class AuthService {
 
     
 
-    public JwtResponse authenticateUser(LoginRequest loginRequest, HttpSession session) {
-        User user = userRepository.findByUserEmail(loginRequest.getUserEmail())
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + loginRequest.getUserEmail()));
+    public LoginResponseDto authenticateUser(LoginRequestDto loginRequestDto, HttpSession session) {
+        User user = userRepository.findByEmail(loginRequestDto.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + loginRequestDto.getEmail()));
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password!");
         }
 
         // rememberMe에 따라 다른 만료시간의 토큰 생성
-        String jwt = jwtTokenProvider.generateJwtToken(user.getUserEmail(), loginRequest.isRememberMe());
+        String jwt = jwtTokenProvider.generateJwtToken(user.getEmail(), loginRequestDto.isAutoLogin());
 
         // refresh token 생성하고 세션에 저장
-        String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getUserEmail());
+        String refreshTokenString = jwtTokenProvider.generateRefreshToken(user.getEmail());
         session.setAttribute("refreshToken", refreshTokenString);
-        session.setAttribute("rememberMe", loginRequest.isRememberMe());
+        session.setAttribute("autoLogin", loginRequestDto.isAutoLogin());
         session.setAttribute("loginToken", jwt);
 
-        return new JwtResponse(jwt, refreshTokenString, user.getUserId(), user.getUserEmail(), user.getUserEmail());
+        return new LoginResponseDto(jwt, refreshTokenString, user.getUserId(), user.getName(), user.getEmail());
     }
 
-    public JwtResponse refreshToken(String refreshTokenString, HttpSession session) {
+    public LoginResponseDto refreshToken(String refreshTokenString, HttpSession session) {
         String storedRefreshToken = (String) session.getAttribute("refreshToken");
 
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshTokenString)) {
@@ -80,20 +80,20 @@ public class AuthService {
         }
 
         String userEmail = jwtTokenProvider.getUserEmailFromRefreshToken(refreshTokenString);
-        User user = userRepository.findByUserEmail(userEmail)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + userEmail));
 
         // rememberMe 설정으로 새 액세스 토큰 생성
-        Boolean rememberMe = (Boolean) session.getAttribute("rememberMe");
-        boolean useRememberMe = rememberMe != null ? rememberMe : false;
-        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getUserEmail(), useRememberMe);
+        Boolean autoLogin = (Boolean) session.getAttribute("autoLogin");
+        boolean useAutoLogin = autoLogin != null ? autoLogin : false;
+        String newAccessToken = jwtTokenProvider.generateJwtToken(user.getEmail(), useAutoLogin);
 
-        return new JwtResponse(newAccessToken, refreshTokenString, user.getUserId(), user.getUserName(), user.getUserEmail());
+        return new LoginResponseDto(newAccessToken, refreshTokenString, user.getUserId(), user.getName(), user.getEmail());
     }
 
     public void logout(HttpSession session) {
         session.removeAttribute("refreshToken");
-        session.removeAttribute("rememberMe");
+        session.removeAttribute("autoLogin");
         session.invalidate();
     }
 
@@ -105,7 +105,7 @@ public class AuthService {
         }
     }
 
-    public boolean registerUser(SignupRequest signUpRequest) {
+    public boolean registerUser(RegisterRequestDto signUpRequest) {
         if (!validateUserRegistration(signUpRequest)) {
             return false;
         }
@@ -116,19 +116,19 @@ public class AuthService {
         return sendVerificationEmailToNewUser(user);
     }
 
-    private boolean validateUserRegistration(SignupRequest signUpRequest) {
-        return !userRepository.existsByUserName(signUpRequest.getUserName()) &&
-               !userRepository.existsByUserEmail(signUpRequest.getUserEmail());
+    private boolean validateUserRegistration(RegisterRequestDto signUpRequest) {
+        return !userRepository.existsByName(signUpRequest.getName()) &&
+               !userRepository.existsByEmail(signUpRequest.getEmail());
     }
 
-    private User createUserFromRequest(SignupRequest signUpRequest) {
+    private User createUserFromRequest(RegisterRequestDto signUpRequest) {
         User user = new User();
-        user.setUserName(signUpRequest.getUserName());
-        user.setUserEmail(signUpRequest.getUserEmail());
+        user.setName(signUpRequest.getName());
+        user.setEmail(signUpRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-        user.setUserBirthDate(signUpRequest.getBirthDate());
-        user.setUserJob(signUpRequest.getJob());
-        user.setUserPhoneNumber(signUpRequest.getUserPhoneNumber());
+        user.setBirthDate(signUpRequest.getBirthDate());
+        user.setJob(signUpRequest.getJob());
+        user.setPhoneNumber(signUpRequest.getPhoneNumber());
         return user;
     }
 
@@ -138,33 +138,33 @@ public class AuthService {
         verificationTokenRepository.save(verificationToken);
 
         try {
-            emailService.sendVerificationEmail(user.getUserEmail(), verificationCode);
+            emailService.sendVerificationEmail(user.getEmail(), verificationCode);
             return true;
         } catch (Exception e) {
-            logger.error("Failed to send verification email to {}: {}", user.getUserEmail(), e.getMessage());
+            logger.error("Failed to send verification email to {}: {}", user.getEmail(), e.getMessage());
             return false;
         }
     }
 
 
 
-    public UserProfileResponse getUserProfile(Long userId) {
+    public UserProfileResponseDto getUserProfile(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            return new UserProfileResponse(user.getUserId(), user.getUserName(), user.getUserEmail(), user.getUserBirthDate(), user.getUserJob());
+            return new UserProfileResponseDto(user.getUserId(), user.getName(), user.getEmail(), user.getBirthDate(), user.getJob());
         }
         return null;
     }
 
-    public String findUsernameByNameAndEmail(String userName, String email) {
-        Optional<User> userOptional = userRepository.findByUserNameAndUserEmail(userName, email);
-        return userOptional.map(User::getUserName).orElse(null);
+    public String findUsernameByNameAndEmail(String name, String email) {
+        Optional<User> userOptional = userRepository.findByNameAndEmail(name, email);
+        return userOptional.map(User::getName).orElse(null);
     }
 
     @Transactional
-    public void resetPassword(String userName, String email, String newPassword) {
-        User user = userRepository.findByUserNameAndUserEmail(userName, email)
+    public void resetPassword(String name, String email, String newPassword) {
+        User user = userRepository.findByNameAndEmail(name, email)
                 .orElseThrow(() -> new UserNotFoundException("이름과 이메일이 일치하지 않습니다."));
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -217,13 +217,13 @@ public class AuthService {
     private String validateEmailForVerification(String email, boolean mustExist) {
         if (mustExist) {
             // 이메일이 반드시 존재해야 함 (id/pw찾기, 마이페이지)
-            if (!userRepository.existsByUserEmail(email)) {
+            if (!userRepository.existsByEmail(email)) {
                 logger.warn("Email {} does not exist. Cannot send verification code.", email);
                 return "해당 이메일로 가입된 계정이 없습니다.";
             }
         } else {
             // 이메일이 존재하면 안 됨 (회원가입)
-            if (userRepository.existsByUserEmail(email)) {
+            if (userRepository.existsByEmail(email)) {
                 logger.warn("Email {} already exists. Cannot send verification code.", email);
                 return "이미 가입된 이메일입니다.";
             }
