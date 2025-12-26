@@ -1,10 +1,8 @@
 package com.example.application.controller.book;
 
-import com.example.application.dto.book.BookSummaryResponseDto;
-import com.example.application.dto.book.BookUploadRequestDto;
-import com.example.application.entity.Book;
+import com.example.application.dto.book.response.BookSummaryResponseDto;
+import com.example.application.dto.book.request.BookUploadRequestDto;
 import com.example.application.entity.User;
-import com.example.application.repository.BookRepository;
 import com.example.application.service.BookService;
 import com.example.application.util.JwtAuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,51 +11,35 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/book")
 public class BookController {
 
     private final JwtAuthUtil jwtAuthUtil;
-    private final BookRepository bookRepository;
     private final BookService bookService;
 
-    @PostMapping("/book/upload")
-    public ResponseEntity<?> upload(@Valid @RequestBody BookUploadRequestDto req, HttpServletRequest request) {
-        User user = jwtAuthUtil.getUserFromRequest(request);
-        if (user == null) return ResponseEntity.status(401).body("인증 필요");
+    @PostMapping("/upload")
+    public ResponseEntity<BookSummaryResponseDto> uploadBook(@Valid @RequestBody BookUploadRequestDto request, HttpServletRequest servletRequest) {
+        User user = jwtAuthUtil.getUserFromRequest(servletRequest);
 
-        Book book = new Book();
-        book.setUser(user);              // 연관관계 세팅
-        book.setTitle(req.getTitle());
-        book.setFileBase64(req.getFileBase64());
+        if (user == null) return ResponseEntity.status(401).build();
 
-        Book saved = bookRepository.save(book);
+        BookSummaryResponseDto response = bookService.uploadBook(user, request);
 
-        // ✅ 서비스 시그니처(2개 파라미터)에 맞게 수정
-        bookService.sendBookToFastApiAsync(
-                saved.getFileBase64(),
-                saved.getBookId()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "책 업로드 성공");
-        response.put("bookId", saved.getBookId());
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/book/list")
-    public ResponseEntity<?> list(HttpServletRequest request) {
-        User user = jwtAuthUtil.getUserFromRequest(request);
-        if (user == null) return ResponseEntity.status(401).body("인증 필요");
+    @GetMapping("/list")
+    public ResponseEntity<List<BookSummaryResponseDto>> getBookList(HttpServletRequest servletRequest) {
+        User user = jwtAuthUtil.getUserFromRequest(servletRequest);
 
-        List<Book> books = bookRepository.findByUserAndDeletedAtIsNull(user);
-        List<BookSummaryResponseDto> result = books.stream().map(BookSummaryResponseDto::from).toList();
-        return ResponseEntity.ok(result);
+        if (user == null) return ResponseEntity.status(401).build();
+
+        List<BookSummaryResponseDto> books = bookService.getBookList(user);
+
+        return ResponseEntity.ok(books);
     }
 }

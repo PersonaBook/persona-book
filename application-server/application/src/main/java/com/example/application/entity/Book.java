@@ -61,6 +61,15 @@ public class Book {
     }
 
 
+    // ─────────────── 비즈니스 메서드 (Setter 대체) ───────────────
+    public void updateEmbeddingState(EmbeddingState state) {
+        this.embeddingState = state;
+        if (state == EmbeddingState.COMPLETED) {
+            this.embeddingCompletedAt = LocalDateTime.now();
+        }
+    }
+
+
     // ─────────────── 연관관계 (역방향) ───────────────
     // 역방향 매핑은 필요한 경우에만 사용
     // 데이터가 많아질 경우, 성능 저하

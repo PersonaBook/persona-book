@@ -1,12 +1,9 @@
 package com.example.application.controller.book;
 
-import com.example.application.dto.book.BookDetailResponseDto;
-import com.example.application.entity.Book;
+import com.example.application.dto.book.response.BookDetailResponseDto;
 import com.example.application.entity.User;
-import com.example.application.repository.BookRepository;
 import com.example.application.service.BookService;
 import com.example.application.util.JwtAuthUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,62 +12,32 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 public class BookViewController {
 
-    private final BookRepository bookRepository;
-    private final JwtAuthUtil jwtAuthUtil;
-    private final ObjectMapper objectMapper;
     private final BookService bookService;
+    private final JwtAuthUtil jwtAuthUtil;
 
     @GetMapping("/book/{bookId}")
-    public String getBookPage(@PathVariable Long bookId, HttpServletRequest request, Model model) {
-        log.info("=== Book Detail 요청: bookId={} ===", bookId);
-
-        User user = jwtAuthUtil.getUserFromRequest(request);
-        if (user == null) {
-            log.warn("인증 실패 → 로그인 페이지로 리다이렉트");
-            return "redirect:/user/login";
-        }
+    public String getBookPage(@PathVariable Long bookId, HttpServletRequest servletRequest, Model model) {
+        User user = jwtAuthUtil.getUserFromRequest(servletRequest);
+        if (user == null) return "redirect:/user/login";
 
         try {
-            Optional<Book> bookOpt =
-                    bookRepository.findByBookIdAndUserAndDeletedAtIsNull(bookId, user);
-
-            if (bookOpt.isEmpty()) {
-                log.warn("도서 없음/권한 없음: bookId={}, userId={}", bookId, user.getUserId());
-                model.addAttribute("errorMessage", "도서를 찾을 수 없습니다.");
-                return "home";
-            }
-
-            Book book = bookOpt.get();
-
-            // 마지막 접근 시각 업데이트
-            book.setLastAccessedAt(LocalDateTime.now());
-            bookRepository.save(book);
-
-            // 필요 시 FastAPI 전송 (비동기)
-            if (book.getFileBase64() != null) {
-                bookService.sendBookToFastApi(book.getFileBase64());
-            }
-
-            // ✅ 엔티티 → DTO 변환 후 JSON (순환참조/LAZY 안전)
-            BookDetailResponseDto viewDto = BookDetailResponseDto.from(book);
-            String bookJson = objectMapper.writeValueAsString(viewDto);
+            BookDetailResponseDto viewDto = bookService.getBookDetail(bookId, user);
 
             model.addAttribute("book", viewDto);
-            model.addAttribute("bookJson", bookJson);
 
             return "page/book";
 
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "home";
         } catch (Exception e) {
             log.error("상세 조회 오류", e);
-            model.addAttribute("errorMessage", "책 로드에 실패했습니다: " + e.getMessage());
+            model.addAttribute("errorMessage", "오류 발생");
             return "error/500";
         }
     }

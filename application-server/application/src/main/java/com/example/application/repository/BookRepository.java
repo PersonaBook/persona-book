@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
-    List<Book> findByUserAndDeletedAtIsNull(User user);
-    Optional<Book> findByBookIdAndUserAndDeletedAtIsNull(Long bookId, User user);
+    List<Book> findByUser(User user);
+    Optional<Book> findByBookIdAndUser(Long bookId, User user);
 }
