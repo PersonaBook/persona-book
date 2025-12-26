@@ -7,13 +7,14 @@ import com.example.application.dto.chat.response.ConceptExplanationResponseDto;
 import com.example.application.dto.chat.response.GeneratingQuestionResponseDto;
 import com.example.application.entity.Book;
 import com.example.application.entity.ChatHistory;
-import com.example.application.entity.ChatHistory.ChatState;
+import com.example.application.type.ChatState;
 import com.example.application.entity.Question;
 import com.example.application.entity.User;
 import com.example.application.repository.BookRepository;
 import com.example.application.repository.ChatHistoryRepository;
 import com.example.application.repository.QuestionRepository;
 import com.example.application.repository.UserRepository;
+import com.example.application.type.Sender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -338,7 +339,7 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalStateException("최근 Question을 찾을 수 없습니다."));
 
         ChatHistory userAnswer = chatHistoryRepository.findTopByUserAndBookAndSenderOrderByCreatedAtDesc(
-                user, book, ChatHistory.Sender.USER).orElse(null);
+                user, book, Sender.USER).orElse(null);
 
         ConceptExplanationRequestDto.ProblemInfo problemInfo =
                 ConceptExplanationRequestDto.ProblemInfo.from(question, userAnswer);
@@ -349,7 +350,7 @@ public class ChatService {
         List<ChatHistory> allExplanationWithRatings = chatHistoryRepository.findAiExplanationsWithRatingsByUserAndBookAndStates(
                 user,
                 book,
-                ChatHistory.Sender.AI,
+                Sender.AI,
                 List.of(ChatState.PRESENTING_CONCEPT_EXPLANATION, ChatState.WAITING_CONCEPT_RATING)
         );
 
@@ -357,7 +358,7 @@ public class ChatService {
         List<ChatHistory> allFeedbacks = chatHistoryRepository.findAllFeedbacks(
                 user,
                 book,
-                ChatHistory.Sender.USER,
+                Sender.USER,
                 ChatState.WAITING_REASON_FOR_LOW_RATING
         );
 

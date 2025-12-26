@@ -4,11 +4,13 @@ import com.example.application.dto.chat.AiMessageDto;
 import com.example.application.dto.chat.UserMessageDto;
 import com.example.application.entity.Book;
 import com.example.application.entity.ChatHistory;
-import com.example.application.entity.ChatHistory.ChatState;
+import com.example.application.type.ChatState;
 import com.example.application.entity.User;
 import com.example.application.repository.BookRepository;
 import com.example.application.repository.ChatHistoryRepository;
 import com.example.application.repository.UserRepository;
+import com.example.application.type.MessageType;
+import com.example.application.type.Sender;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,9 +32,9 @@ public class ChatHistoryService {
         ChatHistory history = ChatHistory.builder()
                 .user(userRepository.getReferenceById(dto.getUserId())) // 프록시 객체 사용
                 .book(bookRepository.getReferenceById(dto.getBookId()))  // 프록시 객체 사용
-                .sender(ChatHistory.Sender.USER)
+                .sender(Sender.USER)
                 .content(dto.getContent())
-                .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
+                .messageType(MessageType.valueOf(dto.getMessageType()))
                 .chatState(chatState)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -44,9 +46,9 @@ public class ChatHistoryService {
         ChatHistory history = ChatHistory.builder()
                 .user(userRepository.getReferenceById(dto.getUserId())) // 프록시 객체 사용
                 .book(bookRepository.getReferenceById(dto.getBookId()))  // 프록시 객체 사용
-                .sender(ChatHistory.Sender.AI)
+                .sender(Sender.AI)
                 .content(dto.getContent())
-                .messageType(ChatHistory.MessageType.valueOf(dto.getMessageType()))
+                .messageType(MessageType.valueOf(dto.getMessageType()))
                 .chatState(chatState)
                 .createdAt(LocalDateTime.now())
                 .build();

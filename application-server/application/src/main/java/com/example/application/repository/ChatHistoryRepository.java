@@ -2,8 +2,8 @@ package com.example.application.repository;
 
 import com.example.application.entity.Book;
 import com.example.application.entity.ChatHistory;
-import com.example.application.entity.ChatHistory.Sender;
-import com.example.application.entity.ChatHistory.ChatState;
+import com.example.application.type.Sender;
+import com.example.application.type.ChatState;
 import com.example.application.entity.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -55,7 +55,7 @@ public interface ChatHistoryRepository extends JpaRepository<ChatHistory, Long> 
      * @param sender 발신자 (AI or USER)
      * @return 가장 마지막 ChatHistory (Optional)
      */
-    Optional<ChatHistory> findTopByUserAndBookAndSenderOrderByCreatedAtDesc(User user, Book book, ChatHistory.Sender sender);
+    Optional<ChatHistory> findTopByUserAndBookAndSenderOrderByCreatedAtDesc(User user, Book book, Sender sender);
 
     /**
      * [성능 최적화: 일괄 삭제(Bulk Delete)]
