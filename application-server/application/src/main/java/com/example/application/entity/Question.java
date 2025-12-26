@@ -18,6 +18,7 @@ public class Question {
     @Column(name = "question_id")
     private Long questionId;
 
+    // ─────────────── 연관관계 (단방향) ───────────────
     // ✅ 기존 Long userId/bookId → 연관관계로 교체
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -42,7 +43,12 @@ public class Question {
     @Column(name = "correct_answer")
     private String correctAnswer;
 
-    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    // ─────────────── 라이프사이클 메서드 ───────────────
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

@@ -1,13 +1,13 @@
 package com.example.application.entity;
 
+import com.example.application.type.EmbeddingState;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "book")
@@ -18,18 +18,19 @@ public class Book {
     @Column(name = "book_id")
     private Long bookId;
 
+    // ─────────────── 연관관계 (단방향) ───────────────
     // ✅ 기존 Long userId → 연관관계로 교체
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)  // FK 컬럼 유지
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "title")
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "file_base64", columnDefinition = "LONGTEXT")
     private String fileBase64;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "deleted_at")
@@ -38,30 +39,39 @@ public class Book {
     @Column(name = "last_accessed_at")
     private LocalDateTime lastAccessedAt;
 
-    // 임베딩 상태 관련 필드
-    @Column(name = "embedding_status")
-    private String embeddingStatus;
-
     @Column(name = "embedding_completed_at")
     private LocalDateTime embeddingCompletedAt;
 
-    // ─────────────── 연관관계 (역방향) ───────────────
-    @Builder.Default
-    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
-    private Set<Question> questions = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "embedding_state", nullable = false)
+    private EmbeddingState embeddingState;
 
-    @Builder.Default
-    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
-    private Set<ChatHistory> chatHistories = new HashSet<>();
 
+    // ─────────────── 라이프사이클 메서드 (자동 실행) ───────────────
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         lastAccessedAt = LocalDateTime.now();
+
+        if (embeddingState == null) {
+            embeddingState = EmbeddingState.PENDING;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         lastAccessedAt = LocalDateTime.now();
     }
+
+
+    // ─────────────── 연관관계 (역방향) ───────────────
+    // 역방향 매핑은 필요한 경우에만 사용
+    // 데이터가 많아질 경우, 성능 저하
+    // @Builder.Default
+    // @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+    // private Set<Question> questions = new HashSet<>();
+    //
+    // @Builder.Default
+    // @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+    // private Set<ChatHistory> chatHistories = new HashSet<>();
 }

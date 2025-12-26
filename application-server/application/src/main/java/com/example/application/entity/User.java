@@ -10,8 +10,9 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "user")
@@ -19,7 +20,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id") // PK 컬럼명 명시
+    @Column(name = "user_id")
     private Long userId;
 
     @Column(nullable = false, unique = true, length = 50)
@@ -40,24 +41,36 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @CreationTimestamp
-    @Column(name = "create_at")
-    private LocalDateTime createAt;
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "update_at")
-    private LocalDateTime updateAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    // ─────────────── 라이프사이클 메서드 ───────────────
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     // ─────────────── 연관관계 (역방향) ───────────────
-    @Builder.Default
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<Book> books = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<Question> questions = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<ChatHistory> chatHistories = new HashSet<>();
+    // 역방향 매핑은 필요한 경우에만 사용
+    // 데이터가 많아질 경우, 성능 저하
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+//    private Set<Book> books = new HashSet<>();
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+//    private Set<Question> questions = new HashSet<>();
+//
+//    @Builder.Default
+//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+//    private Set<ChatHistory> chatHistories = new HashSet<>();
 }

@@ -1,5 +1,8 @@
 package com.example.application.entity;
 
+import com.example.application.type.ChatState;
+import com.example.application.type.MessageType;
+import com.example.application.type.Sender;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,6 +22,7 @@ public class ChatHistory {
     @Column(name = "chat_id")
     private Long chatId;
 
+    // ─────────────── 연관관계 (단방향) ───────────────
     // ✅ 기존 Long userId/bookId → 연관관계로 교체
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -32,57 +36,23 @@ public class ChatHistory {
     private String content;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "message_type", length = 30)
+    @Column(name = "message_type")
     private MessageType messageType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sender", length = 10)
+    @Column(name = "sender")
     private Sender sender; // "AI" or "USER"
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "chat_state", length = 50)
+    @Column(name = "chat_state")
     private ChatState chatState;
 
-    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public enum Sender { AI, USER }
-    public enum MessageType { TEXT, SELECTION, RATING }
-    public enum ChatState {
-
-        // ────────────────────────────────
-        // 0. 기능 선택 진입
-        // ────────────────────────────────
-        WAITING_USER_SELECT_FEATURE,         // 기능 선택: 1. 예상 문제 생성 / 2. 페이지 찾기 / 3. 개념 설명
-
-        // ────────────────────────────────
-        // 1. 예상 문제 생성 흐름
-        // ────────────────────────────────
-        WAITING_PROBLEM_CRITERIA_SELECTION,  // 문제 기준 선택 (1. 챕터/페이지, 2. 개념)
-
-        GENERATING_QUESTION_WITH_RAG,        // ✅ FastAPI 호출로 문제 생성
-        GENERATING_ADDITIONAL_QUESTION_WITH_RAG, // ✅ FastAPI 호출로 문제 생성
-        EVALUATING_ANSWER_AND_LOGGING,       // ✅ FastAPI 호출 → 정오답 판단 및 오답 저장
-        WAITING_PROBLEM_CONTEXT_INPUT,       // 챕터/페이지 번호 또는 개념 키워드 입력
-        WAITING_NEXT_ACTION_AFTER_LEARNING,  // 다음 액션: 1. 다음 문제 / 2. 기능 선택
-        PRESENTING_CONCEPT_EXPLANATION,      // ✅ 오답 개념 설명 (FastAPI 호출)
-        WAITING_CONCEPT_RATING,              // 사용자 설명 평가 점수 입력
-        WAITING_REASON_FOR_LOW_RATING,       // 낮은 점수(1~3점) 입력 시 사유 요청
-        CONCEPT_REEXPLANATION,                // ✅ 보충 설명 요청 (FastAPI 호출 후 반복 평가)
-
-        // ────────────────────────────────
-        // 2. 개념 설명 흐름
-        // ────────────────────────────────
-        WAITING_CONCEPT_INPUT,               // 설명 받고 싶은 개념 입력
-        // 이후 흐름은 동일:
-        // → PRESENTING_CONCEPT_EXPLANATION → WAITING_CONCEPT_RATING → (반복)
-
-        // ────────────────────────────────
-        // 3. 페이지 찾기 흐름
-        // ────────────────────────────────
-        WAITING_KEYWORD_FOR_PAGE_SEARCH,     // 사용자 키워드 입력 대기
-        PROCESSING_PAGE_SEARCH_RESULT        // ✅ FastAPI 호출 → 키워드 기반 관련 페이지/챕터 제공
-        // 이후 → WAITING_USER_SELECT_FEATURE로 루프
+    // ─────────────── 라이프사이클 메서드 ───────────────
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 }
