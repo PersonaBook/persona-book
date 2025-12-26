@@ -2,6 +2,7 @@ package com.example.application.dto.chat.response;
 
 import com.example.application.entity.ChatHistory;
 
+import com.example.application.type.ChatState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,7 @@ public class GeneratingQuestionResponseDto {
     @Builder.Default
     private String messageType = "TEXT"; // TEXT, .. (추후 확장 예정)
 
-    private ChatHistory.ChatState chatState;
+    private ChatState chatState;
 
     private String domain; // 문제 도메인
     private String concept; // 문제 개념

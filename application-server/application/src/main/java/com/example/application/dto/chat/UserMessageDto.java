@@ -1,6 +1,6 @@
 package com.example.application.dto.chat;
 
-import com.example.application.entity.ChatHistory.ChatState;
+import com.example.application.type.ChatState;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
