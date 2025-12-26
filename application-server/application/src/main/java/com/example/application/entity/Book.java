@@ -33,11 +33,8 @@ public class Book {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
-    @Column(name = "last_accessed_at")
-    private LocalDateTime lastAccessedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @Column(name = "embedding_completed_at")
     private LocalDateTime embeddingCompletedAt;
@@ -51,7 +48,7 @@ public class Book {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        lastAccessedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
 
         if (embeddingState == null) {
             embeddingState = EmbeddingState.PENDING;
@@ -60,7 +57,7 @@ public class Book {
 
     @PreUpdate
     protected void onUpdate() {
-        lastAccessedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
 
