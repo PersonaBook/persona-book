@@ -13,17 +13,11 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendEmail(String to, String subject, String text) {
+    public void sendEmail(String email, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
+        message.setTo(email);
         message.setSubject(subject);
         message.setText(text);
         mailSender.send(message);
-    }
-
-    public void sendVerificationEmail(String to, String verificationCode) {
-        String subject = "이메일 인증 코드";
-        String text = "인증 코드는 " + verificationCode + " 입니다.";
-        sendEmail(to, subject, text);
     }
 }

@@ -33,7 +33,6 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final EmailService emailService;
 
-    // ─────────────── 내부 클래스: 인증 정보 VO ───────────────
     private static class VerificationInfo {
         private final String code;
         private final LocalDateTime expiryTime;
@@ -43,12 +42,10 @@ public class AuthService {
             this.expiryTime = LocalDateTime.now().plusMinutes(minutes);
         }
 
-        // 코드 일치 여부 및 만료 시간 확인
         public boolean isValid(String inputCode) {
             return this.code.equals(inputCode) && LocalDateTime.now().isBefore(this.expiryTime);
         }
     }
-
 
     @Transactional
     public LoginResponseDto login(LoginRequestDto request) {
@@ -93,10 +90,6 @@ public class AuthService {
         log.info("로그아웃 처리됨 (클라이언트 토큰 폐기)");
     }
 
-    // =================================================================================
-    // 2. 회원가입 & 프로필
-    // =================================================================================
-
     @Transactional
     public void register(RegisterRequestDto request) {
         if (userRepository.existsByName(request.getName()) || userRepository.existsByEmail(request.getEmail())) {
@@ -131,31 +124,23 @@ public class AuthService {
         user.resetPassword(passwordEncoder.encode(newPassword));
     }
 
-    public void requestVerificationCode(String email, boolean mustExist) {
-        boolean exists = userRepository.existsByEmail(email);
+    public void sendVerificationCode(String email) {
+        String verificationCode = createVerificationCode();
 
-        if (mustExist && !exists) throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        if (!mustExist && exists) throw new CustomException(ErrorCode.DUPLICATE_USER);
-
-        sendVerificationCode(email);
-    }
-
-    private void sendVerificationCode(String email) {
-        String code = generateRandomCode();
-
-        memoryVerificationStore.put(email, new VerificationInfo(code, VERIFICATION_CODE_EXPIRY_MINUTES));
+        memoryVerificationStore.put(email, new VerificationInfo(verificationCode, VERIFICATION_CODE_EXPIRY_MINUTES));
 
         try {
-            emailService.sendVerificationEmail(email, code);
+            String subject = "이메일 인증 코드";
+            String text = "인증 코드는 " + verificationCode + " 입니다.";
+            emailService.sendEmail(email, subject, text);
         } catch (Exception e) {
-            // 발송 실패 시 메모리에서도 삭제하여 정합성 유지
             memoryVerificationStore.remove(email);
             log.error("이메일 발송 실패: {}", email, e);
             throw new CustomException(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
 
-    public void verifyEmail(String email, String inputCode) {
+    public void verifyCode(String email, String inputCode) {
         VerificationInfo info = memoryVerificationStore.get(email);
 
         if (info == null) {
@@ -169,7 +154,7 @@ public class AuthService {
         memoryVerificationStore.remove(email);
     }
 
-    private String generateRandomCode() {
+    private String createVerificationCode() {
         return String.valueOf(100000 + new Random().nextInt(900000));
     }
 }

@@ -21,8 +21,7 @@ public class AuthViewController {
     private final AuthService authService;
 
     @GetMapping("/login")
-    public String getLoginPage(Model model) {
-        model.addAttribute("title", "로그인");
+    public String getLoginPage() {
         return "page/auth/login";
     }
 
@@ -37,20 +36,17 @@ public class AuthViewController {
         } catch (CustomException e) {
             log.warn("로그인 실패: {}", e.getErrorCode().getMessage());
             model.addAttribute("loginError", e.getErrorCode().getMessage());
-            model.addAttribute("title", "로그인");
             return "page/auth/login";
 
         } catch (Exception e) {
             log.error("로그인 시스템 오류", e);
             model.addAttribute("loginError", "로그인 처리 중 오류가 발생했습니다.");
-            model.addAttribute("title", "로그인");
             return "page/auth/login";
         }
     }
 
     @GetMapping("/register")
-    public String getRegisterPage(Model model) {
-        model.addAttribute("title", "회원가입");
+    public String getRegisterPage() {
         return "page/auth/register";
     }
 

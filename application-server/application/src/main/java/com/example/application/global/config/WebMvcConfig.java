@@ -16,7 +16,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*");
+                .allowedOrigins("http://localhost:3000", "http://localhost:8080") // ✅ 허용할 도메인 명시 권장
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true) // 쿠키나 인증 헤더 허용 시 필요
+                .maxAge(3600);
     }
 
     @Override

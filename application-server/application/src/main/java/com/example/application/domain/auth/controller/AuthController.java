@@ -39,15 +39,13 @@ public class AuthController {
 
     @PostMapping("/email/verify")
     public ApiResponseDto<String> verifyEmail(@Valid @RequestBody EmailVerifyRequestDto request) {
-        authService.verifyEmail(request.getEmail(), request.getCode());
+        authService.verifyCode(request.getEmail(), request.getCode());
         return ApiResponseDto.success("이메일 인증에 성공했습니다.");
     }
 
     @PostMapping("/email/send")
     public ApiResponseDto<String> sendEmail(@Valid @RequestBody EmailSendRequestDto request) {
-        boolean mustExist = "findId".equals(request.getType()) || "findPassword".equals(request.getType());
-
-        authService.requestVerificationCode(request.getEmail(), mustExist);
+        authService.sendVerificationCode(request.getEmail());
         return ApiResponseDto.success("인증번호를 발송했습니다.");
     }
 
