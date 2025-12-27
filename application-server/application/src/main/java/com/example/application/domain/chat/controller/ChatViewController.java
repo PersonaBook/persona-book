@@ -13,7 +13,7 @@ public class ChatViewController {
                               Model model) {
         model.addAttribute("userId", userId);
         model.addAttribute("bookId", bookId);
-        return "page/chat"; // templates/page/chat.html 렌더링
+        return "page/chat";
     }
 
 }

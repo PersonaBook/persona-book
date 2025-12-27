@@ -23,14 +23,15 @@ public class RegisterRequestDto {
     private String email;
 
     @NotBlank
-    @Size(max = 15)
-    private String phoneNumber;
-
-    @NotBlank
     @Size(min = 6, max = 40)
     private String password;
 
+    @NotBlank
+    @Size(max = 15)
+    private String phoneNumber;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
+
     private String job;
 }

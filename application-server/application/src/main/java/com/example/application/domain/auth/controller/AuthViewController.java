@@ -4,7 +4,7 @@ import com.example.application.domain.auth.dto.request.LoginRequestDto;
 import com.example.application.domain.auth.dto.request.RegisterRequestDto;
 import com.example.application.domain.auth.dto.response.LoginResponseDto;
 import com.example.application.domain.auth.service.AuthService;
-import jakarta.servlet.http.HttpSession;
+import com.example.application.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -21,23 +21,28 @@ public class AuthViewController {
     private final AuthService authService;
 
     @GetMapping("/login")
-    public String getLoginPage(Model model){
+    public String getLoginPage(Model model) {
         model.addAttribute("title", "로그인");
         return "page/auth/login";
     }
 
     @PostMapping("/login")
-    public String processLogin(@ModelAttribute LoginRequestDto request, HttpSession session, Model model) {
+    public String processLogin(@ModelAttribute LoginRequestDto request, Model model) {
         try {
-            LoginResponseDto response = authService.login(request, session);
+            LoginResponseDto response = authService.login(request);
 
-            String autoLoginParam = request.isAutoLogin() ? "&autoLogin=true" : "&autoLogin=false";
-            return "redirect:/?token=" + response.getToken() + "&refresh=true" + autoLoginParam;
+            return "redirect:/?accessToken=" + response.getAccessToken()
+                    + "&refreshToken=" + response.getRefreshToken();
+
+        } catch (CustomException e) {
+            log.warn("로그인 실패: {}", e.getErrorCode().getMessage());
+            model.addAttribute("loginError", e.getErrorCode().getMessage());
+            model.addAttribute("title", "로그인");
+            return "page/auth/login";
 
         } catch (Exception e) {
-            log.warn("로그인 실패: {}", e.getMessage());
-            // 에러 발생 시 다시 로그인 페이지로 이동하며 에러 메시지 전달
-            model.addAttribute("loginError", e.getMessage()); // Service에서 던진 구체적인 메시지 사용
+            log.error("로그인 시스템 오류", e);
+            model.addAttribute("loginError", "로그인 처리 중 오류가 발생했습니다.");
             model.addAttribute("title", "로그인");
             return "page/auth/login";
         }
@@ -50,20 +55,25 @@ public class AuthViewController {
     }
 
     @PostMapping("/register")
-    public String processRegistration(@ModelAttribute RegisterRequestDto request, Model model, RedirectAttributes redirectAttributes) {
+    public String processRegister(
+            @ModelAttribute RegisterRequestDto request,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ) {
         try {
-            // boolean 반환이 아니라 void이므로, 성공하면 다음 줄로 진행
             authService.register(request);
 
-            // 성공 시 로그인 페이지나 메인으로 리다이렉트
             redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다! 이메일 인증을 진행해주세요.");
-            return "redirect:/auth/login"; // 보통 가입 후엔 로그인 페이지로 보냄
+            return "redirect:/auth/login";
+
+        } catch (CustomException e) {
+            log.warn("회원가입 실패: {}", e.getErrorCode().getMessage());
+            model.addAttribute("errorMessage", e.getErrorCode().getMessage());
+            return "page/auth/register";
 
         } catch (Exception e) {
-            log.warn("회원가입 실패: {}", e.getMessage());
-            // 실패 시 다시 가입 페이지로 + 에러 메시지
-            model.addAttribute("errorMessage", e.getMessage()); // "이미 존재하는 이메일입니다" 등
-            model.addAttribute("title", "회원가입");
+            log.error("회원가입 시스템 오류", e);
+            model.addAttribute("errorMessage", "시스템 오류가 발생했습니다.");
             return "page/auth/register";
         }
     }

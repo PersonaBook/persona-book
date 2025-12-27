@@ -1,7 +1,9 @@
 package com.example.application.domain.user.entity;
 
+import com.example.application.domain.user.dto.requeset.UserProfileUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +21,9 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(nullable = false)
+    private String password;
+
     @Column(nullable = false, unique = true, length = 50)
     private String name;
 
@@ -33,9 +38,6 @@ public class User {
 
     @Column(name = "job")
     private String job;
-
-    @Column(nullable = false)
-    private String password;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -55,18 +57,45 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
+    // ─────────────── 비즈니스 메서드 (Setter 대체) ───────────────
+    public void resetPassword(String newPassword) {
+        this.password = newPassword;
+    }
+
+    public void updateProfile(UserProfileUpdateRequestDto request) {
+        if (StringUtils.hasText(request.getName())) {
+            this.name = request.getName();
+        }
+
+        if (StringUtils.hasText(request.getEmail())) {
+            this.email = request.getEmail();
+        }
+
+        if (StringUtils.hasText(request.getPhoneNumber())) {
+            this.phoneNumber = request.getPhoneNumber();
+        }
+
+        if (request.getBirthDate() != null) {
+            this.birthDate = request.getBirthDate();
+        }
+
+        if (StringUtils.hasText(request.getJob())) {
+            this.job = request.getJob();
+        }
+    }
+
     // ─────────────── 연관관계 (역방향) ───────────────
     // 역방향 매핑은 필요한 경우에만 사용
     // 데이터가 많아질 경우, 성능 저하
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-//    private Set<Book> books = new HashSet<>();
-//
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-//    private Set<Question> questions = new HashSet<>();
-//
-//    @Builder.Default
-//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-//    private Set<ChatHistory> chatHistories = new HashSet<>();
+    // @Builder.Default
+    // @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    // private Set<Book> books = new HashSet<>();
+    //
+    // @Builder.Default
+    // @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    // private Set<Question> questions = new HashSet<>();
+    //
+    // @Builder.Default
+    // @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    // private Set<ChatHistory> chatHistories = new HashSet<>();
 }

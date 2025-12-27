@@ -7,9 +7,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class LoginResponseDto {
-    private String token;
+    private String accessToken;
     private String refreshToken;
-    private String type = "Bearer";
     private Long userId;
     private String name;
     private String email;

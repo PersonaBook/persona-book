@@ -35,7 +35,7 @@ public class BookEmbeddingService {
     public void processEmbedding(Long bookId, String fileBase64) {
         log.info(">>> [Async] 임베딩 작업 시작 bookId={}", bookId);
 
-        updateState(bookId, EmbeddingState.PROCESSING);
+        updateEmbeddingState(bookId, EmbeddingState.PROCESSING);
 
         try {
             ByteArrayResource pdfFile = decodePdf(fileBase64);
@@ -59,18 +59,20 @@ public class BookEmbeddingService {
                     .retryWhen(Retry.backoff(2, Duration.ofSeconds(1)))
                     .block();
 
-            log.info("FastAPI 응답 완료: {}", response);
-            updateState(bookId, EmbeddingState.COMPLETED);
+            log.info(">>> [Async] FastAPI 응답 완료: {}", response);
+
+            updateEmbeddingState(bookId, EmbeddingState.COMPLETED);
 
         } catch (Exception e) {
-            log.error("임베딩 실패 bookId={}", bookId, e);
-            updateState(bookId, EmbeddingState.FAILED);
+            log.error(">>> [Async] 임베딩 실패 bookId={}", bookId, e);
+
+            updateEmbeddingState(bookId, EmbeddingState.FAILED);
         }
     }
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateState(Long bookId, EmbeddingState state) {
+    public void updateEmbeddingState(Long bookId, EmbeddingState state) {
         bookRepository.findById(bookId).ifPresent(book -> {
             book.updateEmbeddingState(state);
         });

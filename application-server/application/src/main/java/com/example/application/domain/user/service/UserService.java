@@ -1,9 +1,11 @@
 package com.example.application.domain.user.service;
 
-import com.example.application.dto.user.request.UserUpdateRequestDto;
-import com.example.application.domain.auth.dto.response.UserProfileResponseDto;
+import com.example.application.domain.user.dto.requeset.UserProfileUpdateRequestDto;
+import com.example.application.domain.user.dto.response.UserProfileResponseDto;
 import com.example.application.domain.user.entity.User;
 import com.example.application.domain.user.repositroy.UserRepository;
+import com.example.application.global.exception.CustomException;
+import com.example.application.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,24 +16,20 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    @Transactional
-    public void updateProfile(User user, UserUpdateRequestDto request) {
-        // 엔티티에게 "수정해줘" 라고 요청 (Rich Domain Model)
-        user.updateProfile(
-                request.getName(),
-                request.getEmail(),
-                request.getPhoneNumber(),
-                request.getBirthDate(),
-                request.getJob(),
-                request.getOtherUserJob()
-        );
-        // Dirty Checking으로 인해 save() 호출 불필요 (Transactional 종료 시 자동 업데이트)
-    }
-
     @Transactional(readOnly = true)
     public UserProfileResponseDto getUserProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = findUserById(userId);
         return UserProfileResponseDto.from(user);
+    }
+
+    @Transactional
+    public void updateProfile(Long userId, UserProfileUpdateRequestDto request) {
+        User user = findUserById(userId);
+        user.updateProfile(request);
+    }
+
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }

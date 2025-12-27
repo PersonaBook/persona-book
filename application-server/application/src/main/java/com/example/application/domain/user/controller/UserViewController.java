@@ -1,28 +1,27 @@
 package com.example.application.domain.user.controller;
 
-import com.example.application.domain.user.entity.User;
-import com.example.application.global.util.JwtAuthUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.application.domain.user.dto.response.UserProfileResponseDto;
+import com.example.application.domain.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 
 @Controller
+@RequiredArgsConstructor // 생성자 주입 (Autowired 제거)
 public class UserViewController {
 
-    @Autowired
-    private JwtAuthUtil jwtAuthUtil;
+    private final UserService userService;
 
     @GetMapping("/user/profile")
-    public String getProfilePage(HttpServletRequest request, Model model) {
-        model.addAttribute("title", "마이페이지");
-        User user = jwtAuthUtil.getUserFromRequest(request);
-        if (user == null) {
-            model.addAttribute("errorMessage", "정보를 불러올 수 없습니다. 다시 로그인 해주세요.");
-            return "page/profile";
-        }
-        model.addAttribute("user", user);
+    public String getProfilePage(
+            @RequestAttribute("userId") Long userId,
+            Model model
+    ) {
+        UserProfileResponseDto userProfile = userService.getUserProfile(userId);
+        model.addAttribute("user", userProfile);
+
         return "page/profile";
     }
 }
