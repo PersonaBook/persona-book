@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebClientConfig {
 
     @Bean
-    public WebClient webClient() {
+    public WebClient fastApiWebClient() {
         return WebClient.builder()
                 .baseUrl("http://langchain:8000/api/v1") // Docker 네트워크에서 접근
                 .build();

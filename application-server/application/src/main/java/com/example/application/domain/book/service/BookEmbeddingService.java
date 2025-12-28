@@ -24,7 +24,7 @@ import java.util.Base64;
 @Slf4j
 public class BookEmbeddingService {
 
-    private final WebClient webClient;
+    private final WebClient fastApiWebClient;
     private final BookRepository bookRepository;
 
     private static final String FASTAPI_ENDPOINT = "/generating-question";
@@ -49,7 +49,7 @@ public class BookEmbeddingService {
             body.add("question_type", "객관식");
             body.add("count", "1");
 
-            String response = webClient.post()
+            String response = fastApiWebClient.post()
                     .uri(FASTAPI_ENDPOINT)
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(body))

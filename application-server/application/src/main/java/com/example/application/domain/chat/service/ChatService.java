@@ -33,7 +33,7 @@ public class ChatService {
 
     // ChatHistory의 '저장/조회'를 담당하는 서비스 (트랜잭션 분리)
     private final ChatHistoryService chatHistoryService;
-    private final WebClient webClient; // FastAPI(AI 서버) 통신용
+    private final WebClient fastApiWebClient; // FastAPI(AI 서버) 통신용
 
     // ChatService가 직접 의존하는 리포지토리
     private final QuestionRepository questionRepository;
@@ -210,7 +210,7 @@ public class ChatService {
             return switch (state) {
                 // 특정 상태는 응답 DTO가 다르므로 별도 처리
                 case PRESENTING_CONCEPT_EXPLANATION, CONCEPT_REEXPLANATION -> {
-                    ConceptExplanationResponseDto response = webClient.post()
+                    ConceptExplanationResponseDto response = fastApiWebClient.post()
                             .uri(uri)
                             .bodyValue(requestDto)
                             .retrieve()
@@ -228,7 +228,7 @@ public class ChatService {
                 }
 
                 case GENERATING_QUESTION_WITH_RAG, GENERATING_ADDITIONAL_QUESTION_WITH_RAG -> {
-                    GeneratingQuestionResponseDto response = webClient.post()
+                    GeneratingQuestionResponseDto response = fastApiWebClient.post()
                             .uri(uri)
                             .bodyValue(requestDto)
                             .retrieve()
@@ -248,7 +248,7 @@ public class ChatService {
                 }
 
                 // 그 외 상태는 AiMessageDto로 바로 매핑
-                default -> webClient.post()
+                default -> fastApiWebClient.post()
                         .uri(uri)
                         .bodyValue(requestDto)
                         .retrieve()
@@ -551,7 +551,7 @@ public class ChatService {
      */
     public boolean checkFastApiConnection() {
         try {
-            return webClient.get()
+            return fastApiWebClient.get()
                     .uri("/ping")
                     .retrieve()
                     .toBodilessEntity()
