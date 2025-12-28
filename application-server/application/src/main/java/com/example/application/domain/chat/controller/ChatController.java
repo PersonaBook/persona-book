@@ -2,11 +2,12 @@ package com.example.application.domain.chat.controller;
 
 import com.example.application.domain.chat.dto.AiMessageDto;
 import com.example.application.domain.chat.dto.UserMessageDto;
-import com.example.application.domain.chat.entity.ChatHistory;
+import com.example.application.domain.chat.dto.response.ChatHistoryResponseDto;
 import com.example.application.domain.chat.service.ChatHistoryService;
 import com.example.application.domain.chat.service.ChatService;
+import com.example.application.global.dto.ApiResponseDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,30 +21,33 @@ public class ChatController {
     private final ChatHistoryService chatHistoryService;
 
     @PostMapping("/send")
-    public List<AiMessageDto> sendMessage(@RequestBody UserMessageDto userMessageDto) {
-        return chatService.handleChatFlow(userMessageDto);
+    public ApiResponseDto<List<AiMessageDto>> sendMessage(
+            @RequestAttribute("userId") Long userId,
+            @Valid @RequestBody UserMessageDto userMessageDto
+    ) {
+        return ApiResponseDto.success(chatService.handleChatFlow(userId, userMessageDto));
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<ChatHistory>> getChatHistory(
-            @RequestParam Long userId,
+    public ApiResponseDto<List<ChatHistoryResponseDto>> getChatHistory(
+            @RequestAttribute("userId") Long userId,
             @RequestParam Long bookId
     ) {
-        return ResponseEntity.ok(chatHistoryService.getChatHistory(userId, bookId));
+        return ApiResponseDto.success(chatHistoryService.getChatHistory(userId, bookId));
     }
 
     @DeleteMapping("/history")
-    public ResponseEntity<Void> deleteChatHistory(
-            @RequestParam Long userId,
+    public ApiResponseDto<Void> deleteChatHistory(
+            @RequestAttribute("userId") Long userId,
             @RequestParam Long bookId
     ) {
         chatHistoryService.deleteChatHistory(userId, bookId);
-        return ResponseEntity.noContent().build();
+        return ApiResponseDto.success("채팅 기록이 삭제되었습니다.");
     }
 
     @GetMapping("/ping")
-    public ResponseEntity<String> pingFastApi() {
-        boolean connected = chatService.checkFastApiConnection();
-        return connected ? ResponseEntity.ok("pong") : ResponseEntity.status(503).body("LangChain unavailable");
+    public ApiResponseDto<String> pingFastApi() {
+        chatService.checkFastApiConnection();
+        return ApiResponseDto.success("Pong (AI Server Connected)");
     }
 }
