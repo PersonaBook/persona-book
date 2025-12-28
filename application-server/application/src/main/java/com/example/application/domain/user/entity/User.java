@@ -1,6 +1,6 @@
 package com.example.application.domain.user.entity;
 
-import com.example.application.domain.user.dto.requeset.UserProfileUpdateRequestDto;
+import com.example.application.domain.user.dto.request.UserProfileUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.util.StringUtils;

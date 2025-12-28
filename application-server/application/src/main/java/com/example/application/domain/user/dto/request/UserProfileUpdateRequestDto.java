@@ -1,4 +1,4 @@
-package com.example.application.domain.user.dto.requeset;
+package com.example.application.domain.user.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

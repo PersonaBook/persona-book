@@ -1,6 +1,6 @@
 package com.example.application.domain.user.service;
 
-import com.example.application.domain.user.dto.requeset.UserProfileUpdateRequestDto;
+import com.example.application.domain.user.dto.request.UserProfileUpdateRequestDto;
 import com.example.application.domain.user.dto.response.UserProfileResponseDto;
 import com.example.application.domain.user.entity.User;
 import com.example.application.domain.user.repositroy.UserRepository;

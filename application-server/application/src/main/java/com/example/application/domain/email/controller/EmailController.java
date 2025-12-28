@@ -19,13 +19,13 @@ public class EmailController {
     private final EmailService emailService;
 
     @PostMapping("/send/code")
-    public ApiResponseDto<String> sendVerificationCode(@Valid @RequestBody EmailRequestDto request) {
+    public ApiResponseDto<Void> sendVerificationCode(@Valid @RequestBody EmailRequestDto request) {
         emailService.sendVerificationCode(request.getEmail());
         return ApiResponseDto.success("인증번호가 발송되었습니다.");
     }
 
     @PostMapping("/verification")
-    public ApiResponseDto<String> verifyCode(@Valid @RequestBody EmailVerifyRequestDto request) {
+    public ApiResponseDto<Void> verifyCode(@Valid @RequestBody EmailVerifyRequestDto request) {
         emailService.verifyCode(request.getEmail(), request.getCode());
         return ApiResponseDto.success("이메일 인증에 성공했습니다.");
     }

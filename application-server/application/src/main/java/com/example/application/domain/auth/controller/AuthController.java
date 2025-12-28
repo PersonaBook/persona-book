@@ -22,7 +22,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ApiResponseDto<String> register(@Valid @RequestBody RegisterRequestDto request) {
+    public ApiResponseDto<Void> register(@Valid @RequestBody RegisterRequestDto request) {
         authService.register(request);
         return ApiResponseDto.success("회원가입이 완료되었습니다.");
     }
@@ -35,11 +35,11 @@ public class AuthController {
     @PostMapping("/id/find")
     public ApiResponseDto<String> findId(@Valid @RequestBody FindIdRequestDto request) {
         String email = authService.findId(request.getName(), request.getPhoneNumber());
-        return ApiResponseDto.success("귀하의 아이디는: " + email);
+        return ApiResponseDto.success("아이디 찾기가 완료되었습니다.", email);
     }
 
     @PostMapping("/password/reset")
-    public ApiResponseDto<String> resetPassword(@Valid @RequestBody PasswordResetRequestDto request) {
+    public ApiResponseDto<Void> resetPassword(@Valid @RequestBody PasswordResetRequestDto request) {
         authService.resetPassword(request.getName(), request.getEmail(), request.getNewPassword());
         return ApiResponseDto.success("비밀번호가 성공적으로 변경되었습니다.");
     }
