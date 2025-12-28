@@ -3,11 +3,13 @@ package com.example.application.domain.chat.service;
 import com.example.application.domain.chat.dto.AiMessageDto;
 import com.example.application.domain.chat.dto.UserMessageDto;
 import com.example.application.domain.chat.dto.request.ConceptExplanationRequestDto;
+import com.example.application.domain.chat.dto.response.ChatHistoryResponseDto;
 import com.example.application.domain.chat.dto.response.ConceptExplanationResponseDto;
 import com.example.application.domain.chat.dto.response.GeneratingQuestionResponseDto;
 import com.example.application.domain.book.entity.Book;
 import com.example.application.domain.chat.entity.ChatHistory;
 import com.example.application.domain.chat.type.ChatState;
+import com.example.application.domain.chat.type.MessageType;
 import com.example.application.domain.question.entity.Question;
 import com.example.application.domain.user.entity.User;
 import com.example.application.domain.book.repository.BookRepository;
@@ -15,6 +17,8 @@ import com.example.application.domain.chat.repository.ChatHistoryRepository;
 import com.example.application.domain.question.repository.QuestionRepository;
 import com.example.application.domain.user.repositroy.UserRepository;
 import com.example.application.domain.chat.type.Sender;
+import com.example.application.global.exception.CustomException;
+import com.example.application.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,10 +53,9 @@ public class ChatService {
      * 4. 사용자/AI 메시지 저장 (chatHistoryService 위임)
      * 5. 후속 응답(Follow-up) 생성
      */
-    public List<AiMessageDto> handleChatFlow(UserMessageDto userMessageDto) {
+    public List<AiMessageDto> handleChatFlow(Long userId, UserMessageDto userMessageDto) {
         List<AiMessageDto> responses = new ArrayList<>();
 
-        Long userId = userMessageDto.getUserId();
         Long bookId = userMessageDto.getBookId();
 
         // userMessageDto에서 state가 넘어오면 해당 상태를 우선적으로 사용
@@ -61,7 +64,7 @@ public class ChatService {
         if (currentState == null) {
             // fallback: DB에서 마지막 상태 조회
             currentState = chatHistoryService.findLastMessage(userId, bookId)
-                    .map(ChatHistory::getChatState)
+                    .map(ChatHistoryResponseDto::getChatState)
                     .orElse(ChatState.WAITING_USER_SELECT_FEATURE);
         }
 
@@ -222,7 +225,7 @@ public class ChatService {
                             .userId(userMessageDto.getUserId())
                             .bookId(userMessageDto.getBookId())
                             .chatState(state)
-                            .messageType("TEXT")
+                            .messageType(MessageType.TEXT)
                             .content(response.getResult().getExplanation()) // 설명 텍스트만 추출
                             .build();
                 }
@@ -242,7 +245,7 @@ public class ChatService {
                             .userId(userMessageDto.getUserId())
                             .bookId(userMessageDto.getBookId())
                             .chatState(state)
-                            .messageType("TEXT")
+                            .messageType(MessageType.TEXT)
                             .content(response.getContent()) // 설명 텍스트만 추출
                             .build();
                 }
@@ -528,7 +531,7 @@ public class ChatService {
                 .userId(userId)
                 .bookId(bookId)
                 .content(message)
-                .messageType("TEXT")
+                .messageType(MessageType.TEXT)
                 .chatState(state)
                 .build();
     }
@@ -542,25 +545,23 @@ public class ChatService {
                 .bookId(dto.getBookId())
                 .content("⚠️ FastAPI 응답에 실패했습니다. 다시 시도해주세요.")
                 .chatState(dto.getChatState())
-                .messageType("TEXT")
+                .messageType(MessageType.TEXT)
                 .build();
     }
 
     /**
      * (헬스 체크용) FastAPI 서버 연결 상태를 확인
      */
-    public boolean checkFastApiConnection() {
+    public void checkFastApiConnection() {
         try {
-            return fastApiWebClient.get()
+            fastApiWebClient.get()
                     .uri("/ping")
                     .retrieve()
                     .toBodilessEntity()
-                    .block()
-                    .getStatusCode()
-                    .is2xxSuccessful();
+                    .block();
         } catch (Exception e) {
-            log.error("LangChain 연결 실패", e);
-            return false;
+            log.error("AI Server (FastAPI) 연결 실패: {}", e.getMessage());
+            throw new CustomException(ErrorCode.AI_SERVER_UNAVAILABLE);
         }
     }
 }

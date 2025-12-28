@@ -1,6 +1,7 @@
 package com.example.application.domain.chat.dto.response;
 
 import com.example.application.domain.chat.entity.ChatHistory;
+import com.example.application.domain.chat.type.ChatState;
 import com.example.application.domain.chat.type.MessageType;
 import com.example.application.domain.chat.type.Sender;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ public class ChatHistoryResponseDto {
     private Long chatId;
     private Sender sender;
     private String content;
+    private ChatState chatState;
     private MessageType messageType;
     private LocalDateTime createdAt;
 
@@ -26,6 +28,7 @@ public class ChatHistoryResponseDto {
                 .chatId(entity.getChatId())
                 .sender(entity.getSender())
                 .content(entity.getContent())
+                .chatState(entity.getChatState())
                 .messageType(entity.getMessageType())
                 .createdAt(entity.getCreatedAt())
                 .build();
