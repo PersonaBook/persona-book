@@ -2,10 +2,13 @@ package com.example.application.global.exception;
 
 import com.example.application.global.dto.ApiResponseDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Objects;
 
 @Slf4j
 @RestControllerAdvice
@@ -14,19 +17,19 @@ public class GlobalExceptionHandler {
     // 비즈니스 로직 예외 (CustomException)
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleCustomException(CustomException e) {
-        log.warn("CustomException: {}", e.getErrorCode().getMessage());
+        log.warn("Business Logic Exception: {}", e.getErrorCode().getMessage());
         return ResponseEntity
                 .status(e.getErrorCode().getHttpStatus())
                 .body(ApiResponseDto.fail(e.getErrorCode()));
     }
 
-    // @Valid 유효성 검사 실패 (MethodArgumentNotValidException)
+    // @Valid 유효성 검사 실패 (400 Bad Request)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleValidationException(MethodArgumentNotValidException e) {
-        String errorMessage = e.getBindingResult().getFieldError().getDefaultMessage();
+        String errorMessage = Objects.requireNonNull(e.getBindingResult().getFieldError()).getDefaultMessage();
         log.warn("Validation Error: {}", errorMessage);
         return ResponseEntity
-                .badRequest()
+                .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponseDto.fail(errorMessage));
     }
 
@@ -35,7 +38,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<Void>> handleException(Exception e) {
         log.error("Unhandled Exception: ", e);
         return ResponseEntity
-                .internalServerError()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponseDto.fail(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 }
