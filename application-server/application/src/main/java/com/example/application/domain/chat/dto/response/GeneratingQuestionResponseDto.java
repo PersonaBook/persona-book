@@ -1,21 +1,25 @@
 package com.example.application.domain.chat.dto.response;
 
 import com.example.application.domain.chat.type.ChatState;
+import com.example.application.domain.chat.type.MessageType;
+import com.example.application.domain.chat.type.Sender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class GeneratingQuestionResponseDto {
     private Long userId;
     private Long bookId;
     @Builder.Default
-    private String sender = "AI";
+    private Sender sender = Sender.AI;
     private String content;
     @Builder.Default
-    private String messageType = "TEXT"; // TEXT, .. (추후 확장 예정)
+    private MessageType messageType = MessageType.TEXT; // TEXT, .. (추후 확장 예정)
 
     private ChatState chatState;
 

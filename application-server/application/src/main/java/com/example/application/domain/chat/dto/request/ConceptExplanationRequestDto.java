@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ConceptExplanationRequestDto {
 
@@ -27,6 +29,7 @@ public class ConceptExplanationRequestDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class UserInfo {
         private Long userId;
@@ -46,6 +49,7 @@ public class ConceptExplanationRequestDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class ProblemInfo {
         private String domain;
@@ -68,6 +72,7 @@ public class ConceptExplanationRequestDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class LowUnderstandingAttempt {
         private String explanationText;
@@ -95,6 +100,7 @@ public class ConceptExplanationRequestDto {
     @Getter
     @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class BestAttempt {
         private String explanationText;
