@@ -19,24 +19,48 @@ document.addEventListener('DOMContentLoaded', function () {
             if (alertDiv) alertDiv.style.display = 'none';
 
             try {
-                // apiCall이 성공하면 ApiResponseDto.data(= AuthResponseDto)를 반환
+                // 1. apiCall 호출 (ApiResponseDto.data인 AuthResponseDto 반환)
                 const data = await apiCall('/api/auth/login', 'POST', { email, password });
 
-                // AuthResponseDto 구조: { grantType, accessToken, refreshToken, accessTokenExpiresIn }
-                // 만약 구조가 다르다면 console.log(data)로 확인 후 수정 필요
-                if (data.accessToken) {
-                    localStorage.setItem('accessToken', data.accessToken);
-                    if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+                /**
+                 * [응답 구조 데이터 매핑]
+                 * data = {
+                 * userId: 1,
+                 * name: "홍길동",
+                 * email: "test@test.com",
+                 * token: {  <-- TokenDto 객체
+                 * accessToken: "...",
+                 * refreshToken: "..."
+                 * }
+                 * }
+                 */
 
-                    if (typeof HeaderAuthManager !== 'undefined') HeaderAuthManager.refresh();
+                // 2. 토큰 추출 (data.token 내부를 참조해야 함)
+                if (data && data.token && data.token.accessToken) {
+                    const accessToken = data.token.accessToken;
+                    const refreshToken = data.token.refreshToken;
+
+                    // 3. 로컬 스토리지 저장
+                    localStorage.setItem('accessToken', accessToken);
+                    if (refreshToken) {
+                        localStorage.setItem('refreshToken', refreshToken);
+                    }
+
+                    console.log('로그인 성공: 토큰 저장 완료');
+
+                    // 4. UI 갱신 및 페이지 이동
+                    if (typeof HeaderAuthManager !== 'undefined') {
+                        HeaderAuthManager.refresh();
+                    }
                     window.location.href = '/';
                 } else {
-                    throw new Error('토큰 정보가 응답에 없습니다.');
+                    throw new Error('서버 응답 형식에 토큰 정보가 포함되어 있지 않습니다.');
                 }
 
             } catch (error) {
+                console.error('Login Error:', error);
                 if (alertDiv && alertP) {
-                    alertP.textContent = error.message; // 서버에서 보낸 message (예: "비밀번호가 일치하지 않습니다")
+                    alertP.textContent = error.message;
                     alertDiv.style.display = 'block';
                 } else {
                     handleApiError(error);
@@ -50,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 2. 회원가입
     // ============================================================
     const handleRegister = () => {
-        const joinForm = document.getElementById('join_area');
+        const joinForm = document.getElementById('registerForm');
         if (!joinForm) return;
 
         const emailInput = document.getElementById('email');
@@ -116,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 3. 아이디 찾기
     // ============================================================
     const handleFindId = () => {
-        const findIdForm = document.getElementById('form_area'); // form ID 주의
+        const findIdForm = document.getElementById('findIdForm');
         if (!findIdForm) return;
 
         findIdForm.addEventListener('submit', async function (event) {
@@ -132,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 // 성공 시 data는 email(String)
                 const foundEmail = await apiCall('/api/auth/id/find', 'POST', { name, phoneNumber });
+                alert('아이디를 성공적으로 찾았습니다.');
                 window.location.href = `/auth/id/find/success?email=${encodeURIComponent(foundEmail)}`;
             } catch (error) {
                 handleApiError(error);
@@ -144,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 4. 비밀번호 재설정
     // ============================================================
     const handlePasswordReset = () => {
-        const resetForm = document.getElementById('resetPasswordForm');
+        const resetForm = document.getElementById('passwordResetForm');
         if (!resetForm) return;
 
         resetForm.addEventListener('submit', async function (event) {
