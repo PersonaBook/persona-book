@@ -3,7 +3,6 @@
       layout:decorate="~{layout/layout}">
 
 <head>
-    <title th:text="'아이디 찾기' ?: 'PDF-Playground'">Layout</title>
     <script th:src="@{/js/auth.js}"></script>
 </head>
 
@@ -15,7 +14,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <form id="form_area">
+                        <form id="findIdForm">
                             <div class="mb-3">
                                 <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" placeholder="이름을 입력해주세요." required >

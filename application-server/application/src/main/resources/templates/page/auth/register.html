@@ -3,15 +3,11 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
-    <title th:text="'회원가입' ?: 'PDF-Playground'">회원가입</title>
-
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
 
-    <script th:src="@{/js/common.js}"></script>
-    <script th:src="@{/js/api.js}"></script>
     <script th:src="@{/js/auth.js}"></script>
 </head>
 
@@ -24,7 +20,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <form id="join_area">
+                        <form id="registerForm">
                             <div class="mb-3">
                                 <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="userName" placeholder="이름을 입력해주세요." required >

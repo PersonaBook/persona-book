@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
-    <title th:text="'로그인' ?: 'PDF-Playground'">Layout</title>
+    <script th:src="@{/js/auth.js}"></script>
 </head>
 
 <body>
@@ -15,9 +15,6 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <div class="alert alert-danger" role="alert" style="display: none;">
-                            <p class="mb-0"></p>
-                        </div>
 
                         <form id="loginForm">
                             <div class="mb-3">
@@ -51,7 +48,6 @@
             </div>
         </div>
     </div>
-    <script th:src="@{/js/auth.js}"></script>
 </div>
 
 

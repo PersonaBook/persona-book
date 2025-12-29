@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/layout}"
-      xmlns:th="http://www.thymeleaf.org">
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
 
 <div layout:fragment="content">
     <div class="container">
@@ -10,7 +10,7 @@
                 <h1 class="my-4">아이디 찾기 완료</h1>
                 <div class="card text-center">
                     <div class="card-body">
-                        <p>회원님의 아이디는 <strong class="text-primary" id="foundEmail"></strong> 입니다.</p>
+                        <p th:text="${foundEmail}"></p>
                         <a href="/auth/login" class="btn btn-primary">로그인하기</a>
                     </div>
                 </div>
@@ -18,21 +18,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const email = urlParams.get('email');
-        const foundEmailElement = document.getElementById('foundEmail');
-
-        if (foundEmailElement) {
-            if (email) {
-                foundEmailElement.textContent = email;
-            } else {
-                foundEmailElement.textContent = '정보를 불러올 수 없습니다. 다시 시도하세요.';
-            }
-        }
-    });
-</script>
-
 </html>
