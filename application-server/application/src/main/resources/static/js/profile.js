@@ -1,3 +1,5 @@
+// profile.js
+
 // --- User API ---
 function getUserProfile() {
     return apiCall('/api/user/profile', 'GET');
