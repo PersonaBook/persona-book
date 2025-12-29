@@ -6,20 +6,9 @@
     <title th:text="'회원가입' ?: 'PDF-Playground'">Layout</title>
 
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
-
-    <script th:src="@{/js/effectiven.js}"></script>
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
-    <script>
-        $( function() {
-            $( "#userBirthDate" ).datepicker({
-                maxDate: "-10y", // Set maxDate to 10 years ago from today
-                changeMonth: true,
-                changeYear: true,
-                yearRange: "c-100:c", // Allow selecting years up to 100 years ago from current year
-                dateFormat: "yy-mm-dd" // Set date format to yyyy-mm-dd
-            });
-        } );
-    </script>
+
+    <script th:src="@{/js/auth.js}"></script>
 </head>
 
 <body>
@@ -31,7 +20,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <form id="join_area" action="/register" method="post">
+                        <form id="join_area">
                             <div class="mb-3">
                                 <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="userName" placeholder="이름을 입력해주세요." required >

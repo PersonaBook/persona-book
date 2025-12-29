@@ -1,12 +1,15 @@
 $(document).ready(function () {
     console.log('main/script.js 실행');
 
+    // PDF.js worker 소스 설정
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
     if (getAuthToken()) {
         loadPdfList();
     } else {
         $("#imageInput").removeAttr('accept');
         $("#imageInput").removeAttr("type");
-        $("#imageInput").click(function () {
+        $("#imageInput").off('click').on('click', function () { // .off('click') 추가하여 이전 이벤트 리스너 제거
             alert("로그인 또는 회원가입을 해주세요.")
         });
     }
@@ -19,7 +22,6 @@ $(document).ready(function () {
             if (file.type === "application/pdf") {
                 if (typeof pdfjsLib === 'undefined') {
                     alert("PDF.js 라이브러리가 로드되지 않아 PDF를 미리 볼 수 없습니다.");
-                    // 원본 미리보기 영역에 메시지 표시
                     $originalPlusArea.find('#imagePreview').html('<p style="color: red;">PDF.js 라이브러리 로드 오류.</p>');
                     $(this).val('');
                     return;
@@ -30,21 +32,17 @@ $(document).ready(function () {
                 reader.onload = function (e) {
                     const pdfData = e.target.result;
 
-
-                    // 전체 PDF 파일을 base64로 변환 (청크 단위로 처리)
                     const uint8Array = new Uint8Array(pdfData);
                     let binaryString = '';
-                    const chunkSize = 8192; // 8KB씩 처리
+                    const chunkSize = 8192;
                     for (let i = 0; i < uint8Array.length; i += chunkSize) {
                         const chunk = uint8Array.slice(i, i + chunkSize);
                         binaryString += String.fromCharCode.apply(null, chunk);
                     }
                     const pdfBase64 = btoa(binaryString);
 
-                    // PDF.js를 사용하여 PDF 로드
                     const loadingTask = pdfjsLib.getDocument({data: pdfData});
                     loadingTask.promise.then(function (pdf) {
-                        // 첫 번째 페이지 가져오기
                         pdf.getPage(1).then(function (page) {
                             const $newPlusArea = $originalPlusArea.clone();
                             $newPlusArea.find('#imageInput').remove();
@@ -73,18 +71,13 @@ $(document).ready(function () {
                             canvas.height = viewport.height;
                             canvas.width = viewport.width;
 
-                            // PDF 페이지 렌더링
                             const renderContext = {
                                 canvasContext: context,
                                 viewport: viewport
                             };
                             page.render(renderContext).promise.then(function () {
                                 console.log('PDF rendered on new canvas!');
-
-
-                                // 전체 PDF 파일을 서버에 업로드 (이미 변환된 base64 사용)
                                 uploadPdfToServer(file.name, pdfBase64, $newPlusArea);
-
                             });
 
                             $originalPlusArea.before($newPlusArea);
@@ -122,7 +115,6 @@ $(document).ready(function () {
                 };
                 reader.readAsDataURL(file);
             } else {
-                // 지원하지 않는 파일 형식
                 $originalPlusArea.find('#imagePreview').html('<p style="color: red;">지원하지 않는 파일 형식입니다. </br>(PDF 또는 이미지)</p>');
                 $(this).val('');
             }
@@ -133,26 +125,17 @@ $(document).ready(function () {
 });
 
 function loadPdfList() {
-    $.ajax({
-        url: '/api/pdf/list',
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + getAuthToken()
-        },
-        success: function (response) {
+    apiCall('/api/book/list', 'GET')
+        .then(response => {
             if (Array.isArray(response)) {
                 displayPdfList(response);
             }
-        },
-        error: function (xhr) {
-            if (xhr.status === 401) {
-                alert('로그인이 필요합니다.');
-                window.location.href = '/user/login';
-            } else {
-                console.error('PDF 목록 로드 실패:', xhr.responseText);
-            }
-        }
-    });
+        })
+        .catch(error => {
+            console.error('PDF 목록 로드 실패:', error);
+            // apiCall 내부에서 handleApiError가 호출되므로 여기서는 추가적인 에러 UI 처리를 하지 않습니다.
+            // 다만, 목록 로딩 실패 시 사용자에게 보여줄 메시지 등이 필요하다면 추가할 수 있습니다.
+        });
 }
 
 function displayPdfList(pdfList) {
@@ -169,9 +152,6 @@ function displayPdfList(pdfList) {
                          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect width=%22200%22 height=%22200%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3EPDF%3C/text%3E%3C/svg%3E';">
                 </div>
                 <div class="pdf_title" onclick="goToPdfDetail(${pdf.bookId});">
-<!--                    <button type="button" class="main_list_del">-->
-<!--                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>-->
-<!--                    </button>-->
                     ${pdf.title}
                 </div>
         `);
@@ -212,43 +192,37 @@ function renderPdfPreview(base64Data, canvas) {
 }
 
 function uploadPdfToServer(title, fileBase64, $pdfElement) {
-    $.ajax({
-        url: '/api/pdf/upload',
-        type: 'POST',
-        contentType: 'application/json',
-        headers: {
-            'Authorization': 'Bearer ' + getAuthToken()
-        },
-        data: JSON.stringify({
-            title: title,
-            file_base64: fileBase64
-        }),
-        success: function (response) {
-            if (response.success) {
-                console.log('PDF 업로드 성공:', response);
-                // $pdfElement.attr('onclick', `goToPdfDetail(${response.bookId})`);
+    const payload = {
+        title: title,
+        file_base64: fileBase64
+    };
+
+    apiCall('/api/book/upload', 'POST', payload)
+        .then(response => {
+            console.log('PDF 업로드 성공:', response);
+            if (response && response.bookId) { // apiCall은 response.data를 직접 반환하므로 response에 bookId가 있을 것으로 예상
                 $pdfElement.append(`<div class="pdf_title">${title}</div>`);
                 $pdfElement.find('.pdf_title').attr('onclick', `goToPdfDetail(${response.bookId})`);
                 window.location.reload();
             } else {
-                alert('PDF 업로드 실패: ' + response.message);
+                alert('PDF 업로드 성공했지만 bookId를 찾을 수 없습니다.');
                 $pdfElement.remove();
             }
-        },
-        error: function (xhr) {
-            console.error('PDF 업로드 실패:', xhr.responseText);
-            alert('PDF 업로드 실패');
+        })
+        .catch(error => {
+            console.error('PDF 업로드 실패:', error);
+            // apiCall 내부에서 handleApiError가 호출되므로 여기서는 추가적인 에러 UI 처리를 하지 않습니다.
+            alert('PDF 업로드 실패: ' + (error.message || '알 수 없는 오류'));
             $pdfElement.remove();
-        }
-    });
+        });
 }
 
 function goToPdfDetail(bookId) {
     const token = getAuthToken();
     if (token) {
-        window.location.href = `/pdf/detail/${bookId}`;
+        window.location.href = `/book/${bookId}`; // '/pdf/detail' -> '/book' 으로 변경
     } else {
         alert('로그인이 필요합니다.');
-        window.location.href = '/user/login';
+        window.location.href = '/auth/login';
     }
 }

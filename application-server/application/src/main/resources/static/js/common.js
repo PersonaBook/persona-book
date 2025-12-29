@@ -1,88 +1,62 @@
+// 이 파일은 애플리케이션 전반에서 사용되는 공통 유틸리티 함수 및 설정을 정의합니다.
+// API 에러 처리, 인증 토큰 관리, 그리고 UI의 인증 상태 관리 (HeaderAuthManager) 등의 기능을 포함합니다.
+
 // 공통 에러 처리 함수
-function handleApiError(xhr, defaultMessage = '오류가 발생했습니다.') {
+async function handleApiError(error, response = null, defaultMessage = '오류가 발생했습니다.') {
     let errorMessage = defaultMessage;
-    
-    if (xhr.responseJSON && xhr.responseJSON.message) {
-        errorMessage = xhr.responseJSON.message;
-    } else if (xhr.responseText) {
+    let statusCode = 0;
+
+    if (response) {
+        statusCode = response.status;
         try {
-            const errorData = JSON.parse(xhr.responseText);
+            const errorData = await response.json();
             if (errorData.message) {
                 errorMessage = errorData.message;
+            } else if (errorData.detail) { // FastAPI often uses 'detail' for error messages
+                errorMessage = errorData.detail;
             }
         } catch (e) {
-            // JSON 파싱 실패시 기본 메시지 사용
+            // JSON 파싱 실패시, response.statusText 사용
+            errorMessage = response.statusText || defaultMessage;
         }
+    } else if (error instanceof Error) {
+        // 네트워크 오류 또는 기타 자바스크립트 오류
+        errorMessage = error.message;
+        // statusCode는 0 또는 undefined로 남을 수 있음
     }
-    
+
     // 인증 관련 에러 처리
-    if (xhr.status === 401) {
+    if (statusCode === 401) {
         alert('로그인이 필요합니다.');
         window.location.href = '/user/login';
         return;
     }
-    
+
     // 권한 관련 에러 처리
-    if (xhr.status === 403) {
+    if (statusCode === 403) {
         alert('접근 권한이 없습니다.');
         return;
     }
-    
+
     // 기타 에러 처리
     alert(errorMessage);
 }
 
+// api.js의 apiCall 함수에서 에러 발생 시 handleApiError 호출 방식도 변경되어야 합니다.
+// 예를 들어: .catch(error => { handleApiError(error, error.response); });
+
 // 토큰 관련 공통 함수
 function getAuthToken() {
-    // sessionStorage 우선 확인 (단기 토큰)
-    const sessionToken = sessionStorage.getItem('accessToken');
-    if (sessionToken) {
-        return sessionToken;
-    }
-    // localStorage 확인 (장기 토큰)
+    // localStorage 확인
     return localStorage.getItem('accessToken') || '';
 }
 
-// 토큰 저장 함수
-function setAuthToken(token, autoLogin) {
-    if (autoLogin) {
-        // 로그인 유지 체크 시 localStorage에 저장 (24시간)
-        localStorage.setItem('accessToken', token);
-        sessionStorage.removeItem('accessToken'); // 중복 방지
-    } else {
-        // 체크 안함 시 sessionStorage에 저장 (30분, 탭 닫으면 삭제)
-        sessionStorage.setItem('accessToken', token);
-        localStorage.removeItem('accessToken'); // 중복 방지
-    }
-}
-
 function logout() {
-    // 서버 로그아웃 API 호출
-    $.ajax({
-        url: '/api/auth/logout',
-        type: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + getAuthToken()
-        },
-        success: function() {
-            // 클라이언트 토큰 정리
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            // 쿠키도 삭제
-            document.cookie.split(";").forEach(function(c) { 
-                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-            });
-            
-            window.location.href = '/';
-        },
-        error: function() {
-            // 에러가 발생해도 클라이언트 정리 후 리다이렉트
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = '/';
-        }
-    });
+    // 클라이언트 토큰 정리
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    window.location.href = '/auth/login';
 }
 
 // 토큰 만료 확인 함수
@@ -103,10 +77,9 @@ function isTokenExpired(token) {
 function autoLogout() {
     // 토큰 정리
     localStorage.removeItem('accessToken');
-    sessionStorage.removeItem('accessToken');
-    
+
     alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
-    window.location.href = '/user/login';
+    window.location.href = '/auth/login';
 }
 
 // 헤더 인증 상태 관리 모듈
@@ -204,138 +177,8 @@ const HeaderAuthManager = {
     }
 };
 
-// 하위 호환성을 위한 기존 함수
-function checkTokenAndUpdateUI() {
-    HeaderAuthManager.updateUI();
-}
+// common.js 파일의 맨 마지막 부분
 
-// ID 찾기 함수
-function findId(name, email) {
-    return $.ajax({
-        url: '/api/auth/findId',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            name: name,
-            email: email
-        }),
-        success: function(response) {
-            console.log('응답:', response);
-            if (response.status === 'OK') {
-                alert(response.message);
-                window.location.href = '/';
-            } else {
-                alert(response.message || 'ID 찾기에 실패했습니다.');
-            }
-        },
-        error: function(xhr) {
-            handleApiError(xhr, 'ID 찾기 중 오류가 발생했습니다.');
-        }
-    });
-}
-
-// 비밀번호 리셋 함수
-function resetPassword(name, email, newPassword) {
-    return $.ajax({
-        url: '/api/findPassword/reset',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            name: name,
-            email: email,
-            newPassword: newPassword
-        }),
-        success: function(response) {
-            console.log('응답:', response);
-            if (response.status === 'OK' || response.message === '비밀번호가 성공적으로 변경되었습니다.') {
-                alert('비밀번호 변경에 성공하였습니다');
-                window.location.href = '/';
-            } else {
-                alert(response.message || '비밀번호 변경에 실패했습니다.');
-            }
-        },
-        error: function(xhr) {
-            handleApiError(xhr, '비밀번호 변경 중 오류가 발생했습니다.');
-        }
-    });
-}
-
-$(document).ready(function(){
-    /* section layout 최소 height */
-    function adjustSectionHeight() {
-        const vh = $(window).outerHeight();
-        const headerH = $('header').outerHeight() || 0;
-        $('section').css('min-height', vh - headerH);
-        $('section > div').css('min-height', vh - headerH);
-        $('section > div > div.container').css('min-height', vh - headerH);
-        $('#bookData').css('min-height', vh - headerH);
-    }
-  
-    adjustSectionHeight();
-    $(window).on('resize', adjustSectionHeight);
-    
-    // 헤더 인증 관리자 초기화
+document.addEventListener('DOMContentLoaded', () => {
     HeaderAuthManager.init();
-    
-    // 비밀번호 리셋 폼 이벤트 처리
-    const resetPasswordForm = document.getElementById('resetPasswordForm');
-    if (resetPasswordForm) {
-        resetPasswordForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const verificationCode = document.getElementById('verificationCode').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-            
-            // 비밀번호 확인 검증
-            if (newPassword !== confirmNewPassword) {
-                alert('새로운 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
-                return;
-            }
-            
-            // 비밀번호 리셋 함수 호출
-            resetPassword(name, email, newPassword);
-        });
-    }
-    
-    // ID 찾기 폼 이벤트 처리
-    const idInquiryForm = document.getElementById('form_area');
-    if (idInquiryForm) {
-        idInquiryForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            
-            // ID 찾기 함수 호출
-            findId(name, email);
-        });
-    }
-    
-    // URL에서 토큰 파라미터 처리
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const autoLogin = urlParams.get('autoLogin') === 'true';
-    const shouldRefresh = urlParams.get('refresh') === 'true';
-    
-    // 토큰이 있으면 rememberMe에 따라 저장
-    if (token) {
-        setAuthToken(token, autoLogin);
-        // URL에서 파라미터들 제거
-        const cleanUrl = window.location.pathname + window.location.search
-            .replace(/[?&]token=[^&]*/, '')
-            .replace(/[?&]autoLogin=[^&]*/, '')
-            .replace(/[?&]refresh=true/, '')
-            .replace(/^\?$/, '');
-        history.replaceState(null, '', cleanUrl);
-    }
-    
-    // 로그인 후 리다이렉트 시 새로고침
-    if (shouldRefresh) {
-        setTimeout(() => {
-            window.location.reload();
-        }, 100);
-    }
 });

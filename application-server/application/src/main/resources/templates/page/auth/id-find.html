@@ -4,61 +4,7 @@
 
 <head>
     <title th:text="'아이디 찾기' ?: 'PDF-Playground'">Layout</title>
-    <script th:src="@{/js/effectiven.js}"></script>
-    <script>
-        $(document).ready(function() {
-            console.log("idInquiry.html: Document ready.");
-
-            $("#form_area").on("submit", function(event) {
-                console.log("idInquiry.html: Form submit event fired.");
-                event.preventDefault();
-
-                const name = $("#name").val().trim();
-                const email = $("#email").val().trim();
-
-                // 입력값 검증
-                if (!name) {
-                    alert("이름을 입력해주세요.");
-                    $("#name").focus();
-                    return;
-                }
-
-                if (!email) {
-                    alert("이메일을 입력해주세요.");
-                    $("#email").focus();
-                    return;
-                }
-
-                console.log("idInquiry.html: Name: " + name + ", Email: " + email);
-
-                // 버튼 비활성화 (중복 클릭 방지)
-                $("#formBtn").prop("disabled", true).text("처리중...");
-
-                $.ajax({
-                    url: "/find-id-success",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ name: name, email: email }),
-                    success: function(response) {
-                        console.log("idInquiry.html: AJAX success. Response: ", response);
-                        // 로그인 페이지로 이동
-                        window.location.href = "/login";
-                    },
-                    error: function(jqXHR) {
-                        console.error("아이디 찾기 실패:", jqXHR.responseText);
-                        const errorMessage = jqXHR.responseJSON && jqXHR.responseJSON.message
-                            ? jqXHR.responseJSON.message
-                            : "아이디 찾기 중 오류가 발생했습니다.";
-                        alert(errorMessage);
-                    },
-                    complete: function() {
-                        // 버튼 다시 활성화
-                        $("#formBtn").prop("disabled", false).text("아이디 찾기");
-                    }
-                });
-            });
-        });
-    </script>
+    <script th:src="@{/js/auth.js}"></script>
 </head>
 
 <div layout:fragment="content">
@@ -69,7 +15,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <form id="form_area" action="/find-id-success" method="post">
+                        <form id="form_area">
                             <div class="mb-3">
                                 <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" placeholder="이름을 입력해주세요." required >
@@ -78,22 +24,12 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
+                                <label class="form-label" for="phoneNumber">전화번호 <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required >
-                                    <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="min-width: 130px;" >인증번호 발송</button>
+                                    <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" placeholder="전화번호를 입력해주세요." required >
                                 </div>
-                                <div class="invalid-feedback" id="emailError"></div>
-                                <div class="valid-feedback" id="emailSuccess"></div>
-                            </div>
-
-                            <div class="mb-3" id="verificationCodeSection" style="display: none">
-                                <label class="form-label" for="verificationCode">인증번호 입력 <span class="text-danger">*</span></label>
-                                <div class="d-flex gap-2">
-                                    <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
-                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인</button>
-                                </div>
-                                <div class="mt-2" id="codeVerificationMessage"></div>
+                                <div class="invalid-feedback" id="phoneNumberError"></div>
+                                <div class="valid-feedback" id="phoneNumberSuccess"></div>
                             </div>
 
                             <button type="submit" id="formBtn" class="btn btn-primary w-100 mt-5">아이디 찾기</button>

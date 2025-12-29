@@ -22,11 +22,6 @@ public class UserController {
         return ApiResponseDto.success(userService.getUserProfile(userId));
     }
 
-    @GetMapping("/{userId}")
-    public ApiResponseDto<UserProfileResponseDto> getUserById(@PathVariable Long userId) {
-        return ApiResponseDto.success(userService.getUserProfile(userId));
-    }
-
     @PatchMapping("/profile")
     public ApiResponseDto<Void> updateProfile(
             @RequestAttribute("userId") Long userId,

@@ -4,6 +4,7 @@
 
 <head>
     <title th:text="'마이페이지' ?: 'PDF-Playground'">Layout</title>
+    <script defer th:src="@{/js/profile.js}"></script>
 </head>
 
 <body>
@@ -13,32 +14,41 @@
             <div class="w-100">
                 <h1 class="fw-bold mb-4 text-center">마이페이지</h1>
 
-                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+                <div id="profile-error" class="alert alert-danger" style="display: none;"></div>
 
-                <div th:if="${user}" class="card">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">이름</label>
-                            <div class="border-bottom border-primary border-2 fs-5 fw-medium py-1" th:text="${user.userName}"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">이메일</label>
-                            <div class="border-bottom border-primary border-2 fs-5 fw-medium py-1" th:text="${user.userEmail}"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">전화번호</label>
-                            <div class="border-bottom border-primary border-2 fs-5 fw-medium py-1" th:text="${user.userPhoneNumber}"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">생년월일</label>
-                            <div class="border-bottom border-primary border-2 fs-5 fw-medium py-1" th:text="${#temporals.format(user.userBirthDate, 'yyyy / MM / dd')}"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">직업</label>
-                            <div class="border-bottom border-primary border-2 fs-5 fw-medium py-1" th:text="${user.userJob}"></div>
+                <form id="profileForm" th:if="${user}" th:object="${user}">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">이름</label>
+                                <input type="text" id="name" class="form-control" th:value="*{name}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">이메일</label>
+                                <input type="email" id="email" class="form-control" th:value="*{email}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="birthDate" class="form-label">생년월일</label>
+                                <input type="date" id="birthDate" class="form-control" th:value="*{birthDate}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="job" class="form-label">직업</label>
+                                <input type="text" id="job" class="form-control" th:value="*{job}" readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">전화번호</label>
+                                <input type="text" id="phoneNumber" class="form-control" th:value="*{phoneNumber}" readonly>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="button" id="editButton" class="btn btn-secondary">수정</button>
+                                <button type="submit" id="saveButton" class="btn btn-primary" style="display: none;">저장</button>
+                                <button type="button" id="cancelButton" class="btn btn-light" style="display: none;">취소</button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>

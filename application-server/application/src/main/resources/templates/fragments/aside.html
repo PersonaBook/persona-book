@@ -11,12 +11,6 @@
         <!-- note icon end -->
 
         <!-- chat icon start -->
-<!--        <li>-->
-<!--            <a href="javascript:void(0);" onclick="toggleChatbot()">-->
-<!--                <img src="/image/img_chat.png" alt="Chat Icon">-->
-<!--            </a>-->
-<!--        </li>-->
-
         <li class="chat_btn">
             <button type="button" th:data-user-id="${book.userId}" th:data-book-id="${book.bookId}">
                 <img src="/image/img_chat.svg" alt="챗봇 이동 버튼">
@@ -28,5 +22,6 @@
     <div class="chat_area small"></div>
 
     <script th:src="@{/js/chatbot.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/chatbot.css}">
 
 </aside>
