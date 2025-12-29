@@ -7,7 +7,7 @@ function getAuthHeader() {
 
 /**
  * 공통 API 호출 함수
- * ApiResponseDto { success, data, message } 구조를 처리합니다.
+ * ApiResponseDto: { success: boolean, code: string, message: string, data: T }
  */
 async function apiCall(url, method, data) {
     const headers = getAuthHeader();
@@ -24,35 +24,51 @@ async function apiCall(url, method, data) {
     try {
         const response = await fetch(url, config);
 
-        // HTTP 상태 코드 에러 처리 (4xx, 5xx)
+        // 응답 본문(JSON) 파싱 시도
+        let jsonResponse;
+        try {
+            jsonResponse = await response.json();
+        } catch (e) {
+            jsonResponse = null; // JSON이 아닌 경우 (예: 404 HTML 페이지 등)
+        }
+
+        // 1. 서버가 ApiResponseDto 형식으로 응답을 준 경우
+        if (jsonResponse && typeof jsonResponse.success === 'boolean') {
+            if (jsonResponse.success) {
+                return jsonResponse.data; // 성공 시 data만 반환
+            } else {
+                // 비즈니스 로직 실패 (success: false)
+                const error = new Error(jsonResponse.message || '요청 처리 실패');
+                error.code = jsonResponse.code; // DTO의 code ("400", "404" 등)
+                error.status = response.status; // HTTP 상태 코드
+                throw error;
+            }
+        }
+
+        // 2. ApiResponseDto 형식이 아닌 에러 (예: Spring Security 필터 차단, 500 HTML 에러 등)
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            const error = new Error(errorData.message || '요청 실패');
+            const error = new Error(jsonResponse?.message || response.statusText || '서버 통신 오류');
             error.status = response.status;
-            error.response = response;
             throw error;
         }
 
-        const jsonResponse = await response.json();
+        // 3. 드물지만 성공했는데 JSON이 아니고 ApiResponseDto도 아닌 경우
+        return jsonResponse;
 
-        // ApiResponseDto의 success 필드 확인
-        if (jsonResponse.success) {
-            return jsonResponse.data; // 성공 시 data만 반환
-        } else {
-            throw new Error(jsonResponse.message || 'API 응답 오류');
-        }
     } catch (error) {
-        // common.js의 전역 에러 핸들러 호출
+        // 호출부에서 catch 하지 않으면 공통 핸들러로 넘김
+        // (단, auth.js처럼 개별적으로 try-catch 하는 곳은 여기서 throw 된 것을 잡아서 처리함)
         if (typeof handleApiError === 'function') {
-            handleApiError(error);
+            // 여기서는 throw만 하고, 실제 처리는 호출부나 전역 핸들러에 위임하는 패턴 권장
+            // 하지만 편의를 위해 여기서 로그만 찍고 재전송
         }
+        console.error(`[API Error] ${method} ${url}`, error);
         throw error;
     }
 }
 
-// --- Chat API (백엔드 컨트롤러 규격에 맞춤) ---
+// --- Chat API ---
 function sendChatMessage(payload) {
-    // 이제 payload 안에 userId를 명시할 필요가 없습니다. (서버가 무시/덮어씀)
     return apiCall('/api/chat/send', 'POST', payload);
 }
 
