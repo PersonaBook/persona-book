@@ -13,6 +13,7 @@ public class UserProfileResponseDto {
     private Long userId;
     private String name;
     private String email;
+    private String phoneNumber;
     private LocalDate birthDate;
     private String job;
 
@@ -21,6 +22,7 @@ public class UserProfileResponseDto {
                 .userId(user.getUserId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
                 .birthDate(user.getBirthDate())
                 .job(user.getJob())
                 .build();
