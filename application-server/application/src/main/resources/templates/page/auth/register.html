@@ -3,11 +3,15 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
-    <title th:text="'회원가입' ?: 'PDF-Playground'">Layout</title>
+    <title th:text="'회원가입' ?: 'PDF-Playground'">회원가입</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
 
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/api.js}"></script>
     <script th:src="@{/js/auth.js}"></script>
 </head>
 
@@ -30,7 +34,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label" for="password">비밀번호 <span class="text-danger">*</span></label>
-                                <input class="form-control" id="password" name="password" placeholder="비밀번호를 입력해주세요."
+                                <input class="form-control" id="password" name="password" placeholder="비밀번호를 입력해주세요 (8자리 이상)."
                                        required type="password">
                                 <div class="invalid-feedback" id="passwordError"></div>
                                 <div class="valid-feedback" id="passwordSuccess"></div>
@@ -46,41 +50,25 @@
 
                             <div class="mb-3">
                                 <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
-                                <div class="d-flex gap-2">
-                                  
-                                      <input type="email" class="form-control" id="email" name="userEmail" placeholder="example@email.com" required >
-                                      <button type="button" class="btn btn-outline-secondary" id="sendVerificationCodeBtn" style="width: 160px;" >인증번호 발송</button>
-
-                                </div>
+                                <input type="email" class="form-control" id="email" name="userEmail" placeholder="example@email.com" required >
                                 <div class="invalid-feedback" id="emailError"></div>
                                 <div class="valid-feedback" id="emailSuccess"></div>
                             </div>
 
-                            <div class="mb-3" id="verificationCodeSection" style="display: none">
-                                <label class="form-label" for="verificationCode">인증번호 입력 <span class="text-danger">*</span></label>
-                                <div class="d-flex gap-2">
-                                    <input class="form-control" id="verificationCode" type="text" placeholder="인증번호를 입력하세요">
-                                    <button class="btn btn-outline-primary" id="verifyCodeBtn" type="button" style="min-width: 130px;">인증번호 확인</button>
-                                </div>
-                                <div class="mt-2" id="codeVerificationMessage"></div>
-                            </div>
-
                             <div class="mb-3">
                                 <label class="form-label" for="userPhoneNumber">전화번호 <span class="text-danger">*</span></label>
-                                <input class="form-control" id="userPhoneNumber" name="userPhoneNumber" type="tel" required>
+                                <input class="form-control" id="userPhoneNumber" name="userPhoneNumber" type="tel" placeholder="010-1234-5678" required>
                             </div>
 
                             <div class="mb-3">
-
                                 <label class="form-label" for="userBirthDate">생년월일 <span class="text-danger">*</span></label>
-                                <input class="form-control" id="userBirthDate" name="birthDate" type="text" required>
+                                <input class="form-control" id="userBirthDate" name="birthDate" type="text" placeholder="날짜를 선택하세요" required readonly>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label" for="userJob">직업(학습경험) <span class="text-danger">*</span></label>
                                 <select class="form-select" id="userJob" name="job">
-
-                                    <option selected>선택...</option>
+                                    <option selected disabled>선택...</option>
                                     <option value="BEGINNER">초보자</option>
                                     <option value="HAS_PROJECT_EXPERIENCE">프로젝트 경험 있음</option>
                                     <option value="MAJOR_STUDENT">전공학생</option>
