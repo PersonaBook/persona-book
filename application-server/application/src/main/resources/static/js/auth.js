@@ -1,195 +1,192 @@
 // auth.js
+
+// --- Auth API ---
+function login(payload) {
+    return apiCall('/api/auth/login', 'POST', payload);
+}
+
+function register(payload) {
+    return apiCall('/api/auth/register', 'POST', payload);
+}
+
+function findId(payload) {
+    return apiCall('/api/auth/id/find', 'POST', payload);
+}
+
+function resetPassword(payload) {
+    return apiCall('/api/auth/password/reset', 'POST', payload);
+}
+
+// --- Event Listeners ---
 document.addEventListener('DOMContentLoaded', function () {
+    initLogin();
+    initRegister();
+    initFindId();
+    initPasswordReset();
+});
 
-    // ============================================================
-    // 1. 로그인
-    // ============================================================
-    const handleLogin = () => {
-        const loginForm = document.getElementById('loginForm');
-        if (!loginForm) return;
+/**
+ * 1. 로그인 처리
+ */
+function initLogin() {
+    const form = document.getElementById('loginForm');
+    if (!form) return;
 
-        loginForm.addEventListener('submit', async function (event) {
-            event.preventDefault();
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const alertDiv = document.querySelector('.alert-danger');
-            const alertP = alertDiv ? alertDiv.querySelector('p') : null;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const alertDiv = document.querySelector('.alert-danger');
+        const alertP = alertDiv?.querySelector('p');
 
-            if (alertDiv) alertDiv.style.display = 'none';
+        if (alertDiv) alertDiv.style.display = 'none';
 
-            try {
-                // 1. apiCall 호출 (ApiResponseDto.data인 AuthResponseDto 반환)
-                const data = await apiCall('/api/auth/login', 'POST', { email, password });
+        try {
+            // 상단 login 함수 활용
+            const data = await login({ email, password });
 
-                /**
-                 * [응답 구조 데이터 매핑]
-                 * data = {
-                 * userId: 1,
-                 * name: "홍길동",
-                 * email: "test@test.com",
-                 * token: {  <-- TokenDto 객체
-                 * accessToken: "...",
-                 * refreshToken: "..."
-                 * }
-                 * }
-                 */
-
-                // 2. 토큰 추출 (data.token 내부를 참조해야 함)
-                if (data && data.token && data.token.accessToken) {
-                    const accessToken = data.token.accessToken;
-                    const refreshToken = data.token.refreshToken;
-
-                    // 3. 로컬 스토리지 저장
-                    localStorage.setItem('accessToken', accessToken);
-                    if (refreshToken) {
-                        localStorage.setItem('refreshToken', refreshToken);
-                    }
-
-                    console.log('로그인 성공: 토큰 저장 완료');
-
-                    // 4. UI 갱신 및 페이지 이동
-                    if (typeof HeaderAuthManager !== 'undefined') {
-                        HeaderAuthManager.refresh();
-                    }
-                    window.location.href = '/';
-                } else {
-                    throw new Error('서버 응답 형식에 토큰 정보가 포함되어 있지 않습니다.');
+            if (data?.token?.accessToken) {
+                localStorage.setItem('accessToken', data.token.accessToken);
+                if (data.token.refreshToken) {
+                    localStorage.setItem('refreshToken', data.token.refreshToken);
                 }
 
-            } catch (error) {
-                console.error('Login Error:', error);
-                if (alertDiv && alertP) {
-                    alertP.textContent = error.message;
-                    alertDiv.style.display = 'block';
-                } else {
-                    handleApiError(error);
-                }
+                if (typeof HeaderAuthManager !== 'undefined') HeaderAuthManager.refresh();
+                window.location.href = '/';
+            } else {
+                throw new Error('응답에 인증 정보가 없습니다.');
             }
+        } catch (error) {
+            if (alertDiv && alertP) {
+                alertP.textContent = error.message;
+                alertDiv.style.display = 'block';
+            } else {
+                handleApiError(error);
+            }
+        }
+    });
+}
+
+/**
+ * 2. 회원가입 처리
+ */
+function initRegister() {
+    const form = document.getElementById('registerForm');
+    if (!form) return;
+
+    // Datepicker 설정
+    const birthInput = document.getElementById('userBirthDate');
+    if (birthInput && typeof $ !== 'undefined' && $.fn.datepicker) {
+        $(birthInput).datepicker({
+            maxDate: "-10y", changeMonth: true, changeYear: true, yearRange: "c-100:c", dateFormat: "yy-mm-dd"
         });
-    };
-    handleLogin();
+    }
 
-    // ============================================================
-    // 2. 회원가입
-    // ============================================================
-    const handleRegister = () => {
-        const joinForm = document.getElementById('registerForm');
-        if (!joinForm) return;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-        const emailInput = document.getElementById('email');
-        const userBirthDateInput = document.getElementById('userBirthDate');
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const phoneNumber = document.getElementById('userPhoneNumber').value;
+        const birthDate = birthInput?.value || '';
+        const jobSelect = document.getElementById('userJob');
+        const job = (jobSelect && jobSelect.value !== '선택...') ? jobSelect.value : null;
 
-        // jQuery Datepicker 초기화 (필요 시)
-        if (userBirthDateInput && typeof $ !== 'undefined' && typeof $.fn.datepicker === 'function') {
-            $(userBirthDateInput).datepicker({
-                maxDate: "-10y", changeMonth: true, changeYear: true, yearRange: "c-100:c", dateFormat: "yy-mm-dd"
-            });
+        // 유효성 검사 로직
+        if (!validateRegister(name, email, password, confirmPassword)) return;
+
+        const btn = document.getElementById('formBtn');
+        if (btn) btn.disabled = true;
+
+        try {
+            // 상단 register 함수 활용
+            await register({ name, email, password, phoneNumber, birthDate, job });
+            alert('회원가입이 완료되었습니다.');
+            window.location.href = '/auth/login';
+        } catch (error) {
+            handleApiError(error);
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    });
+}
+
+/**
+ * 3. 아이디 찾기 처리
+ */
+function initFindId() {
+    const form = document.getElementById('findIdForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const phoneNumber = document.getElementById('phoneNumber').value;
+
+        if (!name || !phoneNumber) {
+            alert('정보를 모두 입력해주세요.');
+            return;
         }
 
-        joinForm.addEventListener('submit', async function (event) {
-            event.preventDefault();
+        try {
+            // 상단 findId 함수 활용
+            const foundEmail = await findId({ name, phoneNumber });
+            window.location.href = `/auth/id/find/success?email=${encodeURIComponent(foundEmail)}`;
+        } catch (error) {
+            handleApiError(error);
+        }
+    });
+}
 
-            // 입력값 가져오기
-            const name = document.getElementById('name').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const email = emailInput.value;
-            const userPhoneNumber = document.getElementById('userPhoneNumber').value;
-            const userBirthDate = userBirthDateInput ? userBirthDateInput.value : '';
-            const userJobSelect = document.getElementById('userJob');
-            const userJob = (userJobSelect && userJobSelect.value !== '선택...') ? userJobSelect.value : null;
+/**
+ * 4. 비밀번호 재설정 처리
+ */
+function initPasswordReset() {
+    const form = document.getElementById('passwordResetForm');
+    if (!form) return;
 
-            // 유효성 검사
-            let isValid = true;
-            if (!validateName(name)) { setValidationMessage('name', false, '이름을 입력해주세요.'); isValid = false; }
-            else setValidationMessage('name', true, '');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
-            if (!validateEmail(email)) { setValidationMessage('email', false, '올바른 이메일 형식이 아닙니다.'); isValid = false; }
-            else setValidationMessage('email', true, '');
+        if (!validatePassword(newPassword)) { alert('비밀번호는 8자 이상이어야 합니다.'); return; }
+        if (newPassword !== confirmNewPassword) { alert('비밀번호가 일치하지 않습니다.'); return; }
 
-            if (!validatePassword(password)) { setValidationMessage('password', false, '8자 이상 입력해주세요.'); isValid = false; }
-            else setValidationMessage('password', true, '');
+        try {
+            // 상단 resetPassword 함수 활용
+            await resetPassword({ name, email, newPassword });
+            alert('비밀번호가 성공적으로 변경되었습니다.');
+            window.location.href = '/auth/password/reset/success';
+        } catch (error) {
+            handleApiError(error);
+        }
+    });
+}
 
-            if (!validateConfirmPassword(password, confirmPassword)) { setValidationMessage('confirmPassword', false, '비밀번호가 일치하지 않습니다.'); isValid = false; }
-            else setValidationMessage('confirmPassword', true, '');
+/**
+ * 회원가입 개별 유효성 검사 헬퍼
+ */
+function validateRegister(name, email, password, confirm) {
+    let isValid = true;
 
-            if (!isValid) return;
+    const checks = [
+        { id: 'name', val: name, fn: validateName, msg: '이름을 입력해주세요.' },
+        { id: 'email', val: email, fn: validateEmail, msg: '올바른 이메일 형식이 아닙니다.' },
+        { id: 'password', val: password, fn: validatePassword, msg: '8자 이상 입력해주세요.' },
+        { id: 'confirmPassword', val: confirm, fn: (c) => validateConfirmPassword(password, c), msg: '비밀번호가 일치하지 않습니다.' }
+    ];
 
-            const formBtn = document.getElementById('formBtn');
-            if (formBtn) formBtn.disabled = true;
+    checks.forEach(check => {
+        const ok = check.fn(check.val);
+        setValidationMessage(check.id, ok, ok ? '' : check.msg);
+        if (!ok) isValid = false;
+    });
 
-            const payload = { name, password, email, phoneNumber: userPhoneNumber, birthDate: userBirthDate, job: userJob };
-
-            try {
-                // Register는 ApiResponseDto.data가 null임. 성공 시 에러 안 나고 통과.
-                await apiCall('/api/auth/register', 'POST', payload);
-                alert('회원가입이 완료되었습니다.');
-                window.location.href = '/auth/login';
-            } catch (error) {
-                // 이미 가입된 이메일 등 서버 에러 메시지 출력
-                handleApiError(error);
-            } finally {
-                if (formBtn) formBtn.disabled = false;
-            }
-        });
-    };
-    handleRegister();
-
-    // ============================================================
-    // 3. 아이디 찾기
-    // ============================================================
-    const handleFindId = () => {
-        const findIdForm = document.getElementById('findIdForm');
-        if (!findIdForm) return;
-
-        findIdForm.addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const name = document.getElementById('name').value;
-            const phoneNumber = document.getElementById('phoneNumber').value;
-
-            if (!name || !phoneNumber) {
-                alert('정보를 모두 입력해주세요.');
-                return;
-            }
-
-            try {
-                // 성공 시 data는 email(String)
-                const foundEmail = await apiCall('/api/auth/id/find', 'POST', { name, phoneNumber });
-                alert('아이디를 성공적으로 찾았습니다.');
-                window.location.href = `/auth/id/find/success?email=${encodeURIComponent(foundEmail)}`;
-            } catch (error) {
-                handleApiError(error);
-            }
-        });
-    };
-    handleFindId();
-
-    // ============================================================
-    // 4. 비밀번호 재설정
-    // ============================================================
-    const handlePasswordReset = () => {
-        const resetForm = document.getElementById('passwordResetForm');
-        if (!resetForm) return;
-
-        resetForm.addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-            if (!validatePassword(newPassword)) { alert('비밀번호는 8자 이상이어야 합니다.'); return; }
-            if (newPassword !== confirmNewPassword) { alert('비밀번호가 일치하지 않습니다.'); return; }
-
-            try {
-                await apiCall('/api/auth/password/reset', 'POST', { name, email, newPassword });
-                alert('비밀번호가 성공적으로 변경되었습니다.');
-                window.location.href = '/auth/password/reset/success';
-            } catch (error) {
-                handleApiError(error);
-            }
-        });
-    };
-    handlePasswordReset();
-});
+    return isValid;
+}
