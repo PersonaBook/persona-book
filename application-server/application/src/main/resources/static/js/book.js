@@ -2,6 +2,45 @@
 // Global Functions (accessible by both pages)
 // =================================================================================
 
+// =================================================================================
+// Global Functions (accessible by both pages)
+// =================================================================================
+
+/**
+ * PDF Base64 데이터를 파싱하여 Raw PDF로 표시합니다.
+ * @param {string} base64Data - Base64 인코딩된 PDF 데이터.
+ */
+function displayPdfAsRaw(base64Data) { // targetElement 인자 제거, pdfViewer 직접 참조
+    const pdfViewer = document.getElementById('pdfViewer');
+    if (!pdfViewer) {
+        console.error('PDF를 렌더링할 타겟 엘리먼트(#pdfViewer)를 찾을 수 없습니다.');
+        return;
+    }
+    try {
+        const binaryString = atob(base64Data);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const blob = new Blob([bytes], {type: 'application/pdf'});
+        const url = URL.createObjectURL(blob);
+
+        const embed = document.createElement('embed');
+        embed.src = url;
+        embed.type = 'application/pdf';
+        embed.width = '100%';
+        embed.height = '100%';
+
+        pdfViewer.innerHTML = '';
+        pdfViewer.appendChild(embed);
+    } catch (error) {
+        console.error('PDF display failed:', error);
+        pdfViewer.innerHTML = '<p>PDF 표시에 실패했습니다.</p>';
+    }
+}
+
 /**
  * Navigates to the book detail page.
  * @param {number} bookId - The ID of the book.
@@ -12,7 +51,7 @@ function goToPdfDetail(bookId) {
     console.log(`[DEBUG] Auth token present: ${!!token}`);
     if (token) {
         console.log(`[DEBUG] Navigating to: /book/${bookId}`);
-        window.location.href = `/book/${bookId}`;
+        window.location.href = `/book/${bookId}`; // book.html로 이동
     } else {
         console.log('[DEBUG] Token not found, redirecting to login.');
         alert('로그인이 필요합니다.');
@@ -27,11 +66,11 @@ function goToPdfDetail(bookId) {
 /**
  * Initializes the book viewer page.
  */
-function initBookPage() {
+async function initBookPage() {
     const pdfViewer = document.getElementById('pdfViewer');
     if (!pdfViewer) return;
 
-    function adjustSectionHeight() {
+    function adjustSectionHeight() { // adjustSectionHeight는 이 스코프에 그대로 둔다.
         const vh = window.innerHeight;
         const header = document.querySelector('header');
         const headerH = header ? header.offsetHeight : 0;
@@ -43,39 +82,25 @@ function initBookPage() {
         }
     }
 
-    function displayPdfAsRaw(base64Data) {
-        try {
-            const binaryString = atob(base64Data);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-
-            const blob = new Blob([bytes], {type: 'application/pdf'});
-            const url = URL.createObjectURL(blob);
-
-            const embed = document.createElement('embed');
-            embed.src = url;
-            embed.type = 'application/pdf';
-            embed.width = '100%';
-            embed.height = '100%';
-
-            pdfViewer.innerHTML = '';
-            pdfViewer.appendChild(embed);
-        } catch (error) {
-            console.error('PDF display failed:', error);
-            pdfViewer.innerHTML = '<p>PDF 표시에 실패했습니다.</p>';
-        }
-    }
-
     adjustSectionHeight();
     window.addEventListener('resize', adjustSectionHeight);
 
-    if (typeof bookData !== 'undefined' && bookData && bookData.fileBase64) {
-        displayPdfAsRaw(bookData.fileBase64);
+    // currentBookId는 book.html의 스크립트 블록에서 넘어옴
+    if (typeof currentBookId !== 'undefined' && currentBookId !== null) {
+        try {
+            // apiCall 함수를 사용하여 PDF 상세 정보를 가져옴
+            const bookDetail = await apiCall(`/api/book/detail/${currentBookId}`, 'GET');
+            if (bookDetail && bookDetail.fileBase64) {
+                displayPdfAsRaw(bookDetail.fileBase64); // 전역 displayPdfAsRaw 호출
+            } else {
+                pdfViewer.innerHTML = '<p>PDF 데이터를 찾을 수 없습니다.</p>';
+            }
+        } catch (error) {
+            console.error('PDF 데이터를 가져오는 중 오류 발생:', error);
+            pdfViewer.innerHTML = '<p>PDF 로딩 중 오류가 발생했습니다.</p>';
+        }
     } else {
-        pdfViewer.innerHTML = '<p>PDF 데이터를 찾을 수 없습니다.</p>';
+        pdfViewer.innerHTML = '<p>유효한 PDF ID를 찾을 수 없습니다.</p>';
     }
 }
 
