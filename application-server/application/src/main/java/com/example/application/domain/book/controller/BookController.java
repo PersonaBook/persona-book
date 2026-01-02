@@ -1,6 +1,7 @@
 package com.example.application.domain.book.controller;
 
 import com.example.application.domain.book.dto.request.BookUploadRequestDto;
+import com.example.application.domain.book.dto.response.BookDetailResponseDto;
 import com.example.application.domain.book.dto.response.BookSummaryResponseDto;
 import com.example.application.domain.book.service.BookService;
 import com.example.application.global.dto.ApiResponseDto;
@@ -30,5 +31,14 @@ public class BookController {
             @RequestAttribute("userId") Long userId
     ) {
         return ApiResponseDto.success(bookService.getBookList(userId));
+    }
+
+    @GetMapping("/api/book/detail/{bookId}")
+    @ResponseBody
+    public ApiResponseDto<BookDetailResponseDto> getBookDetailApi(
+            @PathVariable Long bookId,
+            @RequestAttribute("userId") Long userId // userId는 인증 인터셉터에서 주입됨
+    ) {
+        return ApiResponseDto.success(bookService.getBookDetail(bookId, userId));
     }
 }
