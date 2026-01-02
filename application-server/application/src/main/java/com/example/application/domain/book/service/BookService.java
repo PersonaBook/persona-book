@@ -7,7 +7,7 @@ import com.example.application.domain.book.entity.Book;
 import com.example.application.domain.book.repository.BookRepository;
 import com.example.application.domain.book.type.EmbeddingState;
 import com.example.application.domain.user.entity.User;
-import com.example.application.domain.user.repositroy.UserRepository; // 오타 수정: repository
+import com.example.application.domain.user.repository.UserRepository;
 import com.example.application.global.exception.CustomException;
 import com.example.application.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class BookService {
 
         Book savedBook = bookRepository.save(book);
 
-        bookEmbeddingService.processEmbedding(savedBook.getBookId(), request.getFileBase64());
+        bookEmbeddingService.processEmbedding(savedBook.getBookId(), userId, request.getFileBase64());
 
         return BookSummaryResponseDto.from(savedBook);
     }

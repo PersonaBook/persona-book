@@ -32,8 +32,8 @@ public class BookEmbeddingService {
 
 
     @Async
-    public void processEmbedding(Long bookId, String fileBase64) {
-        log.info(">>> [Async] 임베딩 작업 시작 bookId={}", bookId);
+    public void processEmbedding(Long userId, Long bookId, String fileBase64) {
+        log.info(">>> [Async] PDF 업로드 및 임베딩 작업 시작 userId={}, bookId={}", userId, bookId);
 
         updateEmbeddingState(bookId, EmbeddingState.PROCESSING);
 
@@ -43,6 +43,7 @@ public class BookEmbeddingService {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("pdf_file", pdfFile);
             body.add("bookId", bookId.toString());
+            body.add("userId", userId.toString());
             body.add("query", "Java 프로그래밍");
             body.add("max_pages", "20");
             body.add("difficulty", "보통");
