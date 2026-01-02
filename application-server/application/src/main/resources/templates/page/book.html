@@ -14,7 +14,6 @@
     pdfjsLib.cMapUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/';
     pdfjsLib.cMapPacked = true;
     </script>
-    <title th:text="${book?.title ?: 'PDF 상세'}">PDF 상세</title>
 </head>
 
 <body>
@@ -27,7 +26,7 @@
 
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const bookData = /*[[${book}]]*/ null;
+        const currentBookId = /*[[${bookId}]]*/ null;
         /*]]>*/
     </script>
     <script th:src="@{/js/book.js}"></script>
