@@ -5,7 +5,7 @@ import com.example.application.domain.auth.dto.request.LoginRequestDto;
 import com.example.application.domain.auth.dto.request.RegisterRequestDto;
 import com.example.application.domain.auth.dto.response.AuthResponseDto;
 import com.example.application.domain.user.entity.User;
-import com.example.application.domain.user.repositroy.UserRepository;
+import com.example.application.domain.user.repository.UserRepository;
 import com.example.application.global.exception.CustomException;
 import com.example.application.global.exception.ErrorCode;
 import com.example.application.global.security.util.JwtProvider;
