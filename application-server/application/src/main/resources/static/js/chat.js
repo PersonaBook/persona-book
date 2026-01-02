@@ -2,23 +2,6 @@
 // 테스트를 위한 페이지
 // `/chat?userId={사용자_ID}&bookId={책_ID}`
 
-// --- Chat API ---
-function sendChatMessage(payload) {
-    return apiCall('/api/chat/send', 'POST', payload);
-}
-
-function getChatHistory(bookId) {
-    return apiCall(`/api/chat/history?bookId=${bookId}`, 'GET');
-}
-
-function deleteChatHistory(bookId) {
-    return apiCall(`/api/chat/history?bookId=${bookId}`, 'DELETE');
-}
-
-function pingServer() {
-    return apiCall('/api/chat/ping', 'GET');
-}
-
 const userId = Number(document.getElementById('userId').value);
 const bookId = Number(document.getElementById('bookId').value);
 

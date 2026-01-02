@@ -1,22 +1,4 @@
-// chat.js
-
-// --- Chat API ---
-function sendChatMessage(payload) {
-    return apiCall('/api/chat/send', 'POST', payload);
-}
-
-function getChatHistory(bookId) {
-    return apiCall(`/api/chat/history?bookId=${bookId}`, 'GET');
-}
-
-function deleteChatHistory(bookId) {
-    return apiCall(`/api/chat/history?bookId=${bookId}`, 'DELETE');
-}
-
-function pingServer() {
-    return apiCall('/api/chat/ping', 'GET');
-}
-
+// chatbot.js
 
 $(function() {
     const chatBtn = $('.chat_btn > button');
