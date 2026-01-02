@@ -3,7 +3,7 @@ package com.example.application.domain.user.service;
 import com.example.application.domain.user.dto.request.UserProfileUpdateRequestDto;
 import com.example.application.domain.user.dto.response.UserProfileResponseDto;
 import com.example.application.domain.user.entity.User;
-import com.example.application.domain.user.repositroy.UserRepository;
+import com.example.application.domain.user.repository.UserRepository;
 import com.example.application.global.exception.CustomException;
 import com.example.application.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

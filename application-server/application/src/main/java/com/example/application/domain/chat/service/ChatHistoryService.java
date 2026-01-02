@@ -9,7 +9,7 @@ import com.example.application.domain.chat.type.ChatState;
 import com.example.application.domain.user.entity.User;
 import com.example.application.domain.book.repository.BookRepository;
 import com.example.application.domain.chat.repository.ChatHistoryRepository;
-import com.example.application.domain.user.repositroy.UserRepository;
+import com.example.application.domain.user.repository.UserRepository;
 import com.example.application.domain.chat.type.Sender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

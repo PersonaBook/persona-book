@@ -15,7 +15,7 @@ import com.example.application.domain.user.entity.User;
 import com.example.application.domain.book.repository.BookRepository;
 import com.example.application.domain.chat.repository.ChatHistoryRepository;
 import com.example.application.domain.question.repository.QuestionRepository;
-import com.example.application.domain.user.repositroy.UserRepository;
+import com.example.application.domain.user.repository.UserRepository;
 import com.example.application.domain.chat.type.Sender;
 import com.example.application.global.exception.CustomException;
 import com.example.application.global.exception.ErrorCode;

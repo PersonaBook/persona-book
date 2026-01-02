@@ -1,7 +1,7 @@
 package com.example.application.global.init;
 
 import com.example.application.domain.user.entity.User;
-import com.example.application.domain.user.repositroy.UserRepository;
+import com.example.application.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
