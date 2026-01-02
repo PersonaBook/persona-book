@@ -2,7 +2,6 @@ package com.example.application.domain.book.controller;
 
 import com.example.application.domain.book.dto.response.BookDetailResponseDto;
 import com.example.application.domain.book.service.BookService;
-import com.example.application.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -26,7 +25,6 @@ public class BookViewController {
     ) {
         BookDetailResponseDto bookDetail = bookService.getBookDetail(bookId, userId);
         model.addAttribute("book", bookDetail);
-
         return "page/book";
     }
 }
