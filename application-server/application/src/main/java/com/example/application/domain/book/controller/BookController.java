@@ -33,7 +33,7 @@ public class BookController {
         return ApiResponseDto.success(bookService.getBookList(userId));
     }
 
-    @GetMapping("/api/book/detail/{bookId}")
+    @GetMapping("/detail/{bookId}")
     @ResponseBody
     public ApiResponseDto<BookDetailResponseDto> getBookDetailApi(
             @PathVariable Long bookId,
