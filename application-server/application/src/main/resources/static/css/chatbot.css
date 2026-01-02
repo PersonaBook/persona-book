@@ -1,231 +1,32 @@
-/* chat.css (이전 chat.css의 내용으로 가정) */
-.chat-container {
+.chat-container.floating {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 360px;
+    max-height: 85vh;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    z-index: 9999;
+    overflow: hidden;
+    background: white;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    width: 100%;
-    max-width: 400px; /* Adjust as needed */
-    margin: 0 auto;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .chat-header {
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-weight: 600;
 }
 
-.chat-messages {
-    flex-grow: 1;
-    padding: 10px;
-    overflow-y: auto;
-    background-color: #fff;
-}
-
-.message {
-    display: flex;
-    margin-bottom: 10px;
-}
-
-.message.user {
-    justify-content: flex-end;
-}
-
-.message.ai {
-    justify-content: flex-start;
-}
-
-.message-content {
-    max-width: 70%;
-    padding: 8px 12px;
-    border-radius: 18px;
-    word-wrap: break-word;
-    white-space: pre-wrap; /* Preserve whitespace and line breaks */
-}
-
-.message.user .message-content {
-    background-color: #007bff;
-    color: white;
-    border-bottom-right-radius: 2px;
-}
-
-.message.ai .message-content {
-    background-color: #e2e6ea;
-    color: #333;
-    border-bottom-left-radius: 2px;
-}
-
-.chat-input-container {
-    border-top: 1px solid #eee;
-    padding: 10px;
-    background-color: #f8f9fa;
-}
-
-.chat-input-form {
-    display: flex;
-}
-
-.chat-input {
-    flex-grow: 1;
-    border: 1px solid #ced4da;
-    border-radius: 20px;
-    padding: 8px 15px;
-    margin-right: 10px;
-    outline: none;
-}
-
-.send-button {
-    background-color: #007bff;
+.close-btn {
+    background: transparent;
     color: white;
     border: none;
-    border-radius: 20px;
-    padding: 8px 15px;
+    font-size: 1.2em;
     cursor: pointer;
-}
-
-.send-button:disabled {
-    background-color: #a0c9f1;
-    cursor: not-allowed;
-}
-
-.loading {
-    padding: 10px;
-    text-align: center;
-    color: #6c757d;
-    display: none; /* Hidden by default */
-}
-
-.error-message {
-    padding: 10px;
-    text-align: center;
-    color: red;
-    display: none; /* Hidden by default */
-}
-
-/* Quick button styles */
-.quick-actions {
-    margin-top: 5px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.quick-btn {
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 15px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 0.9em;
-}
-
-.quick-btn:hover {
-    background-color: #e0e0e0;
-}
-
-/* Rating stars */
-.rating-stars {
-    font-size: 1.5em;
-    cursor: pointer;
-    color: #ccc;
-    user-select: none; /* Prevent text selection */
-}
-
-.rating-stars .star-icon {
-    display: inline-block;
-    cursor: pointer;
-}
-
-.rating-stars .star-icon:hover,
-.rating-stars .star-icon.hover {
-    color: gold;
-}
-
-.rating-stars .star-icon.selected {
-    color: gold;
-}
-
-/* Chatbot specific layout */
-.chat_area {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 350px; /* Small default width */
-    height: 60px; /* Small default height */
-    background-color: #fefefe;
-    border: 1px solid #d4d4d4;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: all 0.3s ease-in-out;
-    z-index: 1000;
-}
-
-.chat_area.on {
-    width: 350px; /* Default open width */
-    height: 500px; /* Default open height */
-    border-radius: 10px;
-    padding: 0; /* Remove padding for content */
-}
-
-.chat_area.small {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    padding: 0;
-    box-shadow: none; /* No shadow when collapsed */
-    background: url(/image/img_chat.svg) no-repeat center center; /* Chat icon */
-    background-size: 70%;
-    cursor: pointer;
-}
-
-.chat_area.small .chat-container {
-    display: none; /* Hide content when collapsed */
-}
-
-.chat_area.big {
-    width: 600px; /* Larger width for big mode */
-    height: 80vh; /* Responsive height for big mode */
-    max-height: 800px; /* Max height for big mode */
-    right: 50px;
-    bottom: 50px;
-}
-
-/* Chat header buttons */
-.chat_header .d-flex {
-    gap: 5px;
-}
-
-.chat_close, .chat_window_toggle {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    color: #6c757d;
-}
-
-.chat_close svg, .chat_window_toggle svg {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
-}
-
-.chat_close:hover, .chat_window_toggle:hover {
-    color: #333;
-}
-
-/* Ensure full height for chat messages */
-.chat-container {
-    height: 100%;
-}
-
-.chat-input-container {
-    flex-shrink: 0; /* Prevent input from shrinking */
 }

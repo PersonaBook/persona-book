@@ -2,8 +2,8 @@
 답안 평가 관련 API
 """
 from fastapi import APIRouter, HTTPException
-from app.schemas.request.rag_apis import AnswerEvaluationRequest
-from app.schemas.response.rag_apis import AnswerEvaluationResponse
+from app.schemas.request.rag_apis import EvaluatingAnswerRequest
+from app.schemas.response.rag_apis import EvaluatingAnswerResponse
 from app.core.logging_config import get_logger
 import re
 
@@ -80,8 +80,8 @@ def compare_answers(user_answer: str, correct_answer: str) -> bool:
     
     return False
 
-@router.post("/evaluating/answer", response_model=AnswerEvaluationResponse)
-def handle_evaluating_answer_and_logging(request: AnswerEvaluationRequest):
+@router.post("/evaluating/answer", response_model=EvaluatingAnswerResponse)
+def handle_evaluating_answer_and_logging(request: EvaluatingAnswerRequest):
     """답안 평가 및 로깅 처리"""
     try:
         logger.info("답안 평가 API 호출됨")
@@ -121,7 +121,7 @@ def handle_evaluating_answer_and_logging(request: AnswerEvaluationRequest):
                 response_content += "다시 한번 개념을 복습해보세요."
                 logger.info("오답 처리 완료")
         
-        return AnswerEvaluationResponse(
+        return EvaluatingAnswerResponse(
             is_correct=is_correct,
             feedback=response_content,
             correct_answer=question_data.get("answer", "") if question_data else ""

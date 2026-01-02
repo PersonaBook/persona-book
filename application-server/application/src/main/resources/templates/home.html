@@ -3,19 +3,18 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <head>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <script th:src="@{/js/home.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/book.css}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script th:src="@{/js/book.js}"></script>
 
     <script>
-        // PDF.js 설정
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        
-        // CMap 설정 (한국어 폰트 지원)
-        pdfjsLib.cMapUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/';
-        pdfjsLib.cMapPacked = true;
+    // PDF.js 설정
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // CMap 설정 (한국어 폰트 지원)
+    pdfjsLib.cMapUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/';
+    pdfjsLib.cMapPacked = true;
     </script>
-    <title th:text="'메인' ?: 'PDF-Playground'">Layout</title>
 </head>
 
 <body>
@@ -28,9 +27,9 @@
                 <li class="pdf_li">
                     <div class="plus_area">
                         <div>
-                            <input accept="application/pdf/*" id="imageInput" type="file">
-                            <label class="custom_file_button" for="imageInput">+</label>
-                            <div id="imagePreview"><p></p></div>
+                            <input accept="application/pdf" id="pdfInput" type="file">
+                            <label class="custom_file_button" for="pdfInput">+</label>
+                            <div id="pdfPreview"><p></p></div>
                         </div>
                         <div class="file_area"></div>
                     </div>

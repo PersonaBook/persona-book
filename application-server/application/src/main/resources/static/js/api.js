@@ -1,7 +1,11 @@
 // api.js
 
+function getAuthToken() {
+    return localStorage.getItem('accessToken');
+}
+
 function getAuthHeader() {
-    const token = localStorage.getItem('accessToken');
+    const token = getAuthToken();
     return token ? { 'Authorization': 'Bearer ' + token } : {};
 }
 
@@ -65,26 +69,4 @@ async function apiCall(url, method, data) {
         console.error(`[API Error] ${method} ${url}`, error);
         throw error;
     }
-}
-
-// --- Chat API ---
-function sendChatMessage(payload) {
-    return apiCall('/api/chat/send', 'POST', payload);
-}
-
-function getChatHistory(bookId) {
-    return apiCall(`/api/chat/history?bookId=${bookId}`, 'GET');
-}
-
-function deleteChatHistory(bookId) {
-    return apiCall(`/api/chat/history?bookId=${bookId}`, 'DELETE');
-}
-
-function pingServer() {
-    return apiCall('/api/chat/ping', 'GET');
-}
-
-// --- User API ---
-function updateUserProfile(payload) {
-    return apiCall('/api/user/profile', 'PATCH', payload);
 }
