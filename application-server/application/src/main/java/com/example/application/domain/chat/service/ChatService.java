@@ -434,7 +434,7 @@ public class ChatService {
                 .book(book)
                 .domain(response.getDomain())
                 .concept(response.getConcept())
-                .text(response.getQuestionText())
+                .text(response.getProblemText())
                 .userAnswer(null) // 사용자가 답변하면 이후 업데이트 가능
                 .correctAnswer(response.getCorrectAnswer())
                 .createdAt(LocalDateTime.now())
