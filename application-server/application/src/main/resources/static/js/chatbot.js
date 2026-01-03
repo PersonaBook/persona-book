@@ -13,9 +13,6 @@ $(function() {
             const bookIdRaw = $(this).data('book-id');
             const bookId = Number(bookIdRaw);
 
-            console.log("DEBUG: bookIdRaw =", bookIdRaw);
-            console.log("DEBUG: bookId (numeric) =", bookId);
-
             if (isNaN(bookId) || bookId === 0) {
                 alert("오류: 유효하지 않은 bookId입니다. 관리자에게 문의하세요.");
                 chatArea.removeClass('on'); // Close chat area if bookId is invalid
