@@ -25,6 +25,7 @@ public class ChatController {
             @RequestAttribute("userId") Long userId,
             @Valid @RequestBody UserMessageDto userMessageDto
     ) {
+        userMessageDto.setUserId(userId);
         return ApiResponseDto.success(chatService.handleChatFlow(userId, userMessageDto));
     }
 
