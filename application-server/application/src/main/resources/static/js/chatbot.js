@@ -46,9 +46,6 @@ function renderChatWindow(container, bookId) {
                 <button type="button" id="deleteHistoryBtn" class="quick-btn btn btn-light rounded-0 w-50">채팅 이력 삭제</button>
                 <button type="button" id="newChatButton" class="quick-btn btn btn-light rounded-0 w-50">새로운 대화</button>
             </div>
-            <div style="display: none">
-                상태: <span id="debugState">INITIAL / START</span>
-            </div>
             <div class="chat-messages" id="chatMessages"></div>
             <div class="error-message" id="errorMessage"></div>
             <div class="loading" id="loadingIndicator">AI가 응답을 생성하고 있습니다...</div>
@@ -89,9 +86,9 @@ function initializeChatFunctionality(bookId) {
     });
 
     newChatButton.on('click', () => {
-        chatMessages.empty();
-        initialMessageSent = false;
-        startNewChat(bookId);
+        // chatMessages.empty(); // DO NOT clear messages for "New Chat" button
+        // initialMessageSent = false; // Initial message state should be managed within resetChatStateAndInitializeServer
+        resetChatStateAndInitializeServer(bookId);
     });
     deleteHistoryBtn.on('click', () => deleteChatHistoryAndRestart(bookId));
     closeButton.on('click', () => {
@@ -196,17 +193,20 @@ function initializeChatFunctionality(bookId) {
             showLoading(false);
             updateDebugState();
             // 대화 기록 로딩이 완료된 후, 대화창이 비어있으면 새 대화를 시작합니다.
-                                                            if (chatMessages.children().length === 0) {
-                                                                startNewChat(currentBookId);
-                                                            }        }
+                                                                            if (chatMessages.children().length === 0) {
+                                                                                resetChatStateAndInitializeServer(currentBookId);
+                                                                            }        }
     }
 
-    function startNewChat(currentBookId) {
-        if (initialMessageSent) return;
-        initialMessageSent = true;
-
-        currentState = 'WAITING_USER_SELECT_FEATURE';
-        sendMessage('', currentBookId);
+    function resetChatStateAndInitializeServer(currentBookId) {
+        if (initialMessageSent) { // If already sent an initial message (meaning not a brand new session start)
+            currentState = 'WAITING_USER_SELECT_FEATURE';
+            sendMessage('', currentBookId); // Sends empty message to server to set initial state
+        } else { // This is for the very first load or after history clear, where no initial message has been sent
+            initialMessageSent = true;
+            currentState = 'WAITING_USER_SELECT_FEATURE';
+            sendMessage('', currentBookId);
+        }
     }
 
     async function deleteChatHistoryAndRestart(currentBookId) {
@@ -217,8 +217,8 @@ function initializeChatFunctionality(bookId) {
         showLoading(true);
         try {
             await apiCall(`/api/chat/history?bookId=${currentBookId}`, 'DELETE');
-            chatMessages.empty();
-            startNewChat(currentBookId);
+            chatMessages.empty(); // Keep clearing messages for history deletion
+            resetChatStateAndInitializeServer(currentBookId);
         } catch (err) {
             showError("이력 삭제 실패");
         } finally {
