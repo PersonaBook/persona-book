@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<head>
+    <script th:src="@{/js/auth.js}"></script>
+</head>
+
+<div layout:fragment="content">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
+                <h1 class="fw-bold mb-4 text-center">아이디 찾기</h1>
+
+                <div class="card">
+                    <div class="card-body">
+                        <form id="findIdForm">
+                            <div class="mb-3">
+                                <label class="form-label" for="name">이름 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="이름을 입력해주세요." required >
+                                <div class="invalid-feedback" id="nameError"></div>
+                                <div class="valid-feedback" id="nameSuccess"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="phoneNumber">전화번호 <span class="text-danger">*</span></label>
+                                <div class="d-flex gap-2">
+                                    <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" placeholder="전화번호를 입력해주세요." required >
+                                </div>
+                                <div class="invalid-feedback" id="phoneNumberError"></div>
+                                <div class="valid-feedback" id="phoneNumberSuccess"></div>
+                            </div>
+
+                            <button type="submit" id="formBtn" class="btn btn-primary w-100 mt-5">아이디 찾기</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

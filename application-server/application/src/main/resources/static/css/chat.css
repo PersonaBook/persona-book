@@ -1,3 +1,6 @@
+/*// 테스트를 위한 페이지*/
+/*// `/chat?userId={사용자_ID}&bookId={책_ID}`*/
+
 /* 채팅창 컨테이너 */
 .chat_area {
     position: absolute;

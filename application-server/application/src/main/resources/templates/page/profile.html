@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <script defer th:src="@{/js/profile.js}"></script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
+                <h1 class="fw-bold mb-4 text-center">프로필</h1>
+
+                <div id="profile-error" class="alert alert-danger" style="display: none;"></div>
+
+                <form id="profileForm">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">이름</label>
+                                <input type="text" id="name" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">이메일</label>
+                                <input type="email" id="email" class="form-control" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="birthDate" class="form-label">생년월일</label>
+                                <input type="date" id="birthDate" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="job" class="form-label">직업</label>
+                                <input type="text" id="job" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">전화번호</label>
+                                <input type="text" id="phoneNumber" class="form-control">
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" id="saveButton" class="btn btn-primary">저장</button>
+                                <button type="button" id="cancelButton" class="btn btn-light">취소</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

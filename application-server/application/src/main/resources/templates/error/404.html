@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>페이지를 찾을 수 없습니다 - 404</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 my-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <h1 class="display-1 text-primary fw-bold">404</h1>
+                            <h2 class="mb-3 fw-bold">페이지를 찾을 수 없습니다</h2>
+                            <p class="lead text-muted">
+                                요청하신 페이지가 삭제되었거나 주소가 변경되었을 수 있습니다.<br>
+                                입력하신 주소가 정확한지 다시 한번 확인해주세요.
+                            </p>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-5">
+                            <a href="/" class="btn btn-primary btn-lg px-4">홈으로 이동</a>
+                            <button onclick="history.back()" class="btn btn-outline-secondary btn-lg px-4">이전 페이지</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

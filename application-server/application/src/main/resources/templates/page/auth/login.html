@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <script th:src="@{/js/auth.js}"></script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="container d-flex justify-content-center align-items-center flex-direction-column">
+        <div class="col-lg-6 col-12 my-5">
+            <div class="w-100">
+                <h1 class="fw-bold mb-4 text-center">로그인</h1>
+
+                <div class="card">
+                    <div class="card-body">
+
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">이메일 <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required>
+                                <div id="emailError" class="invalid-feedback"></div>
+                                <div id="emailSuccess" class="valid-feedback"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="password">비밀번호 <span class="text-danger">*</span></label>
+                                <input class="form-control" id="password" name="password" type="password" placeholder="비밀번호를 입력해주세요." required>
+                                <div id="passwordError" class="invalid-feedback"></div>
+                                <div id="passwordSuccess" class="valid-feedback"></div>
+                            </div>
+
+
+
+                            <button type="submit" id="formBtn" class="btn btn-primary w-100 mt-5">로그인</button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <a class="text-decoration-none text-secondary link-dark" href="/auth/id/find">아이디 찾기</a>
+                            <span class="mx-2">|</span>
+                            <a class="text-decoration-none text-secondary link-dark" href="/auth/password/reset">비밀번호 변경</a>
+                            <span class="mx-2">|</span>
+                            <a class="text-decoration-none text-secondary link-dark" href="/auth/register">회원가입</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

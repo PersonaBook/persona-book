@@ -11,7 +11,7 @@ COPY . .
 RUN gradle bootJar -x test --no-daemon
 
 # 2단계: 실행 스테이지
-FROM openjdk:17-jdk
+FROM amazoncorretto:17
 
 WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar app.jar

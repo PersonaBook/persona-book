@@ -1,3 +1,5 @@
+// chatbot.js
+
 $(function() {
     const chatBtn = $('.chat_btn > button');
     const chatArea = $('.chat_area');
@@ -8,16 +10,22 @@ $(function() {
         chatArea.toggleClass('on');
 
         if (chatArea.hasClass('on')) {
-            const userId = $(this).data('user-id');
-            const bookId = $(this).data('book-id');
-            renderChatWindow(chatArea, userId, bookId);
+            const bookIdRaw = $(this).data('book-id');
+            const bookId = Number(bookIdRaw);
+
+            if (isNaN(bookId) || bookId === 0) {
+                alert("오류: 유효하지 않은 bookId입니다. 관리자에게 문의하세요.");
+                chatArea.removeClass('on'); // Close chat area if bookId is invalid
+                return;
+            }
+            renderChatWindow(chatArea, bookId);
         } else {
             chatArea.empty();
         }
     });
 });
 
-function renderChatWindow(container, userId, bookId) {
+function renderChatWindow(container, bookId) {
     const chatHtml = `
         <div class="chat-container">
             <div class="chat-header">
@@ -34,11 +42,6 @@ function renderChatWindow(container, userId, bookId) {
             <div class="chat-settings d-flex">
                 <button type="button" id="deleteHistoryBtn" class="quick-btn btn btn-light rounded-0 w-50">채팅 이력 삭제</button>
                 <button type="button" id="newChatButton" class="quick-btn btn btn-light rounded-0 w-50">새로운 대화</button>
-                <input type="hidden" id="userId" value="${userId}" />
-                <input type="hidden" id="bookId" value="${bookId}" />
-            </div>
-            <div style="display: none">
-                상태: <span id="debugState">INITIAL / START</span>
             </div>
             <div class="chat-messages" id="chatMessages"></div>
             <div class="error-message" id="errorMessage"></div>
@@ -52,10 +55,10 @@ function renderChatWindow(container, userId, bookId) {
         </div>`;
 
     container.html(chatHtml);
-    initializeChatFunctionality(userId, bookId);
+    initializeChatFunctionality(bookId);
 }
 
-function initializeChatFunctionality(userId, bookId) {
+function initializeChatFunctionality(bookId) {
     const chatForm = $('#chatForm');
     const messageInput = $('#messageInput');
     const chatMessages = $('#chatMessages');
@@ -75,16 +78,16 @@ function initializeChatFunctionality(userId, bookId) {
         e.preventDefault();
         const message = messageInput.val().trim();
         if (message) {
-            sendMessage(message);
+            sendMessage(message, bookId);
         }
     });
 
     newChatButton.on('click', () => {
-        chatMessages.empty();
-        initialMessageSent = false;
-        startNewChat();
+        // chatMessages.empty(); // DO NOT clear messages for "New Chat" button
+        // initialMessageSent = false; // Initial message state should be managed within resetChatStateAndInitializeServer
+        resetChatStateAndInitializeServer(bookId);
     });
-    deleteHistoryBtn.on('click', () => deleteChatHistoryAndRestart());
+    deleteHistoryBtn.on('click', () => deleteChatHistoryAndRestart(bookId));
     closeButton.on('click', () => {
         $('.chat_area').removeClass('on').empty();
     });
@@ -100,10 +103,9 @@ function initializeChatFunctionality(userId, bookId) {
     });
 
     // --- Core Functions ---
-    function sendMessage(messageContent) {
+    async function sendMessage(messageContent, currentBookId) {
         const payload = {
-            userId: userId,
-            bookId: bookId,
+            bookId: currentBookId,
             content: messageContent,
             sender: 'USER',
             messageType: 'TEXT',
@@ -118,32 +120,25 @@ function initializeChatFunctionality(userId, bookId) {
         setSendButtonState(false);
         showLoading(true);
 
-        $.ajax({
-            url: '/api/chat/send',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(payload),
-            success: function(aiResponses) {
-                aiResponses.forEach(ai => {
-                    if (ai.content?.trim()) {
-                        addMessage('ai', ai.content, ai.messageType, ai.options || []);
-                    }
-                });
-                if (aiResponses.length > 0) {
-                    currentState = aiResponses[aiResponses.length - 1].chatState;
+        try {
+            const aiResponses = await apiCall('/api/chat/send', 'POST', payload);
+            aiResponses.forEach(ai => {
+                if (ai.content?.trim()) {
+                    addMessage('ai', ai.content, ai.messageType, ai.options || []);
                 }
-                updateDebugState();
-            },
-            error: function(err) {
-                console.error("서버 전송 오류:", err);
-                addMessage('ai', '⚠️ 서버 전송에 실패했습니다.');
-            },
-            complete: function() {
-                setSendButtonState(true);
-                showLoading(false);
-                messageInput.focus();
+            });
+            if (aiResponses.length > 0) {
+                currentState = aiResponses[aiResponses.length - 1].chatState;
             }
-        });
+            updateDebugState();
+        } catch (err) {
+            console.error("서버 전송 오류:", err);
+            addMessage('ai', '⚠️ 서버 전송에 실패했습니다.');
+        } finally {
+            setSendButtonState(true);
+            showLoading(false);
+            messageInput.focus();
+        }
     }
 
     function addMessage(sender, text, messageType = 'TEXT', options = []) {
@@ -152,13 +147,13 @@ function initializeChatFunctionality(userId, bookId) {
 
         if (messageType === 'SELECTION') {
             const buttonsHTML = options.map((opt, idx) =>
-                `<button class="quick-btn" onclick="sendMessageWrapper('${idx + 1}')">${idx + 1}. ${opt}</button>`
+                `<button class="quick-btn" onclick="sendMessageWrapper('${idx + 1}', ${bookId})">${idx + 1}. ${opt}</button>`
             ).join('');
             contentHTML = `<div class="message-content">${escapedText}<div class="quick-actions">${buttonsHTML}</div></div>`;
         } else if (messageType === 'RATING') {
             let starsHTML = `<div class="rating-stars" onmouseout="styleStars(this, 0)">`;
             for (let i = 1; i <= 5; i++) {
-                starsHTML += `<span id="star_${i}" onmouseover="styleStars(this.parentElement, ${i})" onclick="sendMessageWrapper('${i}')">☆</span>`;
+                starsHTML += `<span id="star_${i}" onmouseover="styleStars(this.parentElement, ${i})" onclick="sendMessageWrapper('${i}', ${bookId})">☆</span>`;
             }
             starsHTML += `</div>`;
             contentHTML = `<div class="message-content">${escapedText}<br>${starsHTML}</div>`;
@@ -169,71 +164,63 @@ function initializeChatFunctionality(userId, bookId) {
         chatMessages.scrollTop(chatMessages.prop("scrollHeight"));
     }
 
-    window.sendMessageWrapper = (message) => sendMessage(message);
+    window.sendMessageWrapper = (message, bookIdParam) => sendMessage(message, bookIdParam);
     window.styleStars = (container, rating) => {
         for (let i = 1; i <= 5; i++) {
             $(container).find(`#star_${i}`).text(i <= rating ? '★' : '☆');
         }
     };
 
-    function loadChatHistory() {
+    async function loadChatHistory(currentBookId) {
         showLoading(true);
-        $.ajax({
-            url: `/api/chat/history?userId=${userId}&bookId=${bookId}`,
-            type: 'GET',
-            success: function(history) {
-                chatMessages.empty();
-                if (history?.length) {
-                    history.forEach(msg => {
-                        if (msg.content?.trim()) {
-                            addMessage(msg.sender.toLowerCase(), msg.content, msg.messageType, msg.options || []);
-                        }
-                    });
-                    currentState = history[history.length - 1].chatState;
-                }
-            },
-            error: function(err) {
-                console.error("이력 로딩 실패:", err);
-            },
-            complete: function() {
-                showLoading(false);
-                updateDebugState();
-                // 대화 기록 로딩이 완료된 후, 대화창이 비어있으면 새 대화를 시작합니다.
-                if (chatMessages.children().length === 0) {
-                    startNewChat();
-                }
+        try {
+            const history = await apiCall(`/api/chat/history?bookId=${currentBookId}`, 'GET');
+            chatMessages.empty();
+            if (history?.length) {
+                history.forEach(msg => {
+                    if (msg.content?.trim()) {
+                        addMessage(msg.sender.toLowerCase(), msg.content, msg.messageType, msg.options || []);
+                    }
+                });
+                currentState = history[history.length - 1].chatState;
             }
-        });
+        } catch (err) {
+            console.error("이력 로딩 실패:", err);
+        } finally {
+            showLoading(false);
+            updateDebugState();
+            // 대화 기록 로딩이 완료된 후, 대화창이 비어있으면 새 대화를 시작합니다.
+                                                                            if (chatMessages.children().length === 0) {
+                                                                                resetChatStateAndInitializeServer(currentBookId);
+                                                                            }        }
     }
 
-    function startNewChat() {
-        if (initialMessageSent) return;
-        initialMessageSent = true; // 플래그를 true로 설정하여 중복 실행 방지
-
-        currentState = 'WAITING_USER_SELECT_FEATURE';
-        sendMessage('');
+    function resetChatStateAndInitializeServer(currentBookId) {
+        if (initialMessageSent) { // If already sent an initial message (meaning not a brand new session start)
+            currentState = 'WAITING_USER_SELECT_FEATURE';
+            sendMessage('', currentBookId); // Sends empty message to server to set initial state
+        } else { // This is for the very first load or after history clear, where no initial message has been sent
+            initialMessageSent = true;
+            currentState = 'WAITING_USER_SELECT_FEATURE';
+            sendMessage('', currentBookId);
+        }
     }
 
-    function deleteChatHistoryAndRestart() {
+    async function deleteChatHistoryAndRestart(currentBookId) {
         if (!confirm('모든 대화 기록을 삭제하고 새로 시작하시겠습니까?')) return;
 
         initialMessageSent = false;
 
         showLoading(true);
-        $.ajax({
-            url: `/api/chat/history?userId=${userId}&bookId=${bookId}`,
-            type: 'DELETE',
-            success: function() {
-                chatMessages.empty();
-                startNewChat();
-            },
-            error: function() {
-                showError("이력 삭제 실패");
-            },
-            complete: function() {
-                showLoading(false);
-            }
-        });
+        try {
+            await apiCall(`/api/chat/history?bookId=${currentBookId}`, 'DELETE');
+            chatMessages.empty(); // Keep clearing messages for history deletion
+            resetChatStateAndInitializeServer(currentBookId);
+        } catch (err) {
+            showError("이력 삭제 실패");
+        } finally {
+            showLoading(false);
+        }
     }
 
     function updateDebugState() {
@@ -251,5 +238,5 @@ function initializeChatFunctionality(userId, bookId) {
     }
 
     // Initial Load
-    loadChatHistory();
+    loadChatHistory(bookId);
 }

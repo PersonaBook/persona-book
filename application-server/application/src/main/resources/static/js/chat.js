@@ -1,5 +1,17 @@
-const userId = Number(document.getElementById('userId').value);
-const bookId = Number(document.getElementById('bookId').value);
+// chat.js
+// 테스트를 위한 페이지
+// `/chat?userId={사용자_ID}&bookId={책_ID}`
+
+const bookIdRaw = document.getElementById('bookId').value;
+const bookId = Number(bookIdRaw);
+
+if (isNaN(bookId) || bookId === 0) {
+    showError("오류: 유효하지 않은 bookId입니다. 페이지를 새로고침하거나 관리자에게 문의하세요.");
+    // Disable chat functionality if bookId is invalid
+    messageInput.disabled = true;
+    sendButton.disabled = true;
+    throw new Error("Invalid bookId"); // Stop script execution
+}
 
 
 const chatMessages = document.getElementById('chatMessages');
@@ -32,7 +44,6 @@ chatForm.addEventListener('submit', (e) => {
 // --- 메시지 전송 ---
 async function sendMessage(messageContent) {
     const payload = {
-        userId: userId,
         bookId: bookId,
         content: messageContent,
         sender: 'USER',
@@ -49,13 +60,7 @@ async function sendMessage(messageContent) {
     showLoading(true);
 
     try {
-        const response = await fetch('/api/chat/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const aiResponses = await response.json(); // List 형태
+        const aiResponses = await apiCall('/api/chat/send', 'POST', payload); // List 형태
 
         aiResponses.forEach((ai) => {
             if (ai.content?.trim()) {
@@ -127,8 +132,7 @@ async function startNewChat() {
 async function loadChatHistory() {
     showLoading(true);
     try {
-        const response = await fetch(`/api/chat/history?userId=${userId}&bookId=${bookId}`);
-        const history = await response.json();
+        const history = await apiCall(`/api/chat/history?bookId=${bookId}`, 'GET');
 
         chatMessages.innerHTML = '';
         if (history?.length) {
@@ -153,7 +157,7 @@ async function deleteChatHistoryAndRestart() {
 
     showLoading(true);
     try {
-        await fetch(`/api/chat/history?userId=${userId}&bookId=${bookId}`, { method: 'DELETE' });
+        await apiCall(`/api/chat/history?bookId=${bookId}`, 'DELETE');
         chatMessages.innerHTML = '';  // 화면의 기존 메시지 제거
         await startNewChat();
     } catch (err) {
@@ -186,11 +190,11 @@ function setSendButtonState(enabled) {
 }
 
 function checkConnection() {
-    fetch("/api/chat/ping")
-        .then(res => {
-            document.getElementById('connectionStatus').textContent = res.ok ? '🟢 연결됨' : '🔴 끊김';
+    apiCall("/api/chat/ping", "GET")
+        .then(() => { // apiCall resolves with data on success, so we just check for resolution
+            document.getElementById('connectionStatus').textContent = '🟢 연결됨';
         })
-        .catch(() => {
+        .catch(() => { // apiCall throws on error
             document.getElementById('connectionStatus').textContent = '🔴 오류';
         });
 }

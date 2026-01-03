@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/book.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+    // PDF.js 설정
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    // CMap 설정 (한국어 폰트 지원)
+    pdfjsLib.cMapUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/';
+    pdfjsLib.cMapPacked = true;
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div id="pdfViewer">
+        <p>PDF를 로딩 중입니다...</p>
+    </div>
+
+    <aside th:replace="fragments/aside :: aside"></aside>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const currentBookId = /*[[${bookId}]]*/ null;
+        /*]]>*/
+    </script>
+    <script th:src="@{/js/book.js}"></script>
+</div>
+</body>
+</html>

@@ -2,23 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <aside th:fragment="aside">
     <ul>
-        <!-- note icon start -->
-        <li style="display: none">
-            <a href="">
-                <img src="/image/img_pen.png" alt="">
-            </a>
-        </li>
-        <!-- note icon end -->
-
         <!-- chat icon start -->
-<!--        <li>-->
-<!--            <a href="javascript:void(0);" onclick="toggleChatbot()">-->
-<!--                <img src="/image/img_chat.png" alt="Chat Icon">-->
-<!--            </a>-->
-<!--        </li>-->
-
         <li class="chat_btn">
-            <button type="button" th:data-user-id="${book.userId}" th:data-book-id="${book.bookId}">
+            <button type="button" th:data-book-id="${bookId}">
                 <img src="/image/img_chat.svg" alt="챗봇 이동 버튼">
             </button>
         </li>
@@ -28,5 +14,7 @@
     <div class="chat_area small"></div>
 
     <script th:src="@{/js/chatbot.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/chatbot.css}">
+    <link rel="stylesheet" th:href="@{/css/chat.css}">
 
 </aside>

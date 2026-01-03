@@ -2,8 +2,8 @@
 답안 평가 관련 API
 """
 from fastapi import APIRouter, HTTPException
-from app.schemas.request.rag_apis import AnswerEvaluationRequest
-from app.schemas.response.rag_apis import AnswerEvaluationResponse
+from app.schemas.request.rag_apis import EvaluatingAnswerRequest
+from app.schemas.response.rag_apis import EvaluatingAnswerResponse
 from app.core.logging_config import get_logger
 import re
 
@@ -80,25 +80,26 @@ def compare_answers(user_answer: str, correct_answer: str) -> bool:
     
     return False
 
-@router.post("/evaluating/answer", response_model=AnswerEvaluationResponse)
-def handle_evaluating_answer_and_logging(request: AnswerEvaluationRequest):
+@router.post("/evaluating/answer", response_model=EvaluatingAnswerResponse)
+def handle_evaluating_answer_and_logging(request: EvaluatingAnswerRequest):
     """답안 평가 및 로깅 처리"""
     try:
         logger.info("답안 평가 API 호출됨")
-        logger.debug(f"사용자 답안: '{request.user_answer}'")
+        logger.debug(f"사용자 답안: '{request.content}'") # Changed from request.user_answer
         
         # 저장된 정답 정보 가져오기
         question_data = get_current_question_answer()
         logger.debug(f"저장된 정답 정보: {question_data}")
         
-        if not question_data or "answer" not in question_data:
-            logger.warning("정답 정보가 없습니다.")
-            response_content = "죄송합니다. 문제의 정답 정보를 찾을 수 없습니다. 다시 문제를 생성해주세요."
+        if not question_data or "answer" not in question_data or "question" not in question_data: # Added check for "question"
+            logger.warning("문제 또는 정답 정보가 없습니다.")
+            response_content = "죄송합니다. 문제 또는 정답 정보를 찾을 수 없습니다. 다시 문제를 생성해주세요."
             is_correct = False
         else:
+            question_text = question_data.get("question", "") # Retrieve question text
             correct_answer = question_data.get("answer", "")
             explanation = question_data.get("explanation", "")
-            user_answer = request.user_answer.strip()
+            user_answer = request.content.strip() # Changed from request.user_answer.strip()
             
             logger.debug(f"정답: '{correct_answer}'")
             logger.debug(f"사용자 답안: '{user_answer}'")
@@ -118,10 +119,12 @@ def handle_evaluating_answer_and_logging(request: AnswerEvaluationRequest):
                 response_content += f"**정답:** {correct_answer}\n\n"
                 if explanation:
                     response_content += f"**해설:**\n{explanation}\n\n"
-                response_content += "다시 한번 개념을 복습해보세요."
+                    response_content += "다시 한번 개념을 복습해보세요."
+                else:
+                    response_content += "다시 한번 개념을 복습해보세요."
                 logger.info("오답 처리 완료")
         
-        return AnswerEvaluationResponse(
+        return EvaluatingAnswerResponse(
             is_correct=is_correct,
             feedback=response_content,
             correct_answer=question_data.get("answer", "") if question_data else ""

@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <!-- common.js -->
-    <script th:src="@{/js/common.js}"></script>
+
 </head>
 
 <body>
@@ -23,10 +22,10 @@
               <div class="navbar-collapse collapse" id="navbarsExample05">
                   <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                       <li class="nav-item" id="login-nav" style="display: none;">
-                          <a class="nav-link" th:href="@{'/login'}">로그인</a>
+                          <a class="nav-link" th:href="@{'/auth/login'}">로그인</a>
                       </li>
                       <li class="nav-item" id="login-join" style="display: none;">
-                          <a class="nav-link" th:href="@{'/join'}">회원가입</a>
+                          <a class="nav-link" th:href="@{'/auth/register'}">회원가입</a>
                       </li>
                       <li class="nav-item" id="logout-nav" style="display: none;">
                           <a class="nav-link" href="#" onclick="logout()">로그아웃</a>
@@ -34,18 +33,12 @@
                       <li class="nav-item dropdown" id="logout-menu" style="display: none;">
                           <a class="nav-link dropdown-toggle" href="#" id="dropdown05" data-bs-toggle="dropdown" aria-expanded="false">내 정보</a>
                           <ul class="dropdown-menu" aria-labelledby="dropdown05">
-                              <li><a class="dropdown-item" th:href="@{'/myPage'}">마이페이지</a></li>
-                              <li><a class="dropdown-item" th:href="@{'/note-main'}" style="display: none">내 노트</a></li>
+                              <li><a class="dropdown-item" th:href="@{'/user/profile'}">프로필</a></li>
                           </ul>
                       </li>
                       <li class="nav-item">
-                          <a class="nav-link active" aria-current="page" href="/">Main</a>
+                          <a class="nav-link active" aria-current="page" href="/">Home</a>
                       </li>
-                     <!--
-                        <li class="nav-item">
-                          <a class="nav-link" th:href="@{'/settings'}">설정</a>
-                        </li>
-                      -->
                   </ul>
               </div>
             </div>
