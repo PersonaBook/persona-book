@@ -1,8 +1,9 @@
 # app/schemas/request/rag_apis.py
 
 from enum import Enum
-from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from app.schemas.enum import Sender, MessageType, ChatState
 
 
 class DifficultyLevel(str, Enum):
@@ -49,12 +50,17 @@ class GeneratingAdditionalQuestionRequest(BaseModel):
 
 class EvaluatingAnswerRequest(BaseModel):
     """답안 평가 및 로깅"""
-    userId: str
-    bookId: str
-    question: str
-    user_answer: str
-    correct_answer: str
-    explanation: str
+    userId: int
+    bookId: int
+    sender: Sender = Sender.USER
+    content: str # This is the user's answer
+    messageType: MessageType = MessageType.TEXT
+    chatState: ChatState
+    
+    # These fields are now optional, as they won't come from the UserMessageDto
+    question: Optional[str] = None
+    correct_answer: Optional[str] = None
+    explanation: Optional[str] = None
 
 
 class ConceptExplanationRequest(BaseModel):

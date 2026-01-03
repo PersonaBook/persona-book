@@ -228,12 +228,31 @@ async def handle_generating_question(request: Request):
             print("🔄 JSON 요청 감지")
             json_data = await request.json()
 
-            # UserMessageRequest 구조에 맞춰 데이터 추출
-            user = UserMessageRequest(**json_data)
+            # UserMessageRequest 구조에 맞춰 데이터 추출하기 전에 chatState를 명시적으로 처리
+            chatState_str = json_data.get("chatState")
+            from app.schemas.enum import ChatState as ChatStateEnum
+            try:
+                processed_chatState = ChatStateEnum(chatState_str)
+            except ValueError:
+                print(f"⚠️ Invalid chatState received from JSON: {chatState_str}. Defaulting to GENERATING_QUESTION_WITH_RAG")
+                processed_chatState = ChatStateEnum.GENERATING_QUESTION_WITH_RAG
+            
+            # UserMessageRequest 객체를 생성
+            # chatState 필드를 이미 처리된 processed_chatState로 설정
+            user_data = {
+                "userId": json_data.get("userId"),
+                "bookId": json_data.get("bookId"),
+                "sender": json_data.get("sender", "USER"),
+                "content": json_data.get("content", ""),
+                "messageType": json_data.get("messageType", "TEXT"),
+                "chatState": processed_chatState # 이미 enum 인스턴스
+            }
+            user = UserMessageRequest(**user_data)
+            
             userId = user.userId
             bookId = user.bookId
             content = user.content
-            chatState = user.chatState.value
+            chatState = user.chatState # 이미 enum 인스턴스이므로 .value 필요 없음
             temp_pdf_path = "/app/javajungsuk4_sample.pdf"  # 기본 PDF 사용
 
             print(f"📋 JSON 데이터: userId={userId}, bookId={bookId}, content='{content}'")
@@ -350,8 +369,8 @@ async def handle_generating_question(request: Request):
                     content = f"{question}"
                     print(f"⚠️ 선택지가 없어 주관식으로 생성됨")
                 
-                # 정답 정보를 세션에 저장
                 current_question_answer = {
+                    "question": question, # Add the question text
                     "answer": answer,
                     "explanation": explanation
                 }
@@ -473,6 +492,7 @@ async def handle_generating_additional_question(user: UserMessageRequest):
         # 추가 문제의 정답 정보도 저장
         if isinstance(result, dict) and result.get("success", False):
             current_question_answer = {
+                "question": question, # Add the question text
                 "answer": result.get("correct_answer", ""),
                 "explanation": result.get("explanation", "")
             }
