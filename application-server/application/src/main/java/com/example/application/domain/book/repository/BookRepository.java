@@ -1,6 +1,5 @@
 package com.example.application.domain.book.repository;
 
-import com.example.application.domain.book.dto.response.BookSummaryResponseDto;
 import com.example.application.domain.book.entity.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 
