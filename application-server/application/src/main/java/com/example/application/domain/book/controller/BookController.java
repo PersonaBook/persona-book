@@ -4,7 +4,7 @@ import com.example.application.domain.book.dto.request.BookUploadRequestDto;
 import com.example.application.domain.book.dto.response.BookDetailResponseDto;
 import com.example.application.domain.book.dto.response.BookSummaryResponseDto;
 import com.example.application.domain.book.service.BookService;
-import com.example.application.global.dto.ApiResponseDto;
+import com.example.application.global.common.dto.ApiResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

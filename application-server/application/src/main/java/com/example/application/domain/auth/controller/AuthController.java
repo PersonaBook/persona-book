@@ -4,7 +4,7 @@ import com.example.application.domain.auth.dto.TokenDto;
 import com.example.application.domain.auth.dto.request.*;
 import com.example.application.domain.auth.dto.response.AuthResponseDto;
 import com.example.application.domain.auth.service.AuthService;
-import com.example.application.global.dto.ApiResponseDto;
+import com.example.application.global.common.dto.ApiResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

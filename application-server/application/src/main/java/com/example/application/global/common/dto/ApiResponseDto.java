@@ -1,4 +1,4 @@
-package com.example.application.global.dto;
+package com.example.application.global.common.dto;
 
 import com.example.application.global.exception.ErrorCode;
 import lombok.AccessLevel;
