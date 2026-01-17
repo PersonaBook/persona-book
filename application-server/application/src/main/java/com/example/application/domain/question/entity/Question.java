@@ -2,17 +2,16 @@ package com.example.application.domain.question.entity;
 
 import com.example.application.domain.book.entity.Book;
 import com.example.application.domain.user.entity.User;
+import com.example.application.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "question")
-public class Question {
+public class Question extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,20 +43,4 @@ public class Question {
     @Column(name = "correct_answer")
     private String correctAnswer;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    // ─────────────── 라이프사이클 메서드 ───────────────
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

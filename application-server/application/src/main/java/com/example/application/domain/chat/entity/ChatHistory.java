@@ -5,10 +5,9 @@ import com.example.application.domain.user.entity.User;
 import com.example.application.domain.chat.type.ChatState;
 import com.example.application.domain.chat.type.MessageType;
 import com.example.application.domain.chat.type.Sender;
+import com.example.application.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "chat_history")
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatHistory {
+public class ChatHistory extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,20 +47,4 @@ public class ChatHistory {
     @Column(name = "chat_state")
     private ChatState chatState;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    // ─────────────── 라이프사이클 메서드 ───────────────
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

@@ -2,6 +2,7 @@ package com.example.application.domain.book.entity;
 
 import com.example.application.domain.user.entity.User;
 import com.example.application.domain.book.type.EmbeddingState;
+import com.example.application.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "book")
-public class Book {
+public class Book extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,12 +32,6 @@ public class Book {
     @Column(name = "file_base64", columnDefinition = "LONGTEXT")
     private String fileBase64;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     @Column(name = "embedding_completed_at")
     private LocalDateTime embeddingCompletedAt;
 
@@ -48,17 +43,9 @@ public class Book {
     // ─────────────── 라이프사이클 메서드 (자동 실행) ───────────────
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-
         if (embeddingState == null) {
             embeddingState = EmbeddingState.PENDING;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 
 
