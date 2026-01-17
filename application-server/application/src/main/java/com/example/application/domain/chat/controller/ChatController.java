@@ -5,7 +5,7 @@ import com.example.application.domain.chat.dto.UserMessageDto;
 import com.example.application.domain.chat.dto.response.ChatHistoryResponseDto;
 import com.example.application.domain.chat.service.ChatHistoryService;
 import com.example.application.domain.chat.service.ChatService;
-import com.example.application.global.dto.ApiResponseDto;
+import com.example.application.global.common.dto.ApiResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

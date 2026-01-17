@@ -1,12 +1,12 @@
 package com.example.application.domain.user.entity;
 
 import com.example.application.domain.user.dto.request.UserProfileUpdateRequestDto;
+import com.example.application.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "user")
-public class User {
+public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,24 +38,6 @@ public class User {
 
     @Column(name = "job")
     private String job;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    // ─────────────── 라이프사이클 메서드 ───────────────
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     // ─────────────── 비즈니스 메서드 (Setter 대체) ───────────────
     public void resetPassword(String newPassword) {

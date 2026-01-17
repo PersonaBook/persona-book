@@ -36,7 +36,6 @@ public class ChatHistoryService {
                 .content(dto.getContent())
                 .messageType(dto.getMessageType())
                 .chatState(chatState)
-                .createdAt(LocalDateTime.now())
                 .build();
 
         chatHistoryRepository.save(history);
@@ -50,7 +49,6 @@ public class ChatHistoryService {
                 .content(dto.getContent())
                 .messageType(dto.getMessageType())
                 .chatState(chatState)
-                .createdAt(LocalDateTime.now())
                 .build();
 
         chatHistoryRepository.save(history);

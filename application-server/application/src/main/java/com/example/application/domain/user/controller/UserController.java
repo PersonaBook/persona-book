@@ -3,7 +3,7 @@ package com.example.application.domain.user.controller;
 import com.example.application.domain.user.dto.request.UserProfileUpdateRequestDto;
 import com.example.application.domain.user.dto.response.UserProfileResponseDto;
 import com.example.application.domain.user.service.UserService;
-import com.example.application.global.dto.ApiResponseDto;
+import com.example.application.global.common.dto.ApiResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

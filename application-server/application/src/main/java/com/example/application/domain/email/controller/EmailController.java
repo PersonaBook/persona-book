@@ -3,7 +3,7 @@ package com.example.application.domain.email.controller;
 import com.example.application.domain.email.dto.EmailRequestDto;
 import com.example.application.domain.email.dto.EmailVerifyRequestDto;
 import com.example.application.domain.email.service.EmailService;
-import com.example.application.global.dto.ApiResponseDto;
+import com.example.application.global.common.dto.ApiResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

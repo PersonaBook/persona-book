@@ -1,6 +1,6 @@
 package com.example.application.global.exception;
 
-import com.example.application.global.dto.ApiResponseDto;
+import com.example.application.global.common.dto.ApiResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
